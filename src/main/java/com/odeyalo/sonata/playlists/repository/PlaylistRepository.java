@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.model.Playlist;
+import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
 /**
@@ -12,6 +13,7 @@ public interface PlaylistRepository {
      * @param playlist - playlist to save
      * @return saved playlist
      */
+    @NotNull
     Mono<Playlist> save(Playlist playlist);
 
     /**
@@ -19,11 +21,13 @@ public interface PlaylistRepository {
      * @param id - id to use for search
      * @return - found Playlist or empty mono
      */
+    @NotNull
     Mono<Playlist> findById(String id);
 
     /**
      * Clear the repository. Commonly used in tests
      * @return - empty mono
      */
+    @NotNull
     Mono<Void> clear();
 }
