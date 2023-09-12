@@ -19,4 +19,13 @@ public class Playlist {
     PlaylistType playlistType;
     @Builder.Default
     EntityType type = PLAYLIST;
+
+    public static PlaylistBuilder from(Playlist playlist) {
+        return builder()
+                .id(playlist.getId())
+                .name(playlist.getName())
+                .description(playlist.getDescription())
+                .playlistType(playlist.getPlaylistType())
+                .type(playlist.getType());
+    }
 }
