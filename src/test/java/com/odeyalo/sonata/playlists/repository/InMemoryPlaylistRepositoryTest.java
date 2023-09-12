@@ -33,6 +33,31 @@ class InMemoryPlaylistRepositoryTest {
     }
 
     @Test
+    void shouldAutoGenerateIdForEntity() {
+        Playlist playlist = PlaylistFaker.create().setId(null).get();
+        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
+
+        Playlist saved = repository.save(playlist).block();
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.getId()).isNotNull();
+    }
+
+    @Test
+    void shouldAutoGenerateIdForEntity_andThenEntityCanBeFoundWithIt() {
+        Playlist playlist = PlaylistFaker.create().setId(null).get();
+        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
+
+        Playlist saved = repository.save(playlist).block();
+
+        assertThat(saved).isNotNull();
+
+        Playlist found = repository.findById(saved.getId()).block();
+
+        assertThat(saved).isEqualTo(found);
+    }
+
+    @Test
     void findByNotExistingId_andExpectNull() {
         // given
         InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
