@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.model.Playlist;
+import org.apache.commons.lang.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -13,13 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class InMemoryPlaylistRepository implements PlaylistRepository {
-    Map<String, Playlist> playlists = new ConcurrentHashMap<>();
+    private final Map<String, Playlist> playlists = new ConcurrentHashMap<>();
 
     @Override
     @NotNull
     public Mono<Playlist> save(Playlist playlist) {
-        return Mono.fromRunnable(() -> playlists.put(playlist.getId(), playlist))
-                .thenReturn(playlist);
+        return Mono.fromCallable(() -> doSave(playlist));
     }
 
     @Override
@@ -31,7 +31,24 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
     @Override
     @NotNull
     public Mono<Void> clear() {
-        return Mono.fromRunnable(() -> playlists.clear());
+        return Mono.fromRunnable(playlists::clear);
     }
 
+
+    private Playlist doSave(Playlist playlist) {
+        Playlist withId = updateWithIdOrNothing(playlist);
+        playlists.put(withId.getId(), withId);
+        return withId;
+    }
+
+    private Playlist updateWithIdOrNothing(Playlist playlist) {
+        String id = playlist.getId();
+
+        if (id == null) {
+            id = RandomStringUtils.randomAlphanumeric(15);
+            playlist = Playlist.from(playlist).id(id).build();
+        }
+
+        return playlist;
+    }
 }

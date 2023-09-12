@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
         repositoryRoot = "${spring.contracts.repository.root}",
         ids = "com.odeyalo.sonata:authorization:+")
 @TestPropertySource(locations = "classpath:application-test.properties")
-public class FetchPlaylistPlaylistControllerTest {
+public class FetchPlaylistEndpointTest {
     @Autowired
     WebTestClient webTestClient;
 
