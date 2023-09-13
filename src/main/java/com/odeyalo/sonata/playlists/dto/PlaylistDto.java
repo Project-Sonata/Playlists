@@ -25,4 +25,5 @@ public class PlaylistDto {
     PlaylistType playlistType;
     @JsonProperty("type")
     EntityType type;
+    ImagesDto images;
 }

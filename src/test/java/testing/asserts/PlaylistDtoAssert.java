@@ -40,4 +40,8 @@ public class PlaylistDtoAssert extends AbstractAssert<PlaylistDtoAssert, Playlis
     public PlaylistTypeAssert playlistType() {
         return new PlaylistTypeAssert(actual.getPlaylistType());
     }
+
+    public ImagesDtoAssert images() {
+        return new ImagesDtoAssert(actual.getImages());
+    }
 }
