@@ -82,10 +82,6 @@ public class CreatePlaylistEndpointTest {
             PlaylistDtoAssert.forPlaylist(playlistDto).name().isEqualTo("I love miku!");
         }
 
-        private PlaylistDto fetchPlaylist(PlaylistDto responseBody) {
-            return playlistHttpClient.fetchPlaylist(VALID_ACCESS_TOKEN, responseBody.getId());
-        }
-
         @Test
         void shouldReturnSavedPlaylistWithNameProvidedInRequest() {
             CreatePlaylistRequest body = CreatePlaylistRequest.withName("I love miku!");
@@ -113,11 +109,24 @@ public class CreatePlaylistEndpointTest {
             PlaylistDtoAssert.forPlaylist(responseBody).playlistType().isPublic();
         }
 
+        @Test
+        void shouldReturnEmptyImagesSizeInResponse() {
+            CreatePlaylistRequest body = CreatePlaylistRequest.of("I love miku!", PlaylistType.PUBLIC);
+
+            PlaylistDto responseBody = sendRequest(body).expectBody(PlaylistDto.class).returnResult().getResponseBody();
+
+            PlaylistDtoAssert.forPlaylist(responseBody).images().length(0);
+        }
+
         @NotNull
         private WebTestClient.ResponseSpec prepareAndSend() {
             CreatePlaylistRequest body = CreatePlaylistRequest.withName("I love miku!");
             return sendRequest(body);
         }
+    }
+
+    private PlaylistDto fetchPlaylist(PlaylistDto responseBody) {
+        return playlistHttpClient.fetchPlaylist(VALID_ACCESS_TOKEN, responseBody.getId());
     }
 
     @NotNull
