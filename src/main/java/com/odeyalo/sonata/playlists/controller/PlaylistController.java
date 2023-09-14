@@ -52,9 +52,22 @@ public class PlaylistController {
                 .map(PlaylistController::defaultCreatedStatus);
     }
 
+    @GetMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable String playlistId) {
+
+        return playlistRepository.findById(playlistId)
+                .map(PlaylistController::convertToImagesDto)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(unprocessableEntity().build());
+    }
+
+    private static ImagesDto convertToImagesDto(Playlist playlist) {
+        return ImagesDto.of(getOrEmptyImages(playlist).stream().map(image -> ImageDto.of(image.getUrl(), image.getWidth(), image.getHeight())).toList());
+    }
+
     @PostMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Object>> playlistImageUpload(@PathVariable String playlistId,
-                                                       @RequestPart("image") Mono<FilePart> file) {
+                                                            @RequestPart("image") Mono<FilePart> file) {
 
         return playlistRepository.findById(playlistId)
                 .zipWith(imageUploader.uploadImage(file))
