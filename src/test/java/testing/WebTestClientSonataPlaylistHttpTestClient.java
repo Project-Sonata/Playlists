@@ -3,7 +3,9 @@ package testing;
 import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 /**
  * SonataPlaylistHttpTestClient that uses WebTestClient
@@ -32,5 +34,14 @@ public class WebTestClientSonataPlaylistHttpTestClient implements SonataPlaylist
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .bodyValue(body)
                 .exchange().expectBody(PlaylistDto.class).returnResult().getResponseBody();
+    }
+
+    @Override
+    public void addCoverImage(String authorizationHeader, String playlistId, MultipartBodyBuilder builder) {
+        webTestClient.post()
+                .uri("/playlist/{playlistId}/images", playlistId)
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .body(BodyInserters.fromMultipartData(builder.build()))
+                .exchange();
     }
 }
