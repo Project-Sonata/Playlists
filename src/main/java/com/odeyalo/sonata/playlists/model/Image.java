@@ -28,8 +28,8 @@ public class Image {
 
     public static Image of(@NotNull String url, @Nullable Integer width, @Nullable Integer height) {
         Asserts.validUrl(url);
-        Asserts.positive(width);
-        Asserts.positive(height);
+        Asserts.positiveOrNull(width);
+        Asserts.positiveOrNull(height);
         return new Image(url, width, height);
     }
 }
