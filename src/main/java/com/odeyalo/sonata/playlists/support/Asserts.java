@@ -16,18 +16,40 @@ public final class Asserts {
         }
     }
 
-    public static void positive(Integer num) {
+    public static void positiveOrNull(Integer num) {
+        if (num == null) {
+            return;
+        }
+        positive(num);
+    }
+
+    public static void negativeOrNull(Integer num) {
+        if (num == null) {
+            return;
+        }
+        negative(num);
+    }
+
+    public static void zeroOrNull(Integer num) {
+        if (num == null) {
+            return;
+        }
+        zero(num);
+    }
+
+    public static void positive(int num) {
         if (num <= 0) {
             throw new IllegalArgumentException("Expected positive number");
         }
     }
 
-    public static void negative(Integer num) {
+    public static void negative(int num) {
         if (num >= 0) {
             throw new IllegalArgumentException("Expected negative number");
         }
     }
-    public static void zero(Integer num) {
+
+    public static void zero(int num) {
         if (num != 0) {
             throw new IllegalArgumentException("Expected zero as argument");
         }

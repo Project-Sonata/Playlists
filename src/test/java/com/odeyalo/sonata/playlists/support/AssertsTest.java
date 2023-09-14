@@ -78,4 +78,72 @@ class AssertsTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Expected zero as argument");
     }
+
+    @Test
+    void positiveOrNullWithNullExpectNothing() {
+        assertThatCode(() -> Asserts.positiveOrNull(null)).doesNotThrowAnyException();
+    }
+    @Test
+    void positiveOrNullWithPositiveExpectNothing() {
+        assertThatCode(() -> Asserts.positiveOrNull(1)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void positiveOrNullWithNegativeExpectException() {
+        assertThatCode(() -> Asserts.positiveOrNull(-1))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expected positive number");
+    }
+    @Test
+    void positiveOrNullWithZeroExpectException() {
+        assertThatCode(() -> Asserts.positiveOrNull(0))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expected positive number");
+    }
+
+    @Test
+    void negativeOrNullWithNullExpectNothing() {
+        assertThatCode(() -> Asserts.negativeOrNull(null)).doesNotThrowAnyException();
+    }
+    @Test
+    void negativeOrNullWithNegativeExpectNothing() {
+        assertThatCode(() -> Asserts.negativeOrNull(-1)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void negativeOrNullWithPositiveExpectException() {
+        assertThatCode(() -> Asserts.negativeOrNull(1))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expected negative number");
+    }
+
+    @Test
+    void negativeOrNullWithZeroExpectException() {
+        assertThatCode(() -> Asserts.negativeOrNull(0))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expected negative number");
+    }
+
+    @Test
+    void zeroOrNullWithNullExpectNothing() {
+        assertThatCode(() -> Asserts.zeroOrNull(null)).doesNotThrowAnyException();
+    }
+    @Test
+    void zeroOrNullWithZeroExpectNothing() {
+        assertThatCode(() -> Asserts.zeroOrNull(0)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void zeroOrNullWithPositiveExpectException() {
+        assertThatCode(() -> Asserts.zeroOrNull(1))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expected zero as argument");
+    }
+
+    @Test
+    void zeroOrNullWithNegativeExpectException() {
+        assertThatCode(() -> Asserts.zeroOrNull(-1))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expected zero as argument");
+    }
 }
