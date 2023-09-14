@@ -20,6 +20,10 @@ public class ImagesDtoAssert extends AbstractAssert<ImagesDtoAssert, ImagesDto> 
         return new ImagesDtoAssert(actual);
     }
 
+    public ImagesDtoAssert isEmpty() {
+        return length(0);
+    }
+
     public ImagesDtoAssert length(int expectedLength) {
         if (actual.size() != expectedLength) {
             throw failureWithActualExpected(actual.size(), expectedLength, "Expected size to be equal");
