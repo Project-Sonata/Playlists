@@ -1,9 +1,6 @@
 package com.odeyalo.sonata.playlists.controller;
 
-import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
-import com.odeyalo.sonata.playlists.dto.ImageDto;
-import com.odeyalo.sonata.playlists.dto.ImagesDto;
-import com.odeyalo.sonata.playlists.dto.PlaylistDto;
+import com.odeyalo.sonata.playlists.dto.*;
 import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
@@ -43,15 +40,6 @@ public class PlaylistController {
                 .defaultIfEmpty(default204Response());
     }
 
-    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body) {
-        Playlist playlist = convertToPlaylist(body);
-
-        return playlistRepository.save(playlist)
-                .map(PlaylistController::convertToDto)
-                .map(PlaylistController::defaultCreatedStatus);
-    }
-
     @GetMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable String playlistId) {
 
@@ -61,8 +49,13 @@ public class PlaylistController {
                 .defaultIfEmpty(unprocessableEntity().build());
     }
 
-    private static ImagesDto convertToImagesDto(Playlist playlist) {
-        return ImagesDto.of(getOrEmptyImages(playlist).stream().map(image -> ImageDto.of(image.getUrl(), image.getWidth(), image.getHeight())).toList());
+    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body) {
+        Playlist playlist = convertToPlaylist(body);
+
+        return playlistRepository.save(playlist)
+                .map(PlaylistController::convertToDto)
+                .map(PlaylistController::defaultCreatedStatus);
     }
 
     @PostMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -80,6 +73,34 @@ public class PlaylistController {
                 })
                 .map(playlist -> accepted().build())
                 .defaultIfEmpty(unprocessableEntity().build());
+    }
+
+    @PatchMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Object>> updatePlaylistDetails(@PathVariable String playlistId, @RequestBody PartialPlaylistDetailsUpdateRequest body) {
+        return playlistRepository.findById(playlistId)
+                .map(playlist -> {
+                    Playlist.PlaylistBuilder builder = Playlist.from(playlist);
+
+                    if (body.getName() != null) {
+                        builder.name(body.getName());
+                    }
+
+                    if (body.getDescription() != null) {
+                        builder.description(body.getDescription());
+                    }
+
+                    if (body.getPlaylistType() != null) {
+                        builder.playlistType(body.getPlaylistType());
+                    }
+
+                    return builder.build();
+                }).flatMap(playlistRepository::save)
+                .map(playlist -> noContent().build())
+                .defaultIfEmpty(unprocessableEntity().build());
+    }
+
+    private static ImagesDto convertToImagesDto(Playlist playlist) {
+        return ImagesDto.of(getOrEmptyImages(playlist).stream().map(image -> ImageDto.of(image.getUrl(), image.getWidth(), image.getHeight())).toList());
     }
 
     private static Playlist convertToPlaylist(CreatePlaylistRequest body) {
