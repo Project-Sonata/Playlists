@@ -11,9 +11,10 @@ import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
  */
 public class PlaylistTypeAssert extends AbstractAssert<PlaylistTypeAssert, PlaylistType> {
 
-    public  PlaylistTypeAssert(PlaylistType actual) {
+    public PlaylistTypeAssert(PlaylistType actual) {
         super(actual, PlaylistTypeAssert.class);
     }
+
     protected PlaylistTypeAssert(PlaylistType actual, Class<?> selfType) {
         super(actual, selfType);
     }
@@ -28,7 +29,7 @@ public class PlaylistTypeAssert extends AbstractAssert<PlaylistTypeAssert, Playl
 
     protected PlaylistTypeAssert playlistTypeAssert(PlaylistType expected) {
         if (actual != expected) {
-            throw failureWithActualExpected(actual, expected, "Expected playlist to be: [%s]", expected.name());
+            throw failureWithActualExpected(actual, expected, "Expected playlist to be: [%s] but was: [%s]", expected.name(), actual);
         }
         return this;
     }
