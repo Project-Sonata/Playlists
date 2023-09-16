@@ -12,7 +12,8 @@ import lombok.experimental.FieldDefaults;
 public class CreatePlaylistRequest {
     String name;
     String description;
-    PlaylistType type;
+    @Builder.Default
+    PlaylistType type = PlaylistType.PRIVATE;
 
     public static CreatePlaylistRequest withName(String name) {
         return builder().name(name).build();

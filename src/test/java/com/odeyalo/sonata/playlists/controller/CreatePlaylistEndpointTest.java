@@ -110,6 +110,15 @@ public class CreatePlaylistEndpointTest {
         }
 
         @Test
+        void shouldSetDefaultPlaylistTypeIfProvidedIsNull() {
+            CreatePlaylistRequest body = CreatePlaylistRequest.withName("I love Miku!");
+
+            PlaylistDto responseBody = sendRequest(body).expectBody(PlaylistDto.class).returnResult().getResponseBody();
+
+            PlaylistDtoAssert.forPlaylist(responseBody).playlistType().isPrivate();
+        }
+
+        @Test
         void shouldReturnEmptyImagesSizeInResponse() {
             CreatePlaylistRequest body = CreatePlaylistRequest.of("I love miku!", PlaylistType.PUBLIC);
 
