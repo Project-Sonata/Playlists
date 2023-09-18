@@ -38,7 +38,7 @@ public class FetchPlaylistEndpointTest {
 
     @BeforeEach
     void prepare() {
-        Playlist playlist = PlaylistFaker.create().get();
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
 
         existingPlaylist = playlistRepository.save(playlist).block();
     }
