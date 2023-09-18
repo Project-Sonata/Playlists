@@ -1,6 +1,6 @@
 --  SQL script to create playlist table with postgres dialect
 CREATE TABLE playlists (
-    playlist_id INTEGER PRIMARY KEY,
+    playlist_id SERIAL PRIMARY KEY,
     public_id VARCHAR(22) UNIQUE NOT NULL,
     playlist_name VARCHAR(150) NOT NULL,
     playlist_description VARCHAR (400),
