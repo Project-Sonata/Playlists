@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
  */
 public interface PlaylistRepository {
     /**
-     * Save the given playlist to the repository
+     * Save or update the given playlist to the repository
      * @param playlist - playlist to save
      * @return saved playlist
      */

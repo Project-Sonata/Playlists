@@ -1,8 +1,11 @@
 package com.odeyalo.sonata.playlists.repository;
 
+import com.odeyalo.sonata.playlists.model.Image;
+import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.AutoConfigureDataR
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import testing.asserts.PlaylistTypeAssert;
+import testing.faker.PlaylistFaker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
@@ -29,6 +33,25 @@ class R2dbcPlaylistRepositoryTest {
     void tearDown() {
         r2dbcPlaylistRepository.clear().block();
     }
+
+    @Test
+    void test() {
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
+
+        Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
+
+        Playlist updated = Playlist.from(saved).images(Images.of(Image.builder().url("https://cdn.sonata.com/i/something").build())).build();
+
+        r2dbcPlaylistRepository.save(updated).block();
+
+        Playlist foundById = r2dbcPlaylistRepository.findById(saved.getId()).block();
+
+        assertThat(foundById).isNotNull();
+        assertThat(foundById.getImages()).isNotNull();
+        assertThat(foundById.getImages().isEmpty()).isFalse();
+    }
+
+
 
     @Test
     void shouldNotThrowAnyException() {
