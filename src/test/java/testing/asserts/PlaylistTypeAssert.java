@@ -19,6 +19,10 @@ public class PlaylistTypeAssert extends AbstractAssert<PlaylistTypeAssert, Playl
         super(actual, selfType);
     }
 
+    public static PlaylistTypeAssert from(PlaylistType actual) {
+        return new PlaylistTypeAssert(actual);
+    }
+
     public PlaylistTypeAssert isPublic() {
         return playlistTypeAssert(PUBLIC);
     }

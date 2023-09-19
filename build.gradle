@@ -24,6 +24,7 @@ repositories {
 
 ext {
     set('springCloudVersion', "2022.0.4")
+    set("javaFakerVersion", "1.0.2")
 }
 
 dependencies {
@@ -31,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.jetbrains:annotations:23.0.0'
+    implementation('org.flywaydb:flyway-core')
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'org.postgresql:r2dbc-postgresql'
@@ -43,7 +45,7 @@ dependencies {
     testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-verifier'
     testImplementation 'org.springframework.cloud:spring-cloud-contract-stub-runner'
     testImplementation 'io.r2dbc:r2dbc-h2'
-    testImplementation 'com.github.javafaker:javafaker:1.0.2'
+    testImplementation "com.github.javafaker:javafaker:${javaFakerVersion}"
 
 }
 

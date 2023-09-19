@@ -31,6 +31,10 @@ public class PlaylistFaker {
         return new PlaylistFaker();
     }
 
+    public static PlaylistFaker createWithNoId() {
+        return new PlaylistFaker().setId(null);
+    }
+
     public Playlist get() {
         return Playlist.builder()
                 .id(id)
