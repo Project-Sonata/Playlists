@@ -114,6 +114,33 @@ public class PlaylistImageUploadEndpointTest {
             PlaylistDtoAssert.forPlaylist(fetched).images().peekFirst().url().isNotNull();
         }
 
+        @Test
+        void updateImageSeveralTimesAndExpectOnlyOneImageInResponse() {
+            String playlistId = existingPlaylist.getId();
+            // when
+            sendRequest(playlistId);
+            sendRequest(playlistId);
+            sendRequest(playlistId);
+            // then
+            PlaylistDto fetched = fetchPlaylist(playlistId);
+            PlaylistDtoAssert.forPlaylist(fetched).images().length(1);
+        }
+
+        @Test
+        void shouldChangeOnlyImageAndNothingElse() {
+            String playlistId = existingPlaylist.getId();
+            // when
+            sendRequest(playlistId);
+            // then
+            PlaylistDto fetched = fetchPlaylist(playlistId);
+
+            PlaylistDtoAssert.forPlaylist(fetched).images().peekFirst().url().isNotNull();
+            PlaylistDtoAssert.forPlaylist(fetched).id().isEqualTo(existingPlaylist.getId());
+            PlaylistDtoAssert.forPlaylist(fetched).name().isEqualTo(existingPlaylist.getName());
+            PlaylistDtoAssert.forPlaylist(fetched).description().isEqualTo(existingPlaylist.getDescription());
+            PlaylistDtoAssert.forPlaylist(fetched).playlistType().isEqualTo(existingPlaylist.getPlaylistType());
+        }
+
         private WebTestClient.ResponseSpec prepareAndSend() {
             return sendRequest(existingPlaylist.getId());
         }

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -26,7 +27,8 @@ public class R2dbcPlaylistEntity implements PlaylistEntity, Persistable<Long> {
     String playlistDescription;
     PlaylistType playlistType = PlaylistType.PRIVATE;
     @Transient
-    List<PlaylistImage> images;
+    @Builder.Default
+    List<PlaylistImage> images = new ArrayList<>();
 
     @Override
     public boolean isNew() {
