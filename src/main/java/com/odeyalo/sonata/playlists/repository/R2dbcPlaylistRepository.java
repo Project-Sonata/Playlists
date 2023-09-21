@@ -16,10 +16,10 @@ import reactor.util.function.Tuples;
 import java.util.Collections;
 import java.util.List;
 
-import static reactor.core.publisher.Mono.defer;
 
 /**
  * PlaylistRepository that save the data using R2DBC
+ *
  * @see PlaylistRepository for furher information
  */
 @Component
@@ -56,6 +56,14 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .mapNotNull(tuple -> convertToPlaylistWithImages(tuple.getT1(), tuple.getT2()));
     }
 
+    @Override
+    @NotNull
+    public Mono<Void> clear() {
+        return playlistImagesRepository.deleteAll()
+                .thenEmpty(r2dbcImageEntityRepository.deleteAll())
+                .thenEmpty(r2dbcRepositoryDelegate.deleteAll());
+    }
+
     @NotNull
     private Mono<Tuple2<R2dbcPlaylistEntity, List<R2dbcImageEntity>>> findAndEnhancePlaylistImages(R2dbcPlaylistEntity playlist) {
         return playlistImagesRepository.findAllByPlaylistId(playlist.getId())
@@ -63,15 +71,6 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .collectList()
                 .defaultIfEmpty(Collections.emptyList())
                 .map(images -> Tuples.of(playlist, images));
-    }
-
-    @SuppressWarnings("Convert2MethodRef")
-    @Override
-    @NotNull
-    public Mono<Void> clear() {
-        return playlistImagesRepository.deleteAll()
-                .and(defer(() -> r2dbcImageEntityRepository.deleteAll()))
-                .and(defer(() -> r2dbcRepositoryDelegate.deleteAll()));
     }
 
     @NotNull
@@ -93,21 +92,25 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
         List<R2dbcImageEntity> entities = getImageEntities(playlist);
 
-        if (playlist.getImages().isEmpty()) {
-            Mono<List<PlaylistImage>> savedImages = saveImages(parent, entities);
-            return savedImages.doOnNext(entity::setImages).flatMap(toSave -> r2dbcRepositoryDelegate.save(entity));
-        }
-
-        return r2dbcRepositoryDelegate.save(entity);
-
+        Mono<List<PlaylistImage>> savedImages = saveImages(parent, entities);
+        return savedImages.doOnNext(entity::setImages).flatMap(toSave -> r2dbcRepositoryDelegate.save(entity));
     }
 
     @NotNull
     private Mono<List<PlaylistImage>> saveImages(R2dbcPlaylistEntity parent, List<R2dbcImageEntity> entities) {
         return Flux.fromIterable(entities)
+                .filterWhen(this::isImageExist)
+                .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(parent.getId()).thenReturn(entity))
                 .flatMap(r2dbcImageEntityRepository::save)
                 .flatMap(imageEntity -> buildAndSave(parent, imageEntity))
                 .collectList();
+    }
+
+    @NotNull
+    private Mono<Boolean> isImageExist(R2dbcImageEntity entity) {
+        return r2dbcImageEntityRepository.findByUrl(entity.getUrl())
+                .map(e -> false)
+                .defaultIfEmpty(true);
     }
 
     @NotNull
