@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.ImagesDtoAssert;
@@ -35,6 +36,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class FetchPlaylistCoverImageEndpointTest {
 
+    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
@@ -46,6 +48,11 @@ public class FetchPlaylistCoverImageEndpointTest {
 
     String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
     String VALID_USER_ID = "1";
+
+    @BeforeAll
+    void setup() {
+        Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
+    }
 
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -187,6 +194,26 @@ public class FetchPlaylistCoverImageEndpointTest {
         @NotNull
         private WebTestClient.ResponseSpec prepareAndSend() {
             return sendRequest("not_existing");
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UnauthorizedRequestTests {
+
+        @Test
+        void shouldReturn401() {
+            WebTestClient.ResponseSpec responseSpec = sendUnauthorizedRequest("not_existing");
+
+            responseSpec.expectStatus().isUnauthorized();
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendUnauthorizedRequest(String playlistId) {
+            return webTestClient.get()
+                    .uri("/playlist/{playlistId}/images", playlistId)
+                    .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
+                    .exchange();
         }
     }
 

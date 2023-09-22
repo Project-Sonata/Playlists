@@ -3,6 +3,7 @@ package com.odeyalo.sonata.playlists.controller;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -11,6 +12,7 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Hooks;
 import testing.asserts.PlaylistDtoAssert;
 import testing.faker.PlaylistFaker;
 
@@ -26,6 +28,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
         ids = "com.odeyalo.sonata:authorization:+")
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class FetchPlaylistEndpointTest {
+    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
@@ -35,6 +38,12 @@ public class FetchPlaylistEndpointTest {
     PlaylistRepository playlistRepository;
 
     Playlist existingPlaylist;
+
+
+    @BeforeAll
+    void setup() {
+        Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
+    }
 
     @BeforeEach
     void prepare() {
@@ -129,6 +138,26 @@ public class FetchPlaylistEndpointTest {
 
         private WebTestClient.ResponseSpec prepareAndSend() {
             return sendRequest("iLoveMiku");
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UnauthorizedRequestTests {
+
+        @Test
+        void shouldReturn401() {
+            WebTestClient.ResponseSpec responseSpec = sendUnauthorizedRequest("not_existing");
+
+            responseSpec.expectStatus().isUnauthorized();
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendUnauthorizedRequest(String playlistId) {
+            return webTestClient.get()
+                    .uri("/playlist/{id}", playlistId)
+                    .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
+                    .exchange();
         }
     }
 

@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
+import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
@@ -10,10 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
+import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
@@ -33,6 +36,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
         ids = "com.odeyalo.sonata:authorization:+")
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class PlaylistImageUploadEndpointTest {
+    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
@@ -47,6 +51,11 @@ public class PlaylistImageUploadEndpointTest {
     final String VALID_USER_ID = "1";
 
     final String PLAYLIST_COVER_IMAGE_SOURCE = "images/playlist_cover_450kb_w564_h398.png";
+
+    @BeforeAll
+    void setup() {
+        Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
+    }
 
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -166,6 +175,34 @@ public class PlaylistImageUploadEndpointTest {
             return sendRequest("not_existing");
         }
     }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UnauthorizedRequestTests {
+
+        @Test
+        void shouldReturn401() {
+            PartialPlaylistDetailsUpdateRequest body = PartialPlaylistDetailsUpdateRequest.nameOnly("New name");
+
+            WebTestClient.ResponseSpec responseSpec = sendUnauthorizedRequest("ignored");
+
+            responseSpec.expectStatus().isUnauthorized();
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendUnauthorizedRequest(String playlistId) {
+            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+
+            builder.part("image", new ClassPathResource(PLAYLIST_COVER_IMAGE_SOURCE))
+                    .filename("playlist_cover.png");
+
+            return webTestClient.post()
+                    .uri("/playlist/{playlistId}/images", playlistId)
+                    .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
+                    .body(BodyInserters.fromMultipartData(builder.build()))
+                    .exchange();}
+    }
+
 
     @NotNull
     private WebTestClient.ResponseSpec sendRequest(String playlistId) {
