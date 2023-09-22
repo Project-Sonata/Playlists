@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
@@ -34,6 +35,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class PartialPlaylistUpdateEndpointTest {
 
+    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
@@ -45,6 +47,11 @@ public class PartialPlaylistUpdateEndpointTest {
 
     String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
     String VALID_USER_ID = "1";
+
+    @BeforeAll
+    void setup() {
+        Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
+    }
 
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -256,6 +263,29 @@ public class PartialPlaylistUpdateEndpointTest {
 
             responseSpec.expectStatus().isEqualTo(UNPROCESSABLE_ENTITY);
         }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UnauthorizedRequestTests {
+
+        @Test
+        void shouldReturn401() {
+            PartialPlaylistDetailsUpdateRequest body = PartialPlaylistDetailsUpdateRequest.nameOnly("New name");
+
+            WebTestClient.ResponseSpec responseSpec = sendUnauthorizedRequest(body, "ignored");
+
+            responseSpec.expectStatus().isUnauthorized();
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendUnauthorizedRequest(PartialPlaylistDetailsUpdateRequest body, String playlistId) {
+            return webTestClient.patch()
+                    .uri("/playlist/{playlistId}", playlistId)
+                    .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .exchange();        }
     }
 
     @NotNull
