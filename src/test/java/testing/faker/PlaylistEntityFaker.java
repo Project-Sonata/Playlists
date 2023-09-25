@@ -1,7 +1,9 @@
 package testing.faker;
 
 import com.github.javafaker.Faker;
+import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -11,6 +13,7 @@ public class PlaylistEntityFaker {
     private String playlistName;
     private String playlistDescription;
     private PlaylistType playlistType;
+    private PlaylistOwnerEntity playlistOwner;
     private static final Faker faker = Faker.instance();
 
     public PlaylistEntityFaker(Long id, String publicId, String playlistName, String playlistDescription, PlaylistType playlistType) {
@@ -19,6 +22,7 @@ public class PlaylistEntityFaker {
         this.playlistName = playlistName;
         this.playlistDescription = playlistDescription;
         this.playlistType = playlistType;
+        this.playlistOwner = R2dbcPlaylistOwnerEntity.builder().publicId("something").displayName("odeyalo").build();
     }
 
     public static PlaylistEntityFaker create() {
@@ -46,6 +50,7 @@ public class PlaylistEntityFaker {
                 .playlistName(playlistName)
                 .playlistDescription(playlistDescription)
                 .playlistType(playlistType)
+                .playlistOwner(playlistOwner)
                 .build();
     }
 

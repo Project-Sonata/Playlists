@@ -1,12 +1,11 @@
 package com.odeyalo.sonata.playlists.repository;
 
-import com.odeyalo.sonata.playlists.entity.PlaylistImage;
-import com.odeyalo.sonata.playlists.entity.R2dbcImageEntity;
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.*;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,6 +26,8 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     private final R2dbcPlaylistRepositoryDelegate r2dbcRepositoryDelegate;
     private final PlaylistImagesRepository playlistImagesRepository;
     private final R2dbcImageEntityRepository r2dbcImageEntityRepository;
+    @Autowired
+    R2dbcPlaylistOwnerRepository r2DbcPlaylistOwnerRepository;
 
     public R2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate r2dbcRepositoryDelegate,
                                    PlaylistImagesRepository playlistImagesRepository,
@@ -39,21 +40,20 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @Override
     @NotNull
     public Mono<Playlist> save(Playlist playlist) {
-        String playlistId = playlist.getId();
 
-        if (playlistId == null) {
+        if (playlist.getId() == null) {
             return savePlaylist(playlist);
         }
 
-        return updatePlaylist(playlist, playlistId);
+        return updatePlaylist(playlist);
     }
 
     @Override
     @NotNull
     public Mono<Playlist> findById(String id) {
         return r2dbcRepositoryDelegate.findByPublicId(id)
-                .flatMap(this::findAndEnhancePlaylistImages)
-                .mapNotNull(tuple -> convertToPlaylistWithImages(tuple.getT1(), tuple.getT2()));
+                .flatMap(this::fulfillFoundEntity)
+                .mapNotNull(tuple -> convertToPlaylist(tuple.getT1(), tuple.getT2()));
     }
 
     @Override
@@ -62,6 +62,16 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
         return playlistImagesRepository.deleteAll()
                 .thenEmpty(r2dbcImageEntityRepository.deleteAll())
                 .thenEmpty(r2dbcRepositoryDelegate.deleteAll());
+    }
+
+    @NotNull
+    private Mono<Tuple2<R2dbcPlaylistEntity, List<R2dbcImageEntity>>> fulfillFoundEntity(R2dbcPlaylistEntity playlist) {
+        return r2DbcPlaylistOwnerRepository.findById(playlist.getPlaylistOwnerId())
+                .map(owner -> {
+                    playlist.setPlaylistOwner(owner);
+                    return playlist;
+                })
+                .flatMap(this::findAndEnhancePlaylistImages);
     }
 
     @NotNull
@@ -75,20 +85,35 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private Mono<Playlist> savePlaylist(Playlist playlist) {
-        return r2dbcRepositoryDelegate.save(createPlaylistEntity(playlist))
-                .map(R2dbcPlaylistRepository::convertEntityToPlaylist);
+
+        Mono<R2dbcPlaylistOwnerEntity> playlistOwner = r2DbcPlaylistOwnerRepository
+                .findByPublicId(playlist.getPlaylistOwner().getId())
+                .switchIfEmpty(Mono.defer(() -> {
+                    R2dbcPlaylistOwnerEntity entity = R2dbcPlaylistOwnerEntity.builder()
+                            .publicId(playlist.getPlaylistOwner().getId())
+                            .displayName(playlist.getPlaylistOwner().getDisplayName())
+                            .build();
+                    return r2DbcPlaylistOwnerRepository.save(entity);
+                }));
+
+        return playlistOwner.flatMap(owner -> r2dbcRepositoryDelegate.save(createPlaylistEntity(playlist, owner.getId())))
+                .flatMap(this::fulfillFoundEntity)
+                .mapNotNull(tuple -> convertToPlaylist(tuple.getT1(), tuple.getT2()));
     }
 
     @NotNull
-    private Mono<Playlist> updatePlaylist(Playlist playlist, String playlistId) {
-        return r2dbcRepositoryDelegate.findByPublicId(playlistId)
+    private Mono<Playlist> updatePlaylist(Playlist playlist) {
+        return r2dbcRepositoryDelegate.findByPublicId(playlist.getId())
                 .flatMap(parent -> updatePlaylistEntity(playlist, parent))
                 .map(R2dbcPlaylistRepository::convertEntityToPlaylist);
     }
 
     @NotNull
     private Mono<R2dbcPlaylistEntity> updatePlaylistEntity(Playlist playlist, R2dbcPlaylistEntity parent) {
-        R2dbcPlaylistEntity entity = updatePlaylist(playlist).id(parent.getId()).build();
+        R2dbcPlaylistEntity entity = toPlaylistEntityBuilder(playlist)
+                .playlistOwner(parent.getPlaylistOwner())
+                .playlistOwnerId(parent.getPlaylistOwnerId())
+                .id(parent.getId()).build();
 
         List<R2dbcImageEntity> entities = getImageEntities(playlist);
 
@@ -99,7 +124,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @NotNull
     private Mono<List<PlaylistImage>> saveImages(R2dbcPlaylistEntity parent, List<R2dbcImageEntity> entities) {
         return Flux.fromIterable(entities)
-                .filterWhen(this::isImageExist)
+                .filterWhen(this::isImageNotExist)
                 .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(parent.getId()).thenReturn(entity))
                 .flatMap(r2dbcImageEntityRepository::save)
                 .flatMap(imageEntity -> buildAndSave(parent, imageEntity))
@@ -107,7 +132,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private Mono<Boolean> isImageExist(R2dbcImageEntity entity) {
+    private Mono<Boolean> isImageNotExist(R2dbcImageEntity entity) {
         return r2dbcImageEntityRepository.findByUrl(entity.getUrl())
                 .map(e -> false)
                 .defaultIfEmpty(true);
@@ -130,29 +155,30 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private static R2dbcPlaylistEntity createPlaylistEntity(Playlist playlist) {
+    private static R2dbcPlaylistEntity createPlaylistEntity(Playlist playlist, Long playlistOwnerId) {
         PlaylistType playlistType = playlist.getPlaylistType() != null ? playlist.getPlaylistType() : PlaylistType.PRIVATE;
         String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
 
         R2dbcPlaylistEntity.R2dbcPlaylistEntityBuilder builder = toPlaylistEntityBuilder(playlist);
 
-        return builder.publicId(playlistId).playlistType(playlistType).build();
+
+        return builder.publicId(playlistId)
+                .playlistOwnerId(playlistOwnerId)
+                .playlistType(playlistType)
+                .build();
     }
 
     @NotNull
-    private static R2dbcPlaylistEntity.R2dbcPlaylistEntityBuilder updatePlaylist(Playlist playlist) {
-        return toPlaylistEntityBuilder(playlist);
-    }
-
-    @NotNull
-    private Playlist convertToPlaylistWithImages(R2dbcPlaylistEntity entity, List<R2dbcImageEntity> imageEntities) {
+    private Playlist convertToPlaylist(R2dbcPlaylistEntity entity, List<R2dbcImageEntity> imageEntities) {
         List<Image> images = imageEntities.stream().map(R2dbcPlaylistRepository::toImage).toList();
 
-        return toPlaylistBuilder(entity).images(Images.of(images)).build();
+        PlaylistOwner owner = buildPlaylistOwner(entity);
+
+        return toPlaylistBuilder(entity).playlistOwner(owner).images(Images.of(images)).build();
     }
 
     @NotNull
-    private static Image toImage(R2dbcImageEntity image) {
+    private static Image toImage(ImageEntity image) {
         return Image.of(image.getUrl(), image.getWidth(), image.getHeight());
     }
 
@@ -178,6 +204,20 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .description(entity.getPlaylistDescription())
                 .type(EntityType.PLAYLIST)
                 .images(Images.empty())
+                .playlistOwner(createPlaylistOwnerOrNull(entity))
                 .playlistType(entity.getPlaylistType());
+    }
+
+    private static PlaylistOwner createPlaylistOwnerOrNull(R2dbcPlaylistEntity entity) {
+        if (entity.getPlaylistOwner() == null) {
+            return null;
+        }
+        return buildPlaylistOwner(entity);
+    }
+
+    private static PlaylistOwner buildPlaylistOwner(R2dbcPlaylistEntity entity) {
+        return PlaylistOwner.builder()
+                .id(entity.getPlaylistOwner().getPublicId())
+                .displayName(entity.getPlaylistOwner().getDisplayName()).build();
     }
 }

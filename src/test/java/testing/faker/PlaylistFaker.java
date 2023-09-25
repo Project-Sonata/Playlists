@@ -3,19 +3,18 @@ package testing.faker;
 import com.github.javafaker.Faker;
 import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * Create a faked {@link Playlist} that can be used in tests
  */
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlaylistFaker {
     private String id;
     private String name;
     private String description;
+    private PlaylistOwner playlistOwner;
     private PlaylistType playlistType;
 
     private Faker faker = Faker.instance();
@@ -25,6 +24,7 @@ public class PlaylistFaker {
         this.name = faker.name().title();
         this.description = faker.weather().description();
         this.playlistType = faker.options().option(PlaylistType.class);
+        this.playlistOwner = PlaylistOwnerFaker.create().get();
     }
 
     public static PlaylistFaker create() {
@@ -42,6 +42,7 @@ public class PlaylistFaker {
                 .description(description)
                 .playlistType(playlistType)
                 .type(EntityType.PLAYLIST)
+                .playlistOwner(playlistOwner)
                 .build();
     }
 

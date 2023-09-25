@@ -13,4 +13,6 @@ public interface PlaylistEntity {
 
     PlaylistType getPlaylistType();
 
+    PlaylistOwnerEntity getPlaylistOwner();
+
 }

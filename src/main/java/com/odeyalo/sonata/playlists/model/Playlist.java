@@ -18,6 +18,7 @@ public class Playlist {
     String description;
     PlaylistType playlistType;
     Images images;
+    PlaylistOwner playlistOwner;
     @Builder.Default
     EntityType type = PLAYLIST;
 
@@ -28,6 +29,7 @@ public class Playlist {
                 .description(playlist.getDescription())
                 .playlistType(playlist.getPlaylistType())
                 .images(playlist.getImages())
+                .playlistOwner(playlist.getPlaylistOwner())
                 .type(playlist.getType());
     }
 }

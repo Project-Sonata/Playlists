@@ -1,38 +1,36 @@
 package com.odeyalo.sonata.playlists.entity;
 
-import com.odeyalo.sonata.playlists.model.PlaylistType;
+import com.odeyalo.sonata.playlists.model.EntityType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "playlists")
-public class R2dbcPlaylistEntity implements PlaylistEntity, Persistable<Long> {
+@Table("playlist_owner")
+public class R2dbcPlaylistOwnerEntity implements PlaylistOwnerEntity, Persistable<Long> {
     @Id
-    @Column("playlist_id")
     Long id;
+    @NonNull
+    @NotNull
+    @Column("public_id")
     String publicId;
-    String playlistName;
-    String playlistDescription;
-    PlaylistType playlistType = PlaylistType.PRIVATE;
-    @Column("owner_id")
-    Long playlistOwnerId;
-    @Transient
+    @Nullable
+    @Column("display_name")
+    String displayName;
     @Builder.Default
-    List<PlaylistImage> images = new ArrayList<>();
-    @Transient
-    PlaylistOwnerEntity playlistOwner;
+    @NonNull
+    @NotNull
+    @Column("entity_type")
+    EntityType entityType = EntityType.USER;
 
     @Override
     public boolean isNew() {
