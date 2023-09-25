@@ -4,8 +4,10 @@ import com.odeyalo.sonata.playlists.dto.*;
 import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.service.upload.ImageUploader;
+import com.odeyalo.suite.security.auth.AuthenticatedUser;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -50,8 +52,8 @@ public class PlaylistController {
     }
 
     @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body) {
-        Playlist playlist = convertToPlaylist(body);
+    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
+        Playlist playlist = convertToPlaylist(body, authenticatedUser);
 
         return playlistRepository.save(playlist)
                 .map(PlaylistController::convertToDto)
@@ -103,11 +105,15 @@ public class PlaylistController {
         return ImagesDto.of(getOrEmptyImages(playlist).stream().map(image -> ImageDto.of(image.getUrl(), image.getWidth(), image.getHeight())).toList());
     }
 
-    private static Playlist convertToPlaylist(CreatePlaylistRequest body) {
+    private static Playlist convertToPlaylist(CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
         return Playlist.builder()
                 .name(body.getName())
                 .description(body.getDescription())
                 .playlistType(body.getType())
+                .playlistOwner(
+                        PlaylistOwner.builder()
+                        .id(authenticatedUser.getDetails().getId())
+                        .build())
                 .build();
     }
 
@@ -129,6 +135,10 @@ public class PlaylistController {
                 .description(playlist.getDescription())
                 .playlistType(playlist.getPlaylistType())
                 .type(PLAYLIST)
+                .owner(PlaylistOwnerDto.builder()
+                        .id(playlist.getPlaylistOwner().getId())
+                        .displayName(playlist.getPlaylistOwner().getDisplayName())
+                        .build())
                 .images(ImagesDto.of(images)).build();
     }
 

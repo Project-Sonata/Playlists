@@ -3,6 +3,7 @@ package com.odeyalo.sonata.playlists.repository;
 import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
@@ -51,17 +52,20 @@ class R2dbcPlaylistRepositoryTest {
         assertThat(foundById.getImages().isEmpty()).isFalse();
     }
 
-
-
     @Test
     void shouldNotThrowAnyException() {
-        Playlist playlist = Playlist.builder().name("This is my playlist name").build();
+        Playlist playlist = Playlist.builder().name("This is my playlist name")
+                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
+                .build();
         assertThatCode(() -> r2dbcPlaylistRepository.save(playlist).block()).doesNotThrowAnyException();
     }
 
     @Test
     void shouldGenerateId() {
-        Playlist playlist = Playlist.builder().name("This is my playlist name").build();
+        Playlist playlist = Playlist.builder()
+                .name("This is my playlist name")
+                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
+                .build();
         Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
 
         assertThat(saved).isNotNull();
@@ -146,7 +150,9 @@ class R2dbcPlaylistRepositoryTest {
 
     @Nullable
     private Playlist createAndSavePlaylist() {
-        Playlist playlist = Playlist.builder().name("Rock 2023").build();
+        Playlist playlist = Playlist.builder().name("Rock 2023")
+                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
+                .build();
         return r2dbcPlaylistRepository.save(playlist).block();
     }
 }

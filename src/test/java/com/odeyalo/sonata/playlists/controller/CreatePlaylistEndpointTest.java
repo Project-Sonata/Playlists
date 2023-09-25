@@ -35,14 +35,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class CreatePlaylistEndpointTest {
 
-    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
     @Autowired
     SonataPlaylistHttpTestClient playlistHttpClient;
 
-    String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    static final String VALID_USER_ID = "1";
+    static final String INVALID_TOKEN = "Bearer invalidtoken";
 
     @BeforeAll
     void setup() {
@@ -133,6 +134,33 @@ public class CreatePlaylistEndpointTest {
             PlaylistDto responseBody = sendRequest(body).expectBody(PlaylistDto.class).returnResult().getResponseBody();
 
             PlaylistDtoAssert.forPlaylist(responseBody).images().length(0);
+        }
+
+        @Test
+        void shouldReturnOwnerIdInResponse() {
+            CreatePlaylistRequest body = CreatePlaylistRequest.of("I love miku!", PlaylistType.PUBLIC);
+
+            PlaylistDto responseBody = sendRequest(body).expectBody(PlaylistDto.class).returnResult().getResponseBody();
+
+            PlaylistDtoAssert.forPlaylist(responseBody).owner().id().isEqualTo(VALID_USER_ID);
+        }
+
+        @Test
+        void shouldReturnOwnerDisplayNameInResponse() {
+            CreatePlaylistRequest body = CreatePlaylistRequest.of("I love miku!", PlaylistType.PUBLIC);
+
+            PlaylistDto responseBody = sendRequest(body).expectBody(PlaylistDto.class).returnResult().getResponseBody();
+
+            PlaylistDtoAssert.forPlaylist(responseBody).owner().displayName().isUnknown();
+        }
+
+        @Test
+        void shouldReturnOwnerType() {
+            CreatePlaylistRequest body = CreatePlaylistRequest.of("I love miku!", PlaylistType.PUBLIC);
+
+            PlaylistDto responseBody = sendRequest(body).expectBody(PlaylistDto.class).returnResult().getResponseBody();
+
+            PlaylistDtoAssert.forPlaylist(responseBody).owner().entityType().user();
         }
 
         @NotNull

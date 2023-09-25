@@ -25,5 +25,8 @@ public class PlaylistDto {
     PlaylistType playlistType;
     @JsonProperty("type")
     EntityType type;
+    @JsonProperty("images")
     ImagesDto images;
+    @JsonProperty("owner")
+    PlaylistOwnerDto owner;
 }

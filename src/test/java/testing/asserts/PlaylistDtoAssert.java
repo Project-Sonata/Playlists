@@ -4,6 +4,8 @@ import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.StringAssert;
 
+import java.lang.constant.ClassDesc;
+
 /**
  * Asserts for PlaylistDto class
  */
@@ -43,5 +45,9 @@ public class PlaylistDtoAssert extends AbstractAssert<PlaylistDtoAssert, Playlis
 
     public ImagesDtoAssert images() {
         return new ImagesDtoAssert(actual.getImages());
+    }
+
+    public PlaylistOwnerDtoAssert owner() {
+        return new PlaylistOwnerDtoAssert(actual.getOwner());
     }
 }
