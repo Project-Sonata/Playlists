@@ -14,7 +14,7 @@ import static java.util.Collections.emptyList;
 /**
  * Dto to transfer collection of ImageDto
  */
-@AllArgsConstructor(staticName = "of")
+@AllArgsConstructor(staticName = "multiple")
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -25,6 +25,10 @@ public class ImagesDto implements Iterable<ImageDto> {
 
     public static ImagesDto empty() {
         return new ImagesDto(emptyList());
+    }
+
+    public static ImagesDto single(ImageDto imageDto) {
+        return of(imageDto);
     }
 
     public static ImagesDto of(Collection<ImageDto> images) {
