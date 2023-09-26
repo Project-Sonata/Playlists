@@ -3,11 +3,7 @@ package testing.asserts;
 import com.odeyalo.sonata.playlists.dto.ImageDto;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.IntegerAssert;
-import org.assertj.core.api.UrlAssert;
-import org.jetbrains.annotations.NotNull;
-
-import java.net.MalformedURLException;
-import java.net.URL;
+import org.assertj.core.api.StringAssert;
 
 /**
  * Asserts for ImageDto
@@ -30,16 +26,7 @@ public class ImageDtoAssert extends AbstractAssert<ImageDtoAssert, ImageDto> {
         return new IntegerAssert(actual.getHeight());
     }
 
-    public UrlAssert url() {
-        return new UrlAssert(createUrl());
-    }
-
-    @NotNull
-    private URL createUrl() {
-        try {
-            return new URL(actual.getUrl());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("The url is malformed!", e);
-        }
+    public StringAssert url() {
+        return new StringAssert(actual.getUrl());
     }
 }
