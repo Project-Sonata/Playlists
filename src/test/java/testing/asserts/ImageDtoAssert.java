@@ -18,6 +18,10 @@ public class ImageDtoAssert extends AbstractAssert<ImageDtoAssert, ImageDto> {
         super(actual, ImageDtoAssert.class);
     }
 
+    public static ImageDtoAssert fromImage(ImageDto actual) {
+        return new ImageDtoAssert(actual);
+    }
+
     public IntegerAssert width() {
         return new IntegerAssert(actual.getWidth());
     }
