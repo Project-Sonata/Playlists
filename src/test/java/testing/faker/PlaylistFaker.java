@@ -1,10 +1,7 @@
 package testing.faker;
 
 import com.github.javafaker.Faker;
-import com.odeyalo.sonata.playlists.model.EntityType;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistOwner;
-import com.odeyalo.sonata.playlists.model.PlaylistType;
+import com.odeyalo.sonata.playlists.model.*;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
@@ -39,6 +36,7 @@ public class PlaylistFaker {
         return Playlist.builder()
                 .id(id)
                 .name(name)
+                .images(Images.empty())
                 .description(description)
                 .playlistType(playlistType)
                 .type(EntityType.PLAYLIST)
@@ -68,6 +66,11 @@ public class PlaylistFaker {
 
     public PlaylistFaker setFaker(Faker faker) {
         this.faker = faker;
+        return this;
+    }
+
+    public PlaylistFaker setPlaylistOwner(PlaylistOwner playlistOwner) {
+        this.playlistOwner = playlistOwner;
         return this;
     }
 }

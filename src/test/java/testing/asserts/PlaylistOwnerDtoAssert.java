@@ -9,6 +9,10 @@ public class PlaylistOwnerDtoAssert extends AbstractAssert<PlaylistOwnerDtoAsser
         super(actual, PlaylistOwnerDtoAssert.class);
     }
 
+    public static PlaylistOwnerDtoAssert from(PlaylistOwnerDto actual) {
+        return new PlaylistOwnerDtoAssert(actual);
+    }
+
     public IdAssert id() {
         return new IdAssert(actual.getId());
     }

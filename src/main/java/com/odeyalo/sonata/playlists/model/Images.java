@@ -20,7 +20,11 @@ public class Images implements Iterable<Image> {
     List<Image> imageHolder;
 
     public static Images empty() {
-        return new Images(emptyList());
+        return of(emptyList());
+    }
+
+    public static Images single(Image image) {
+        return of(image);
     }
 
     public static Images of(Image... images) {
