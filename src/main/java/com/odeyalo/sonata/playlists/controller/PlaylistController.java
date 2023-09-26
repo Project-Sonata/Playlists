@@ -1,152 +1,92 @@
 package com.odeyalo.sonata.playlists.controller;
 
-import com.odeyalo.sonata.playlists.dto.*;
-import com.odeyalo.sonata.playlists.model.Image;
-import com.odeyalo.sonata.playlists.model.Images;
-import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
+import com.odeyalo.sonata.playlists.dto.ImagesDto;
+import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
+import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
-import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
-import com.odeyalo.sonata.playlists.service.upload.ImageUploader;
+import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
+import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
+import com.odeyalo.sonata.playlists.service.PlaylistOperations;
+import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverter;
+import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
+import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
+import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
+import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
 import com.odeyalo.suite.security.auth.AuthenticatedUser;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
-import static com.odeyalo.sonata.playlists.model.EntityType.PLAYLIST;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.ResponseEntity.*;
+import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 
 @RestController
 @RequestMapping("/playlist")
+@RequiredArgsConstructor
 public class PlaylistController {
 
-    private final PlaylistRepository playlistRepository;
-    private final ImageUploader imageUploader;
-
-    @Autowired
-    public PlaylistController(PlaylistRepository playlistRepository, ImageUploader imageUploader) {
-        this.playlistRepository = playlistRepository;
-        this.imageUploader = imageUploader;
-    }
+    private final PlaylistOperations playlistOperations;
+    private final PlaylistDtoConverter playlistDtoConverter;
+    private final PartialPlaylistDetailsUpdateInfoConverter playlistDetailsUpdateInfoConverter;
+    private final ImagesDtoConverter imagesDtoConverter;
+    private final CreatePlaylistInfoConverter createPlaylistInfoConverter;
 
     @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable String playlistId) {
-        return playlistRepository.findById(playlistId)
-                .map(playlist -> ok().body(convertToDto(playlist)))
+
+        return playlistOperations.findById(playlistId)
+                .map(playlistDtoConverter::toPlaylistDto)
+                .map(HttpStatuses::defaultOkStatus)
                 .defaultIfEmpty(default204Response());
     }
 
     @GetMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable String playlistId) {
 
-        return playlistRepository.findById(playlistId)
-                .map(PlaylistController::convertToImagesDto)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(unprocessableEntity().build());
+        return playlistOperations.findById(playlistId)
+                .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
+                .map(HttpStatuses::defaultOkStatus)
+                .defaultIfEmpty(defaultUnprocessableEntityStatus());
     }
 
-    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
-        Playlist playlist = convertToPlaylist(body, authenticatedUser);
+        CreatePlaylistInfo playlistInfo = createPlaylistInfoConverter.toCreatePlaylistInfo(body);
 
-        return playlistRepository.save(playlist)
-                .map(PlaylistController::convertToDto)
-                .map(PlaylistController::defaultCreatedStatus);
+        return playlistOperations.createPlaylist(playlistInfo, resolveOwner(authenticatedUser))
+                .map(playlistDtoConverter::toPlaylistDto)
+                .map(HttpStatuses::defaultCreatedStatus);
     }
 
     @PostMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Object>> playlistImageUpload(@PathVariable String playlistId,
                                                             @RequestPart("image") Mono<FilePart> file) {
 
-        return playlistRepository.findById(playlistId)
-                .zipWith(imageUploader.uploadImage(file))
-                .flatMap(tuple -> {
-                    Playlist playlist = tuple.getT1();
-                    Image image = tuple.getT2();
-
-                    Playlist updatedPlaylist = Playlist.from(playlist).images(Images.of(image)).build();
-                    return playlistRepository.save(updatedPlaylist);
-                })
-                .map(playlist -> accepted().build())
-                .defaultIfEmpty(unprocessableEntity().build());
+        return playlistOperations.updatePlaylistCoverImage(TargetPlaylist.just(playlistId), file)
+                .map(playlist -> defaultAcceptedStatus())
+                .defaultIfEmpty(defaultUnprocessableEntityStatus());
     }
 
     @PatchMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Object>> updatePlaylistDetails(@PathVariable String playlistId, @RequestBody PartialPlaylistDetailsUpdateRequest body) {
-        return playlistRepository.findById(playlistId)
-                .map(playlist -> {
-                    Playlist.PlaylistBuilder builder = Playlist.from(playlist);
+        PartialPlaylistDetailsUpdateInfo updateInfo = playlistDetailsUpdateInfoConverter.toPartialPlaylistDetailsUpdateInfo(body);
 
-                    if (body.getName() != null) {
-                        builder.name(body.getName());
-                    }
+        TargetPlaylist targetPlaylist = TargetPlaylist.just(playlistId);
 
-                    if (body.getDescription() != null) {
-                        builder.description(body.getDescription());
-                    }
-
-                    if (body.getPlaylistType() != null) {
-                        builder.playlistType(body.getPlaylistType());
-                    }
-
-                    return builder.build();
-                }).flatMap(playlistRepository::save)
-                .map(playlist -> noContent().build())
-                .defaultIfEmpty(unprocessableEntity().build());
-    }
-
-    private static ImagesDto convertToImagesDto(Playlist playlist) {
-        return ImagesDto.of(getOrEmptyImages(playlist).stream().map(image -> ImageDto.of(image.getUrl(), image.getWidth(), image.getHeight())).toList());
-    }
-
-    private static Playlist convertToPlaylist(CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
-        return Playlist.builder()
-                .name(body.getName())
-                .description(body.getDescription())
-                .playlistType(body.getType())
-                .playlistOwner(
-                        PlaylistOwner.builder()
-                        .id(authenticatedUser.getDetails().getId())
-                        .build())
-                .build();
+        return playlistOperations.updatePlaylistInfo(targetPlaylist, updateInfo)
+                .map(playlist -> default204Response())
+                .defaultIfEmpty(defaultUnprocessableEntityStatus());
     }
 
     @NotNull
-    private static ResponseEntity<PlaylistDto> defaultCreatedStatus(PlaylistDto responseBody) {
-        return status(CREATED).body(responseBody);
-    }
-
-    private static PlaylistDto convertToDto(Playlist playlist) {
-        List<ImageDto> images = getOrEmptyImages(playlist).stream().map(image -> ImageDto.builder()
-                .url(image.getUrl())
-                .width(image.getWidth())
-                .height(image.getHeight())
-                .build()).toList();
-
-        return PlaylistDto.builder()
-                .id(playlist.getId())
-                .name(playlist.getName())
-                .description(playlist.getDescription())
-                .playlistType(playlist.getPlaylistType())
-                .type(PLAYLIST)
-                .owner(PlaylistOwnerDto.builder()
-                        .id(playlist.getPlaylistOwner().getId())
-                        .displayName(playlist.getPlaylistOwner().getDisplayName())
-                        .build())
-                .images(ImagesDto.of(images)).build();
-    }
-
-    private static Images getOrEmptyImages(Playlist playlist) {
-        return playlist.getImages() != null ? playlist.getImages() : Images.empty();
-    }
-
-    private static ResponseEntity<PlaylistDto> default204Response() {
-        return noContent().build();
+    public static PlaylistOwner resolveOwner(AuthenticatedUser authenticatedUser) {
+        return PlaylistOwner.builder()
+                .id(authenticatedUser.getDetails().getId())
+                .build();
     }
 }
