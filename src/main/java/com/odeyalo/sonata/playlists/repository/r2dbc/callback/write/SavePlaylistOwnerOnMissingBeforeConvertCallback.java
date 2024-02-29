@@ -34,9 +34,6 @@ public final class SavePlaylistOwnerOnMissingBeforeConvertCallback implements Be
         return playlistOwnerRepository.findByPublicId(entity.getPlaylistOwner().getPublicId())
                 .switchIfEmpty(savePlaylistOwner)
                 .doOnNext(entity::setPlaylistOwner)
-                .log()
-                .thenReturn(entity)
-                .log();
-
+                .thenReturn(entity);
     }
 }
