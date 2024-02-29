@@ -36,4 +36,12 @@ public class R2dbcPlaylistOwnerEntity implements PlaylistOwnerEntity, Persistabl
     public boolean isNew() {
         return id == null;
     }
+
+    public static R2dbcPlaylistOwnerEntity from(PlaylistOwnerEntity entity) {
+        return builder().id(entity.getId())
+                .publicId(entity.getPublicId())
+                .displayName(entity.getDisplayName())
+                .entityType(entity.getEntityType())
+                .build();
+    }
 }
