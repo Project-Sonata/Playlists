@@ -6,7 +6,6 @@ import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ class R2dbcPlaylistRepositoryTest {
     }
 
     @Test
-    void test() {
+    void shouldReturnImages() {
         Playlist playlist = PlaylistFaker.createWithNoId().get();
 
         Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
