@@ -38,4 +38,9 @@ public class R2dbcPlaylistEntity implements PlaylistEntity, Persistable<Long> {
     public boolean isNew() {
         return id == null;
     }
+
+    public void setPlaylistOwner(PlaylistOwnerEntity playlistOwner) {
+        this.playlistOwner = playlistOwner;
+        this.playlistOwnerId = playlistOwner.getId();
+    }
 }
