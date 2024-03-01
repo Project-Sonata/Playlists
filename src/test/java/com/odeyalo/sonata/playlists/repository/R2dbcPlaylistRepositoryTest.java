@@ -8,10 +8,7 @@ import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistImage
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistOwnerAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.write.SavePlaylistImageOnMissingAfterSaveCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.write.SavePlaylistOwnerOnMissingBeforeConvertCallback;
-import com.odeyalo.sonata.playlists.support.converter.ImageEntityConverter;
-import com.odeyalo.sonata.playlists.support.converter.ImageEntityConverterImpl;
-import com.odeyalo.sonata.playlists.support.converter.ImagesEntityConverter;
-import com.odeyalo.sonata.playlists.support.converter.ImagesEntityConverterImpl;
+import com.odeyalo.sonata.playlists.support.converter.*;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +30,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
         SavePlaylistImageOnMissingAfterSaveCallback.class,
         PlaylistImagesAssociationAfterConvertCallback.class,
         ImageEntityConverterImpl.class,
-        ImagesEntityConverterImpl.class})
+        ImagesEntityConverterImpl.class,
+        PlaylistConverterImpl.class,
+        PlaylistOwnerConverterImpl.class})
 @EnableAutoConfiguration
 @AutoConfigureDataR2dbc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -124,6 +123,19 @@ class R2dbcPlaylistRepositoryTest {
 
         assertThat(saved2).isNotNull();
         assertThat(saved2.getDescription()).isEqualTo("There is my new description!");
+    }
+
+    @Test
+    void shouldNotAffectAnyValuesIfTheyAreNotTargetForUpdate() {
+        // given
+        Playlist saved = createAndSavePlaylist();
+        // when
+        Playlist newPlaylist = Playlist.from(saved).description("There is my new description!").build();
+
+        Playlist saved2 = r2dbcPlaylistRepository.save(newPlaylist).block();
+
+        assertThat(saved2).isNotNull();
+        assertThat(saved2).usingRecursiveComparison().ignoringFields("description").isEqualTo(saved);
     }
 
     @Test
