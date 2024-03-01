@@ -68,12 +68,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private Mono<Tuple2<R2dbcPlaylistEntity, List<R2dbcImageEntity>>> fulfillFoundEntity(R2dbcPlaylistEntity playlist) {
-        return r2DbcPlaylistOwnerRepository.findById(playlist.getPlaylistOwnerId())
-                .map(owner -> {
-                    playlist.setPlaylistOwner(owner);
-                    return playlist;
-                })
-                .flatMap(this::findAndEnhancePlaylistImages);
+        return findAndEnhancePlaylistImages(playlist);
     }
 
     @NotNull
