@@ -1,26 +1,31 @@
 package com.odeyalo.sonata.playlists.repository;
 
-import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistOwner;
-import org.jetbrains.annotations.Nullable;
+import com.odeyalo.sonata.playlists.model.PlaylistType;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.AutoConfigureDataR2dbc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import testing.asserts.PlaylistTypeAssert;
+import reactor.test.StepVerifier;
+import testing.faker.ImagesFaker;
 import testing.faker.PlaylistFaker;
+import testing.spring.ConvertersConfiguration;
+import testing.spring.R2dbcCallbacksConfiguration;
+
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 @SpringBootTest(classes = {R2dbcPlaylistRepository.class})
+@Import({ConvertersConfiguration.class, R2dbcCallbacksConfiguration.class})
 @EnableAutoConfiguration
 @AutoConfigureDataR2dbc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -36,68 +41,71 @@ class R2dbcPlaylistRepositoryTest {
     }
 
     @Test
-    void test() {
+    void shouldReturnImages() {
         Playlist playlist = PlaylistFaker.createWithNoId().get();
 
         Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
+        Images images = ImagesFaker.create().get();
 
-        Playlist updated = Playlist.from(saved).images(Images.of(Image.builder().url("https://cdn.sonata.com/i/something").build())).build();
+        //noinspection DataFlowIssue
+        Playlist updated = Playlist.from(saved).images(images).build();
 
         r2dbcPlaylistRepository.save(updated).block();
 
-        Playlist foundById = r2dbcPlaylistRepository.findById(saved.getId()).block();
-
-        assertThat(foundById).isNotNull();
-        assertThat(foundById.getImages()).isNotNull();
-        assertThat(foundById.getImages().isEmpty()).isFalse();
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> !it.getImages().isEmpty())
+                .verifyComplete();
     }
 
     @Test
     void shouldNotThrowAnyException() {
-        Playlist playlist = Playlist.builder().name("This is my playlist name")
-                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
-                .build();
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
+
         assertThatCode(() -> r2dbcPlaylistRepository.save(playlist).block()).doesNotThrowAnyException();
     }
 
     @Test
     void shouldGenerateId() {
-        Playlist playlist = Playlist.builder()
-                .name("This is my playlist name")
-                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
-                .build();
-        Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
 
-        assertThat(saved).isNotNull();
-        assertThat(saved.getId()).isNotNull();
+        r2dbcPlaylistRepository.save(playlist)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> it.getId() != null)
+                .verifyComplete();
     }
 
     @Test
-    void shouldSaveTheValuesPresented() {
+    void shouldSaveThePlaylistNameAsProvided() {
         Playlist saved = createAndSavePlaylist();
 
-        assertThat(saved).isNotNull();
-        assertThat(saved.getName()).isEqualTo(saved.getName());
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getName(), saved.getName()))
+                .verifyComplete();
     }
 
     @Test
     void shouldSaveAndSetDefaultPlaylistType() {
         Playlist saved = createAndSavePlaylist();
 
-        assertThat(saved).isNotNull();
-        PlaylistTypeAssert.from(saved.getPlaylistType()).isPrivate();
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getPlaylistType(), saved.getPlaylistType()))
+                .verifyComplete();
     }
 
     @Test
     void shouldUpdatePlaylistAndReturnNotNull() {
         // given
         Playlist saved = createAndSavePlaylist();
-        // when
         Playlist newPlaylist = Playlist.from(saved).description("There is my new description!").build();
 
-        Playlist saved2 = r2dbcPlaylistRepository.save(newPlaylist).block();
-
-        assertThat(saved2).isNotNull();
+        // when then
+        r2dbcPlaylistRepository.save(newPlaylist)
+                .as(StepVerifier::create)
+                .expectNextCount(1)
+                .verifyComplete();
     }
 
     @Test
@@ -107,39 +115,52 @@ class R2dbcPlaylistRepositoryTest {
         // when
         Playlist newPlaylist = Playlist.from(saved).description("There is my new description!").build();
 
-        Playlist saved2 = r2dbcPlaylistRepository.save(newPlaylist).block();
-
-        assertThat(saved2).isNotNull();
-        assertThat(saved2.getDescription()).isEqualTo("There is my new description!");
+        r2dbcPlaylistRepository.save(newPlaylist)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getDescription(), "There is my new description!"))
+                .verifyComplete();
     }
 
     @Test
-    void shouldUpdatePlaylistAndSaveIt() {
+    void shouldNotAffectAnyValuesIfTheyAreNotTargetForUpdate() {
         // given
         Playlist saved = createAndSavePlaylist();
         // when
         Playlist newPlaylist = Playlist.from(saved).description("There is my new description!").build();
 
-        r2dbcPlaylistRepository.save(newPlaylist).block();
+        Playlist saved2 = r2dbcPlaylistRepository.save(newPlaylist).block();
 
-        Playlist found = r2dbcPlaylistRepository.findById(saved.getId()).block();
-
-        assertThat(found).isNotNull();
-        assertThat(found.getDescription()).isEqualTo("There is my new description!");
+        assertThat(saved2).isNotNull();
+        assertThat(saved2).usingRecursiveComparison().ignoringFields("description").isEqualTo(saved);
     }
 
     @Test
-    void findById() {
+    void shouldUpdatePlaylistAndSaveIt() {
+        // given
+        Playlist playlist = createAndSavePlaylist();
+        // when
+        Playlist newPlaylist = Playlist.from(playlist).description("There is my new description!").build();
+
+        r2dbcPlaylistRepository.save(newPlaylist).block();
+        // then
+        r2dbcPlaylistRepository.findById(playlist.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getDescription(), "There is my new description!"))
+                .verifyComplete();
+    }
+
+    @Test
+    void findByIdShouldReturnSavedPlaylist() {
         Playlist saved = createAndSavePlaylist();
 
-        Playlist found = r2dbcPlaylistRepository.findById(saved.getId()).block();
-
-        assertThat(found).isNotNull();
-        assertThat(found).isEqualTo(saved);
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNext(saved)
+                .verifyComplete();
     }
 
     @Test
-    void clear() {
+    void clearShouldClearEverything() {
         Playlist saved = createAndSavePlaylist();
 
         r2dbcPlaylistRepository.clear().block();
@@ -148,11 +169,18 @@ class R2dbcPlaylistRepositoryTest {
         assertThat(found).isNull();
     }
 
-    @Nullable
+    @NotNull
     private Playlist createAndSavePlaylist() {
-        Playlist playlist = Playlist.builder().name("Rock 2023")
-                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
-                .build();
-        return r2dbcPlaylistRepository.save(playlist).block();
+        Playlist playlist = PlaylistFaker.createWithNoId().setPlaylistType(PlaylistType.PRIVATE).get();
+
+        return insertPlaylist(playlist);
+    }
+
+    @NotNull
+    private Playlist insertPlaylist(Playlist playlist) {
+        return Objects.requireNonNull(
+                r2dbcPlaylistRepository.save(playlist).block(),
+                String.format("There is a problem during saving the Playlist: [%s] to R2DBC repository.", playlist)
+        );
     }
 }

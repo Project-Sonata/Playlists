@@ -8,20 +8,16 @@ import org.apache.commons.lang3.RandomStringUtils;
  * Create a faked {@link Playlist} that can be used in tests
  */
 public class PlaylistFaker {
-    private String id;
-    private String name;
-    private String description;
-    private PlaylistOwner playlistOwner;
-    private PlaylistType playlistType;
+    private final Playlist.PlaylistBuilder builder = Playlist.builder();
 
     private Faker faker = Faker.instance();
 
     public PlaylistFaker() {
-        this.id = RandomStringUtils.randomAlphanumeric(16);
-        this.name = faker.name().title();
-        this.description = faker.weather().description();
-        this.playlistType = faker.options().option(PlaylistType.class);
-        this.playlistOwner = PlaylistOwnerFaker.create().get();
+        builder.id(RandomStringUtils.randomAlphanumeric(16))
+                .name(faker.name().title())
+                .description(faker.weather().description())
+                .playlistType(faker.options().option(PlaylistType.class))
+                .playlistOwner(PlaylistOwnerFaker.create().get());
     }
 
     public static PlaylistFaker create() {
@@ -33,44 +29,31 @@ public class PlaylistFaker {
     }
 
     public Playlist get() {
-        return Playlist.builder()
-                .id(id)
-                .name(name)
-                .images(Images.empty())
-                .description(description)
-                .playlistType(playlistType)
-                .type(EntityType.PLAYLIST)
-                .playlistOwner(playlistOwner)
-                .build();
+        return builder.build();
     }
 
     public PlaylistFaker setId(String id) {
-        this.id = id;
+        builder.id(id);
         return this;
     }
 
     public PlaylistFaker setName(String name) {
-        this.name = name;
+        builder.name(name);
         return this;
     }
 
     public PlaylistFaker setDescription(String description) {
-        this.description = description;
+        builder.description(description);
         return this;
     }
 
     public PlaylistFaker setPlaylistType(PlaylistType playlistType) {
-        this.playlistType = playlistType;
-        return this;
-    }
-
-    public PlaylistFaker setFaker(Faker faker) {
-        this.faker = faker;
+        builder.playlistType(playlistType);
         return this;
     }
 
     public PlaylistFaker setPlaylistOwner(PlaylistOwner playlistOwner) {
-        this.playlistOwner = playlistOwner;
+        builder.playlistOwner(playlistOwner);
         return this;
     }
 }
