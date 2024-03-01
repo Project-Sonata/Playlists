@@ -34,12 +34,4 @@ public class PlaylistOwnerEntity implements Persistable<Long> {
     public boolean isNew() {
         return id == null;
     }
-
-    public static PlaylistOwnerEntity from(PlaylistOwnerEntity entity) {
-        return builder().id(entity.getId())
-                .publicId(entity.getPublicId())
-                .displayName(entity.getDisplayName())
-                .entityType(entity.getEntityType())
-                .build();
-    }
 }
