@@ -142,11 +142,11 @@ class R2dbcPlaylistRepositoryTest {
         Playlist newPlaylist = Playlist.from(playlist).description("There is my new description!").build();
 
         r2dbcPlaylistRepository.save(newPlaylist).block();
-
-        Playlist found = r2dbcPlaylistRepository.findById(playlist.getId()).block();
-
-        assertThat(found).isNotNull();
-        assertThat(found.getDescription()).isEqualTo("There is my new description!");
+        // then
+        r2dbcPlaylistRepository.findById(playlist.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getDescription(), "There is my new description!"))
+                .verifyComplete();
     }
 
     @Test
