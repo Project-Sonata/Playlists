@@ -150,13 +150,13 @@ class R2dbcPlaylistRepositoryTest {
     }
 
     @Test
-    void findById() {
+    void findByIdShouldReturnSavedPlaylist() {
         Playlist saved = createAndSavePlaylist();
 
-        Playlist found = r2dbcPlaylistRepository.findById(saved.getId()).block();
-
-        assertThat(found).isNotNull();
-        assertThat(found).isEqualTo(saved);
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNext(saved)
+                .verifyComplete();
     }
 
     @Test
