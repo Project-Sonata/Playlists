@@ -28,7 +28,7 @@ public final class SavePlaylistOwnerOnMissingBeforeConvertCallback implements Be
                                                      @NotNull final SqlIdentifier table) {
 
         Mono<PlaylistOwnerEntity> savePlaylistOwner = Mono.defer(() -> playlistOwnerRepository.save(
-                PlaylistOwnerEntity.from(entity.getPlaylistOwner())
+                entity.getPlaylistOwner()
         ));
 
         return playlistOwnerRepository.findByPublicId(entity.getPlaylistOwner().getPublicId())
