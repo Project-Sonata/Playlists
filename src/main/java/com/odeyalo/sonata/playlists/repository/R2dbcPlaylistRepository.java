@@ -5,6 +5,7 @@ import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
+import com.odeyalo.sonata.playlists.support.converter.ImageEntityConverter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,20 +27,23 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     private final R2dbcImageRepository r2DbcImageRepository;
     @Autowired
     R2dbcPlaylistOwnerRepository r2DbcPlaylistOwnerRepository;
+    private final ImageEntityConverter imageEntityConverter;
 
     public R2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate playlistRepositoryDelegate,
                                    PlaylistImagesRepository playlistImagesRepository,
-                                   R2dbcImageRepository r2DbcImageRepository) {
+                                   R2dbcImageRepository r2DbcImageRepository,
+                                   ImageEntityConverter imageEntityConverter) {
         this.playlistRepositoryDelegate = playlistRepositoryDelegate;
         this.playlistImagesRepository = playlistImagesRepository;
         this.r2DbcImageRepository = r2DbcImageRepository;
+        this.imageEntityConverter = imageEntityConverter;
     }
 
     @Override
     @NotNull
     public Mono<Playlist> save(Playlist playlist) {
 
-        if (playlist.getId() == null) {
+        if ( playlist.getId() == null ) {
             return savePlaylist(playlist);
         }
 
@@ -92,15 +96,14 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
         return playlistRepositoryDelegate.save(entity);
     }
 
-
     @NotNull
-    private static ImageEntity convertToImageEntity(Image image) {
-        return ImageEntity.builder().url(image.getUrl()).height(image.getHeight()).width(image.getWidth()).build();
+    private ImageEntity convertToImageEntity(Image image) {
+        return imageEntityConverter.toImageEntity(image);
     }
 
     @NotNull
-    private static List<ImageEntity> getImageEntities(Playlist playlist) {
-        return playlist.getImages().stream().map(R2dbcPlaylistRepository::convertToImageEntity).toList();
+    private List<ImageEntity> getImageEntities(Playlist playlist) {
+        return playlist.getImages().stream().map(image -> convertToImageEntity(image)).toList();
     }
 
     @NotNull
@@ -119,16 +122,11 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @NotNull
     private Playlist convertToPlaylist(PlaylistEntity playlist) {
         List<ImageEntity> imageEntities = playlist.getImages();
-        List<Image> images = imageEntities.stream().map(R2dbcPlaylistRepository::toImage).toList();
+        List<Image> images = imageEntities.stream().map(imageEntityConverter::toImage).toList();
 
         PlaylistOwner owner = buildPlaylistOwner(playlist);
 
         return toPlaylistBuilder(playlist).playlistOwner(owner).images(Images.of(images)).build();
-    }
-
-    @NotNull
-    private static Image toImage(ImageEntity image) {
-        return Image.of(image.getUrl(), image.getWidth(), image.getHeight());
     }
 
     @NotNull
@@ -151,14 +149,12 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .id(entity.getPublicId())
                 .name(entity.getPlaylistName())
                 .description(entity.getPlaylistDescription())
-                .type(EntityType.PLAYLIST)
-                .images(Images.empty())
                 .playlistOwner(createPlaylistOwnerOrNull(entity))
                 .playlistType(entity.getPlaylistType());
     }
 
     private static PlaylistOwner createPlaylistOwnerOrNull(PlaylistEntity entity) {
-        if (entity.getPlaylistOwner() == null) {
+        if ( entity.getPlaylistOwner() == null ) {
             return null;
         }
         return buildPlaylistOwner(entity);

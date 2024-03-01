@@ -18,7 +18,8 @@ public class Playlist {
     String description;
     @Builder.Default
     PlaylistType playlistType = PlaylistType.PRIVATE;
-    Images images;
+    @Builder.Default
+    Images images = Images.empty();
     PlaylistOwner playlistOwner;
     @Builder.Default
     EntityType type = PLAYLIST;

@@ -8,6 +8,8 @@ import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistImage
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistOwnerAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.write.SavePlaylistImageOnMissingAfterSaveCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.write.SavePlaylistOwnerOnMissingBeforeConvertCallback;
+import com.odeyalo.sonata.playlists.support.converter.ImageEntityConverter;
+import com.odeyalo.sonata.playlists.support.converter.ImageEntityConverterImpl;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +29,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
         SavePlaylistOwnerOnMissingBeforeConvertCallback.class,
         PlaylistOwnerAssociationAfterConvertCallback.class,
         SavePlaylistImageOnMissingAfterSaveCallback.class,
-        PlaylistImagesAssociationAfterConvertCallback.class})
+        PlaylistImagesAssociationAfterConvertCallback.class,
+        ImageEntityConverterImpl.class})
 @EnableAutoConfiguration
 @AutoConfigureDataR2dbc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
