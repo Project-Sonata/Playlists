@@ -1,7 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
@@ -80,10 +80,10 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private Mono<R2dbcPlaylistEntity> updatePlaylistEntity(Playlist playlist, R2dbcPlaylistEntity parent) {
+    private Mono<PlaylistEntity> updatePlaylistEntity(Playlist playlist, PlaylistEntity parent) {
         List<ImageEntity> images = getImageEntities(playlist);
 
-        R2dbcPlaylistEntity entity = toPlaylistEntityBuilder(playlist)
+        PlaylistEntity entity = toPlaylistEntityBuilder(playlist)
                 .playlistOwner(parent.getPlaylistOwner())
                 .playlistOwnerId(parent.getPlaylistOwnerId())
                 .images(images)
@@ -104,10 +104,10 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private static R2dbcPlaylistEntity createPlaylistEntity(Playlist playlist, R2dbcPlaylistOwnerEntity playlistOwner) {
+    private static PlaylistEntity createPlaylistEntity(Playlist playlist, R2dbcPlaylistOwnerEntity playlistOwner) {
         String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
 
-        R2dbcPlaylistEntity.R2dbcPlaylistEntityBuilder builder = toPlaylistEntityBuilder(playlist);
+        PlaylistEntity.PlaylistEntityBuilder builder = toPlaylistEntityBuilder(playlist);
 
 
         return builder.publicId(playlistId)
@@ -117,7 +117,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private Playlist convertToPlaylist(R2dbcPlaylistEntity playlist) {
+    private Playlist convertToPlaylist(PlaylistEntity playlist) {
         List<ImageEntity> imageEntities = playlist.getImages();
         List<Image> images = imageEntities.stream().map(R2dbcPlaylistRepository::toImage).toList();
 
@@ -132,13 +132,13 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private static Playlist convertEntityToPlaylist(R2dbcPlaylistEntity entity) {
+    private static Playlist convertEntityToPlaylist(PlaylistEntity entity) {
         return toPlaylistBuilder(entity).build();
     }
 
     @NotNull
-    private static R2dbcPlaylistEntity.R2dbcPlaylistEntityBuilder toPlaylistEntityBuilder(Playlist playlist) {
-        return R2dbcPlaylistEntity.builder()
+    private static PlaylistEntity.PlaylistEntityBuilder toPlaylistEntityBuilder(Playlist playlist) {
+        return PlaylistEntity.builder()
                 .publicId(playlist.getId())
                 .playlistName(playlist.getName())
                 .playlistDescription(playlist.getDescription())
@@ -146,7 +146,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private static Playlist.PlaylistBuilder toPlaylistBuilder(R2dbcPlaylistEntity entity) {
+    private static Playlist.PlaylistBuilder toPlaylistBuilder(PlaylistEntity entity) {
         return Playlist.builder()
                 .id(entity.getPublicId())
                 .name(entity.getPlaylistName())
@@ -157,14 +157,14 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .playlistType(entity.getPlaylistType());
     }
 
-    private static PlaylistOwner createPlaylistOwnerOrNull(R2dbcPlaylistEntity entity) {
+    private static PlaylistOwner createPlaylistOwnerOrNull(PlaylistEntity entity) {
         if (entity.getPlaylistOwner() == null) {
             return null;
         }
         return buildPlaylistOwner(entity);
     }
 
-    private static PlaylistOwner buildPlaylistOwner(R2dbcPlaylistEntity entity) {
+    private static PlaylistOwner buildPlaylistOwner(PlaylistEntity entity) {
         return PlaylistOwner.builder()
                 .id(entity.getPlaylistOwner().getPublicId())
                 .displayName(entity.getPlaylistOwner().getDisplayName()).build();

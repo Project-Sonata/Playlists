@@ -1,6 +1,6 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc.callback.write;
 
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.repository.R2dbcPlaylistOwnerRepository;
 import org.jetbrains.annotations.NotNull;
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * Saves the {@link R2dbcPlaylistOwnerEntity} on missing, associate the given owner {@link R2dbcPlaylistEntity}
+ * Saves the {@link R2dbcPlaylistOwnerEntity} on missing, associate the given owner {@link PlaylistEntity}
  */
 @Component
-public final class SavePlaylistOwnerOnMissingBeforeConvertCallback implements BeforeConvertCallback<R2dbcPlaylistEntity> {
+public final class SavePlaylistOwnerOnMissingBeforeConvertCallback implements BeforeConvertCallback<PlaylistEntity> {
     private final R2dbcPlaylistOwnerRepository playlistOwnerRepository;
 
     public SavePlaylistOwnerOnMissingBeforeConvertCallback(@Lazy R2dbcPlaylistOwnerRepository playlistOwnerRepository) {
@@ -24,8 +24,8 @@ public final class SavePlaylistOwnerOnMissingBeforeConvertCallback implements Be
 
     @Override
     @NotNull
-    public Publisher<R2dbcPlaylistEntity> onBeforeConvert(@NotNull final R2dbcPlaylistEntity entity,
-                                                          @NotNull final SqlIdentifier table) {
+    public Publisher<PlaylistEntity> onBeforeConvert(@NotNull final PlaylistEntity entity,
+                                                     @NotNull final SqlIdentifier table) {
 
         Mono<R2dbcPlaylistOwnerEntity> savePlaylistOwner = Mono.defer(() -> playlistOwnerRepository.save(
                 R2dbcPlaylistOwnerEntity.from(entity.getPlaylistOwner())

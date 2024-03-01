@@ -2,7 +2,7 @@ package com.odeyalo.sonata.playlists.repository.r2dbc.callback.write;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistImage;
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.PlaylistImagesRepository;
 import com.odeyalo.sonata.playlists.repository.R2dbcImageRepository;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
-public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterSaveCallback<R2dbcPlaylistEntity> {
+public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterSaveCallback<PlaylistEntity> {
     private final PlaylistImagesRepository playlistImagesRepository;
     private final R2dbcImageRepository r2DbcImageRepository;
 
@@ -30,14 +30,14 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
 
     @Override
     @NotNull
-    public Publisher<R2dbcPlaylistEntity> onAfterSave(@NotNull final R2dbcPlaylistEntity entity,
-                                                      @NotNull final OutboundRow outboundRow,
-                                                      @NotNull final SqlIdentifier table) {
+    public Publisher<PlaylistEntity> onAfterSave(@NotNull final PlaylistEntity entity,
+                                                 @NotNull final OutboundRow outboundRow,
+                                                 @NotNull final SqlIdentifier table) {
         return saveImages(entity).thenReturn(entity);
     }
 
     @NotNull
-    private Mono<List<PlaylistImage>> saveImages(R2dbcPlaylistEntity parent) {
+    private Mono<List<PlaylistImage>> saveImages(PlaylistEntity parent) {
         List<ImageEntity> images = parent.getImages();
         return Flux.fromIterable(images)
                 .filterWhen(this::isImageNotExist)
@@ -48,7 +48,7 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
     }
 
     @NotNull
-    private Mono<PlaylistImage> buildAndSave(R2dbcPlaylistEntity parent, ImageEntity imageEntity) {
+    private Mono<PlaylistImage> buildAndSave(PlaylistEntity parent, ImageEntity imageEntity) {
         PlaylistImage imageToSave = PlaylistImage.builder().imageId(imageEntity.getId()).playlistId(parent.getId()).build();
         return playlistImagesRepository.save(imageToSave);
     }

@@ -1,6 +1,6 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc.callback.read;
 
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.R2dbcPlaylistOwnerRepository;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
@@ -10,10 +10,10 @@ import org.springframework.data.relational.core.sql.SqlIdentifier;
 import org.springframework.stereotype.Component;
 
 /**
- * Associate the {@link R2dbcPlaylistEntity} with the {@link com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity}
+ * Associate the {@link PlaylistEntity} with the {@link com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity}
  */
 @Component
-public final class PlaylistOwnerAssociationAfterConvertCallback implements AfterConvertCallback<R2dbcPlaylistEntity> {
+public final class PlaylistOwnerAssociationAfterConvertCallback implements AfterConvertCallback<PlaylistEntity> {
     private final R2dbcPlaylistOwnerRepository playlistOwnerRepository;
 
     public PlaylistOwnerAssociationAfterConvertCallback(@Lazy R2dbcPlaylistOwnerRepository playlistOwnerRepository) {
@@ -22,8 +22,8 @@ public final class PlaylistOwnerAssociationAfterConvertCallback implements After
 
     @Override
     @NotNull
-    public Publisher<R2dbcPlaylistEntity> onAfterConvert(@NotNull final R2dbcPlaylistEntity entity,
-                                                         @NotNull final SqlIdentifier table) {
+    public Publisher<PlaylistEntity> onAfterConvert(@NotNull final PlaylistEntity entity,
+                                                    @NotNull final SqlIdentifier table) {
         Long ownerId = entity.getPlaylistOwnerId();
 
         return playlistOwnerRepository.findById(ownerId)
