@@ -3,10 +3,12 @@ package com.odeyalo.sonata.playlists.repository;
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
-import com.odeyalo.sonata.playlists.model.*;
+import com.odeyalo.sonata.playlists.model.Images;
+import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
-import com.odeyalo.sonata.playlists.support.converter.ImageEntityConverter;
 import com.odeyalo.sonata.playlists.support.converter.ImagesEntityConverter;
+import com.odeyalo.sonata.playlists.support.converter.PlaylistConverter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +32,18 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     R2dbcPlaylistOwnerRepository r2DbcPlaylistOwnerRepository;
     private final ImagesEntityConverter imagesEntityConverter;
 
+    private final PlaylistConverter playlistConverter;
+
     public R2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate playlistRepositoryDelegate,
                                    PlaylistImagesRepository playlistImagesRepository,
                                    R2dbcImageRepository r2DbcImageRepository,
-                                   ImagesEntityConverter imagesEntityConverter) {
+                                   ImagesEntityConverter imagesEntityConverter,
+                                   PlaylistConverter playlistConverter) {
         this.playlistRepositoryDelegate = playlistRepositoryDelegate;
         this.playlistImagesRepository = playlistImagesRepository;
         this.r2DbcImageRepository = r2DbcImageRepository;
         this.imagesEntityConverter = imagesEntityConverter;
+        this.playlistConverter = playlistConverter;
     }
 
     @Override
@@ -55,7 +61,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @NotNull
     public Mono<Playlist> findById(String id) {
         return playlistRepositoryDelegate.findByPublicId(id)
-                .mapNotNull(playlist -> convertToPlaylist(playlist));
+                .mapNotNull(playlist -> convertEntityToPlaylist(playlist));
     }
 
     @Override
@@ -74,14 +80,14 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .build();
 
         return playlistRepositoryDelegate.save(createPlaylistEntity(playlist, playlistOwner))
-                .mapNotNull(playlistEntity -> convertToPlaylist(playlistEntity));
+                .mapNotNull(playlistEntity -> convertEntityToPlaylist(playlistEntity));
     }
 
     @NotNull
     private Mono<Playlist> updatePlaylist(Playlist playlist) {
         return playlistRepositoryDelegate.findByPublicId(playlist.getId())
                 .flatMap(parent -> updatePlaylistEntity(playlist, parent))
-                .map(R2dbcPlaylistRepository::convertEntityToPlaylist);
+                .map(playlistEntity -> convertEntityToPlaylist(playlistEntity));
     }
 
     @NotNull
@@ -117,18 +123,8 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private Playlist convertToPlaylist(PlaylistEntity playlist) {
-        List<ImageEntity> imageEntities = playlist.getImages();
-        Images images = imagesEntityConverter.toImages(imageEntities);
-
-        PlaylistOwner owner = buildPlaylistOwner(playlist);
-
-        return toPlaylistBuilder(playlist).playlistOwner(owner).images(images).build();
-    }
-
-    @NotNull
-    private static Playlist convertEntityToPlaylist(PlaylistEntity entity) {
-        return toPlaylistBuilder(entity).build();
+    private Playlist convertEntityToPlaylist(PlaylistEntity entity) {
+        return playlistConverter.toPlaylist(entity);
     }
 
     @NotNull
@@ -138,28 +134,5 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .playlistName(playlist.getName())
                 .playlistDescription(playlist.getDescription())
                 .playlistType(playlist.getPlaylistType());
-    }
-
-    @NotNull
-    private static Playlist.PlaylistBuilder toPlaylistBuilder(PlaylistEntity entity) {
-        return Playlist.builder()
-                .id(entity.getPublicId())
-                .name(entity.getPlaylistName())
-                .description(entity.getPlaylistDescription())
-                .playlistOwner(createPlaylistOwnerOrNull(entity))
-                .playlistType(entity.getPlaylistType());
-    }
-
-    private static PlaylistOwner createPlaylistOwnerOrNull(PlaylistEntity entity) {
-        if ( entity.getPlaylistOwner() == null ) {
-            return null;
-        }
-        return buildPlaylistOwner(entity);
-    }
-
-    private static PlaylistOwner buildPlaylistOwner(PlaylistEntity entity) {
-        return PlaylistOwner.builder()
-                .id(entity.getPlaylistOwner().getPublicId())
-                .displayName(entity.getPlaylistOwner().getDisplayName()).build();
     }
 }
