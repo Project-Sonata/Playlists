@@ -99,12 +99,13 @@ class R2dbcPlaylistRepositoryTest {
     void shouldUpdatePlaylistAndReturnNotNull() {
         // given
         Playlist saved = createAndSavePlaylist();
-        // when
         Playlist newPlaylist = Playlist.from(saved).description("There is my new description!").build();
 
-        Playlist saved2 = r2dbcPlaylistRepository.save(newPlaylist).block();
-
-        assertThat(saved2).isNotNull();
+        // when then
+        r2dbcPlaylistRepository.save(newPlaylist)
+                .as(StepVerifier::create)
+                .expectNextCount(1)
+                .verifyComplete();
     }
 
     @Test
