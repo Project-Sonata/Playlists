@@ -1,6 +1,6 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc.callback.read;
 
-import com.odeyalo.sonata.playlists.entity.R2dbcImageEntity;
+import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.PlaylistImagesRepository;
 import com.odeyalo.sonata.playlists.repository.R2dbcImageRepository;
@@ -37,7 +37,7 @@ public final class PlaylistImagesAssociationAfterConvertCallback implements Afte
                 .thenReturn(playlistEntity);
     }
 
-    private Mono<List<R2dbcImageEntity>> findPlaylistImages(R2dbcPlaylistEntity playlist) {
+    private Mono<List<ImageEntity>> findPlaylistImages(R2dbcPlaylistEntity playlist) {
         return playlistImagesRepository.findAllByPlaylistId(playlist.getId())
                 .flatMap(imageMetadata -> r2DbcImageRepository.findById(imageMetadata.getImageId()))
                 .collectList();

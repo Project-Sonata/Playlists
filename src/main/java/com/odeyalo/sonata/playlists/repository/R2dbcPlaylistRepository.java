@@ -1,7 +1,6 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
-import com.odeyalo.sonata.playlists.entity.R2dbcImageEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.*;
@@ -11,10 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
-import java.util.Collections;
 import java.util.List;
 
 
@@ -85,26 +81,25 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private Mono<R2dbcPlaylistEntity> updatePlaylistEntity(Playlist playlist, R2dbcPlaylistEntity parent) {
+        List<ImageEntity> images = getImageEntities(playlist);
+
         R2dbcPlaylistEntity entity = toPlaylistEntityBuilder(playlist)
                 .playlistOwner(parent.getPlaylistOwner())
                 .playlistOwnerId(parent.getPlaylistOwnerId())
+                .images(images)
                 .id(parent.getId()).build();
-
-        List<R2dbcImageEntity> entities = getImageEntities(playlist);
-
-        entity.setImages(entities);
 
         return playlistRepositoryDelegate.save(entity);
     }
 
 
     @NotNull
-    private static R2dbcImageEntity convertToImageEntity(Image image) {
-        return R2dbcImageEntity.builder().url(image.getUrl()).height(image.getHeight()).width(image.getWidth()).build();
+    private static ImageEntity convertToImageEntity(Image image) {
+        return ImageEntity.builder().url(image.getUrl()).height(image.getHeight()).width(image.getWidth()).build();
     }
 
     @NotNull
-    private static List<R2dbcImageEntity> getImageEntities(Playlist playlist) {
+    private static List<ImageEntity> getImageEntities(Playlist playlist) {
         return playlist.getImages().stream().map(R2dbcPlaylistRepository::convertToImageEntity).toList();
     }
 
@@ -123,7 +118,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private Playlist convertToPlaylist(R2dbcPlaylistEntity playlist) {
-        List<R2dbcImageEntity> imageEntities = playlist.getImages();
+        List<ImageEntity> imageEntities = playlist.getImages();
         List<Image> images = imageEntities.stream().map(R2dbcPlaylistRepository::toImage).toList();
 
         PlaylistOwner owner = buildPlaylistOwner(playlist);

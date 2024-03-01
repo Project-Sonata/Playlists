@@ -1,7 +1,7 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc.callback.write;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistImage;
-import com.odeyalo.sonata.playlists.entity.R2dbcImageEntity;
+import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.PlaylistImagesRepository;
 import com.odeyalo.sonata.playlists.repository.R2dbcImageRepository;
@@ -38,7 +38,7 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
 
     @NotNull
     private Mono<List<PlaylistImage>> saveImages(R2dbcPlaylistEntity parent) {
-        List<R2dbcImageEntity> images = parent.getImages();
+        List<ImageEntity> images = parent.getImages();
         return Flux.fromIterable(images)
                 .filterWhen(this::isImageNotExist)
                 .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(parent.getId()).thenReturn(entity))
@@ -48,13 +48,13 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
     }
 
     @NotNull
-    private Mono<PlaylistImage> buildAndSave(R2dbcPlaylistEntity parent, R2dbcImageEntity imageEntity) {
+    private Mono<PlaylistImage> buildAndSave(R2dbcPlaylistEntity parent, ImageEntity imageEntity) {
         PlaylistImage imageToSave = PlaylistImage.builder().imageId(imageEntity.getId()).playlistId(parent.getId()).build();
         return playlistImagesRepository.save(imageToSave);
     }
 
     @NotNull
-    private Mono<Boolean> isImageNotExist(R2dbcImageEntity entity) {
+    private Mono<Boolean> isImageNotExist(ImageEntity entity) {
         return r2DbcImageRepository.findByUrl(entity.getUrl())
                 .map(e -> false)
                 .defaultIfEmpty(true);

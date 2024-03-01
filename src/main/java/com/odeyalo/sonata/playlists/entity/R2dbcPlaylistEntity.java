@@ -30,7 +30,7 @@ public class R2dbcPlaylistEntity implements PlaylistEntity, Persistable<Long> {
     Long playlistOwnerId;
     @Transient
     @Builder.Default
-    List<R2dbcImageEntity> images = new ArrayList<>();
+    List<ImageEntity> images = new ArrayList<>();
     @Transient
     PlaylistOwnerEntity playlistOwner;
 
