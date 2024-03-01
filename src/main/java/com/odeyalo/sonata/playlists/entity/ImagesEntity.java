@@ -1,30 +1,36 @@
 package com.odeyalo.sonata.playlists.entity;
 
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.List;
 
-public interface ImagesEntity extends Iterable<ImageEntity> {
+@Data
+@AllArgsConstructor(staticName = "of")
+@NoArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ImagesEntity implements Iterable<ImageEntity> {
+    List<ImageEntity> images;
 
-    @NotNull
-    List<ImageEntity> getImages();
 
-    default ImageEntity get(int index) {
+    public ImageEntity get(int index) {
         return getImages().get(index);
     }
 
-    default boolean contains(ImageEntity imageEntity) {
+    public boolean contains(ImageEntity imageEntity) {
         return getImages().contains(imageEntity);
     }
 
-    default int size() {
+    public int size() {
         return getImages().size();
     }
 
     @NotNull
     @Override
-    default Iterator<ImageEntity> iterator() {
+    public Iterator<ImageEntity> iterator() {
         return getImages().iterator();
     }
 }
