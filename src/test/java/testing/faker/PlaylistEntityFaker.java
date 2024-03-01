@@ -17,6 +17,7 @@ public class PlaylistEntityFaker {
                 .playlistDescription(faker.weather().description())
                 .playlistType(faker.options().option(PlaylistType.class))
                 .publicId(RandomStringUtils.randomAlphanumeric(22))
+                .playlistOwner(PlaylistOwnerEntityFaker.create().get())
                 .build();
     }
 
