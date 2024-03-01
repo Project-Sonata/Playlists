@@ -54,8 +54,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @NotNull
     public Mono<Playlist> findById(String id) {
         return playlistRepositoryDelegate.findByPublicId(id)
-                .flatMap(this::fulfillFoundEntity)
-                .mapNotNull(tuple -> convertToPlaylist(tuple.getT1(), tuple.getT2()));
+                .mapNotNull(playlist -> convertToPlaylist(playlist));
     }
 
     @Override
@@ -67,20 +66,6 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private Mono<Tuple2<R2dbcPlaylistEntity, List<R2dbcImageEntity>>> fulfillFoundEntity(R2dbcPlaylistEntity playlist) {
-        return findAndEnhancePlaylistImages(playlist);
-    }
-
-    @NotNull
-    private Mono<Tuple2<R2dbcPlaylistEntity, List<R2dbcImageEntity>>> findAndEnhancePlaylistImages(R2dbcPlaylistEntity playlist) {
-        return playlistImagesRepository.findAllByPlaylistId(playlist.getId())
-                .flatMap(imageMetadata -> r2DbcImageRepository.findById(imageMetadata.getImageId()))
-                .collectList()
-                .defaultIfEmpty(Collections.emptyList())
-                .map(images -> Tuples.of(playlist, images));
-    }
-
-    @NotNull
     private Mono<Playlist> savePlaylist(Playlist playlist) {
         R2dbcPlaylistOwnerEntity playlistOwner = R2dbcPlaylistOwnerEntity.builder()
                 .publicId(playlist.getPlaylistOwner().getId())
@@ -88,8 +73,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
                 .build();
 
         return playlistRepositoryDelegate.save(createPlaylistEntity(playlist, playlistOwner))
-                .flatMap(this::fulfillFoundEntity)
-                .mapNotNull(tuple -> convertToPlaylist(tuple.getT1(), tuple.getT2()));
+                .mapNotNull(playlistEntity -> convertToPlaylist(playlistEntity));
     }
 
     @NotNull
@@ -139,12 +123,13 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private Playlist convertToPlaylist(R2dbcPlaylistEntity entity, List<R2dbcImageEntity> imageEntities) {
+    private Playlist convertToPlaylist(R2dbcPlaylistEntity playlist) {
+        List<R2dbcImageEntity> imageEntities = playlist.getImages();
         List<Image> images = imageEntities.stream().map(R2dbcPlaylistRepository::toImage).toList();
 
-        PlaylistOwner owner = buildPlaylistOwner(entity);
+        PlaylistOwner owner = buildPlaylistOwner(playlist);
 
-        return toPlaylistBuilder(entity).playlistOwner(owner).images(Images.of(images)).build();
+        return toPlaylistBuilder(playlist).playlistOwner(owner).images(Images.of(images)).build();
     }
 
     @NotNull
