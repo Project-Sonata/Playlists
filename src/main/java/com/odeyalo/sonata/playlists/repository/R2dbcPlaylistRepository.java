@@ -1,13 +1,15 @@
 package com.odeyalo.sonata.playlists.repository;
 
-import com.odeyalo.sonata.playlists.entity.*;
+import com.odeyalo.sonata.playlists.entity.ImageEntity;
+import com.odeyalo.sonata.playlists.entity.R2dbcImageEntity;
+import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -111,32 +113,11 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
         List<R2dbcImageEntity> entities = getImageEntities(playlist);
 
-        Mono<List<PlaylistImage>> savedImages = saveImages(parent, entities);
-        return savedImages.doOnNext(entity::setImages).flatMap(toSave -> playlistRepositoryDelegate.save(entity));
+        entity.setImages(entities);
+
+        return playlistRepositoryDelegate.save(entity);
     }
 
-    @NotNull
-    private Mono<List<PlaylistImage>> saveImages(R2dbcPlaylistEntity parent, List<R2dbcImageEntity> entities) {
-        return Flux.fromIterable(entities)
-                .filterWhen(this::isImageNotExist)
-                .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(parent.getId()).thenReturn(entity))
-                .flatMap(r2DbcImageRepository::save)
-                .flatMap(imageEntity -> buildAndSave(parent, imageEntity))
-                .collectList();
-    }
-
-    @NotNull
-    private Mono<Boolean> isImageNotExist(R2dbcImageEntity entity) {
-        return r2DbcImageRepository.findByUrl(entity.getUrl())
-                .map(e -> false)
-                .defaultIfEmpty(true);
-    }
-
-    @NotNull
-    private Mono<PlaylistImage> buildAndSave(R2dbcPlaylistEntity parent, R2dbcImageEntity imageEntity) {
-        PlaylistImage imageToSave = PlaylistImage.builder().imageId(imageEntity.getId()).playlistId(parent.getId()).build();
-        return playlistImagesRepository.save(imageToSave);
-    }
 
     @NotNull
     private static R2dbcImageEntity convertToImageEntity(Image image) {
