@@ -72,12 +72,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private Mono<Playlist> savePlaylist(Playlist playlist) {
-        PlaylistOwnerEntity playlistOwner = PlaylistOwnerEntity.builder()
-                .publicId(playlist.getPlaylistOwner().getId())
-                .displayName(playlist.getPlaylistOwner().getDisplayName())
-                .build();
-
-        PlaylistEntity toSave = createPlaylistEntity(playlist, playlistOwner);
+        PlaylistEntity toSave = createPlaylistEntity(playlist);
 
         return playlistRepositoryDelegate.save(toSave)
                 .mapNotNull(playlistEntity -> convertEntityToPlaylist(playlistEntity));
@@ -107,19 +102,11 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private PlaylistEntity createPlaylistEntity(Playlist playlist, PlaylistOwnerEntity playlistOwner) {
+    private PlaylistEntity createPlaylistEntity(Playlist playlist) {
         String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
         PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
-        entity.setPlaylistOwner(playlistOwner);
         entity.setPublicId(playlistId);
-
-        return PlaylistEntity.builder()
-                .publicId(playlistId)
-                .playlistName(playlist.getName())
-                .playlistDescription(playlist.getDescription())
-                .playlistType(playlist.getPlaylistType())
-                .playlistOwner(playlistOwner)
-                .build();
+        return entity;
     }
 
     @NotNull
