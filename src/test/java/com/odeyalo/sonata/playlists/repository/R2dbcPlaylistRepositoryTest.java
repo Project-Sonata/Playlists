@@ -14,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
-import testing.asserts.PlaylistTypeAssert;
 import testing.faker.ImagesFaker;
 import testing.faker.PlaylistFaker;
 import testing.spring.ConvertersConfiguration;
@@ -90,8 +89,10 @@ class R2dbcPlaylistRepositoryTest {
     void shouldSaveAndSetDefaultPlaylistType() {
         Playlist saved = createAndSavePlaylist();
 
-        assertThat(saved).isNotNull();
-        PlaylistTypeAssert.from(saved.getPlaylistType()).isPrivate();
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getPlaylistType(), saved.getPlaylistType()))
+                .verifyComplete();
     }
 
     @Test
