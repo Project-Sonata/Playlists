@@ -160,7 +160,7 @@ class R2dbcPlaylistRepositoryTest {
     }
 
     @Test
-    void clear() {
+    void clearShouldClearEverything() {
         Playlist saved = createAndSavePlaylist();
 
         r2dbcPlaylistRepository.clear().block();
