@@ -4,6 +4,7 @@ import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
+import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistImagesAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistOwnerAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.write.SavePlaylistImageOnMissingAfterSaveCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.write.SavePlaylistOwnerOnMissingBeforeConvertCallback;
@@ -25,7 +26,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 @SpringBootTest(classes = {R2dbcPlaylistRepository.class,
         SavePlaylistOwnerOnMissingBeforeConvertCallback.class,
         PlaylistOwnerAssociationAfterConvertCallback.class,
-        SavePlaylistImageOnMissingAfterSaveCallback.class})
+        SavePlaylistImageOnMissingAfterSaveCallback.class,
+        PlaylistImagesAssociationAfterConvertCallback.class})
 @EnableAutoConfiguration
 @AutoConfigureDataR2dbc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
