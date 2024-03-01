@@ -1,19 +1,13 @@
 package com.odeyalo.sonata.playlists.repository;
 
-import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
-import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
-import com.odeyalo.sonata.playlists.support.converter.ImagesEntityConverter;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistConverter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 
 /**
@@ -24,20 +18,11 @@ import java.util.List;
 @Component
 public class R2dbcPlaylistRepository implements PlaylistRepository {
     private final R2dbcPlaylistRepositoryDelegate playlistRepositoryDelegate;
-    private final PlaylistImagesRepository playlistImagesRepository;
-    private final R2dbcImageRepository r2DbcImageRepository;
-    @Autowired
-    R2dbcPlaylistOwnerRepository r2DbcPlaylistOwnerRepository;
-
     private final PlaylistConverter playlistConverter;
 
     public R2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate playlistRepositoryDelegate,
-                                   PlaylistImagesRepository playlistImagesRepository,
-                                   R2dbcImageRepository r2DbcImageRepository,
                                    PlaylistConverter playlistConverter) {
         this.playlistRepositoryDelegate = playlistRepositoryDelegate;
-        this.playlistImagesRepository = playlistImagesRepository;
-        this.r2DbcImageRepository = r2DbcImageRepository;
         this.playlistConverter = playlistConverter;
     }
 
@@ -62,9 +47,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @Override
     @NotNull
     public Mono<Void> clear() {
-        return playlistImagesRepository.deleteAll()
-                .thenEmpty(r2DbcImageRepository.deleteAll())
-                .thenEmpty(playlistRepositoryDelegate.deleteAll());
+        return playlistRepositoryDelegate.deleteAll();
     }
 
     @NotNull
