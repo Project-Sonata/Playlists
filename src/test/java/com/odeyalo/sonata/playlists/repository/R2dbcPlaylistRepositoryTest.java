@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 import testing.asserts.PlaylistTypeAssert;
+import testing.faker.ImagesFaker;
 import testing.faker.PlaylistFaker;
 import testing.spring.ConvertersConfiguration;
 import testing.spring.R2dbcCallbacksConfiguration;
@@ -49,7 +50,7 @@ class R2dbcPlaylistRepositoryTest {
         Playlist playlist = PlaylistFaker.createWithNoId().get();
 
         Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
-        Images images = Images.of(Image.builder().url("https://cdn.sonata.com/i/something").build());
+        Images images = ImagesFaker.create().get();
 
         //noinspection DataFlowIssue
         Playlist updated = Playlist.from(saved).images(images).build();
@@ -64,18 +65,14 @@ class R2dbcPlaylistRepositoryTest {
 
     @Test
     void shouldNotThrowAnyException() {
-        Playlist playlist = Playlist.builder().name("This is my playlist name")
-                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
-                .build();
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
+
         assertThatCode(() -> r2dbcPlaylistRepository.save(playlist).block()).doesNotThrowAnyException();
     }
 
     @Test
     void shouldGenerateId() {
-        Playlist playlist = Playlist.builder()
-                .name("This is my playlist name")
-                .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
-                .build();
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
 
         r2dbcPlaylistRepository.save(playlist)
                 .as(StepVerifier::create)
