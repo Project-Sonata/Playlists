@@ -28,19 +28,16 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     private final R2dbcImageRepository r2DbcImageRepository;
     @Autowired
     R2dbcPlaylistOwnerRepository r2DbcPlaylistOwnerRepository;
-    private final ImagesEntityConverter imagesEntityConverter;
 
     private final PlaylistConverter playlistConverter;
 
     public R2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate playlistRepositoryDelegate,
                                    PlaylistImagesRepository playlistImagesRepository,
                                    R2dbcImageRepository r2DbcImageRepository,
-                                   ImagesEntityConverter imagesEntityConverter,
                                    PlaylistConverter playlistConverter) {
         this.playlistRepositoryDelegate = playlistRepositoryDelegate;
         this.playlistImagesRepository = playlistImagesRepository;
         this.r2DbcImageRepository = r2DbcImageRepository;
-        this.imagesEntityConverter = imagesEntityConverter;
         this.playlistConverter = playlistConverter;
     }
 
@@ -59,7 +56,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     @NotNull
     public Mono<Playlist> findById(String id) {
         return playlistRepositoryDelegate.findByPublicId(id)
-                .mapNotNull(playlist -> convertEntityToPlaylist(playlist));
+                .map(playlistConverter::toPlaylist);
     }
 
     @Override
@@ -75,30 +72,23 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
         PlaylistEntity toSave = createPlaylistEntity(playlist);
 
         return playlistRepositoryDelegate.save(toSave)
-                .mapNotNull(playlistEntity -> convertEntityToPlaylist(playlistEntity));
+                .map(playlistConverter::toPlaylist);
     }
 
     @NotNull
     private Mono<Playlist> updatePlaylist(Playlist playlist) {
         return playlistRepositoryDelegate.findByPublicId(playlist.getId())
                 .flatMap(parent -> updatePlaylistEntity(playlist, parent))
-                .map(playlistEntity -> convertEntityToPlaylist(playlistEntity));
+                .map(playlistConverter::toPlaylist);
     }
 
     @NotNull
     private Mono<PlaylistEntity> updatePlaylistEntity(Playlist playlist, PlaylistEntity parent) {
-        List<ImageEntity> images = getImageEntities(playlist);
 
         PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
         entity.setId(parent.getId());
-        entity.setImages(images);
 
         return playlistRepositoryDelegate.save(entity);
-    }
-
-    @NotNull
-    private List<ImageEntity> getImageEntities(Playlist playlist) {
-        return imagesEntityConverter.toImagesEntity(playlist.getImages()).getImages();
     }
 
     @NotNull
@@ -107,10 +97,5 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
         PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
         entity.setPublicId(playlistId);
         return entity;
-    }
-
-    @NotNull
-    private Playlist convertEntityToPlaylist(PlaylistEntity entity) {
-        return playlistConverter.toPlaylist(entity);
     }
 }
