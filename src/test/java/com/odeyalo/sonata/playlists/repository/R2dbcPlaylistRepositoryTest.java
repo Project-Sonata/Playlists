@@ -76,10 +76,11 @@ class R2dbcPlaylistRepositoryTest {
                 .name("This is my playlist name")
                 .playlistOwner(PlaylistOwner.builder().id("mikunakanolover").displayName("Odeyalooo").build())
                 .build();
-        Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
 
-        assertThat(saved).isNotNull();
-        assertThat(saved.getId()).isNotNull();
+        r2dbcPlaylistRepository.save(playlist)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> it.getId() != null)
+                .verifyComplete();
     }
 
     @Test
