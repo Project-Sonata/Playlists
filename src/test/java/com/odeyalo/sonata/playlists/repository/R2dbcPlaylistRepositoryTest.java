@@ -17,22 +17,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.AutoConfigureDataR2dbc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import testing.asserts.PlaylistTypeAssert;
 import testing.faker.PlaylistFaker;
+import testing.spring.ConvertersConfiguration;
+import testing.spring.R2dbcCallbacksConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
-@SpringBootTest(classes = {R2dbcPlaylistRepository.class,
-        SavePlaylistOwnerOnMissingBeforeConvertCallback.class,
-        PlaylistOwnerAssociationAfterConvertCallback.class,
-        SavePlaylistImageOnMissingAfterSaveCallback.class,
-        PlaylistImagesAssociationAfterConvertCallback.class,
-        ImageEntityConverterImpl.class,
-        ImagesEntityConverterImpl.class,
-        PlaylistConverterImpl.class,
-        PlaylistOwnerConverterImpl.class})
+@SpringBootTest(classes = {R2dbcPlaylistRepository.class})
+@Import({ConvertersConfiguration.class, R2dbcCallbacksConfiguration.class})
 @EnableAutoConfiguration
 @AutoConfigureDataR2dbc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
