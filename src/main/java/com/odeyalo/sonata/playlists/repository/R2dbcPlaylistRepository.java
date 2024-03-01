@@ -2,7 +2,7 @@ package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -63,7 +63,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private Mono<Playlist> savePlaylist(Playlist playlist) {
-        R2dbcPlaylistOwnerEntity playlistOwner = R2dbcPlaylistOwnerEntity.builder()
+        PlaylistOwnerEntity playlistOwner = PlaylistOwnerEntity.builder()
                 .publicId(playlist.getPlaylistOwner().getId())
                 .displayName(playlist.getPlaylistOwner().getDisplayName())
                 .build();
@@ -104,7 +104,7 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
     }
 
     @NotNull
-    private static PlaylistEntity createPlaylistEntity(Playlist playlist, R2dbcPlaylistOwnerEntity playlistOwner) {
+    private static PlaylistEntity createPlaylistEntity(Playlist playlist, PlaylistOwnerEntity playlistOwner) {
         String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
 
         PlaylistEntity.PlaylistEntityBuilder builder = toPlaylistEntityBuilder(playlist);

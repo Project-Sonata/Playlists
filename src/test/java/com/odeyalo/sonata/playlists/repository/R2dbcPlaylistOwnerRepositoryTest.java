@@ -1,7 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
-import com.odeyalo.sonata.playlists.entity.R2dbcPlaylistOwnerEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class R2dbcPlaylistOwnerRepositoryTest {
     private PlaylistEntity getR2dbcPlaylistEntity() {
         PlaylistEntity toSave = createWithNoId().asR2dbcEntity();
 
-        R2dbcPlaylistOwnerEntity savedOwner = savePlaylistOwner(toSave);
+        PlaylistOwnerEntity savedOwner = savePlaylistOwner(toSave);
 
         toSave.setPlaylistOwnerId(savedOwner.getId());
 
@@ -61,8 +61,8 @@ class R2dbcPlaylistOwnerRepositoryTest {
     }
 
     @NotNull
-    private R2dbcPlaylistOwnerEntity savePlaylistOwner(PlaylistEntity toSave) {
-        R2dbcPlaylistOwnerEntity owner = R2dbcPlaylistOwnerEntity.builder()
+    private PlaylistOwnerEntity savePlaylistOwner(PlaylistEntity toSave) {
+        PlaylistOwnerEntity owner = PlaylistOwnerEntity.builder()
                 .displayName(toSave.getPlaylistOwner().getDisplayName())
                 .publicId(toSave.getPlaylistOwner().getPublicId())
                 .build();
