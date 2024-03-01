@@ -19,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.AutoConfigureDataR
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import reactor.test.StepVerifier;
 import testing.asserts.PlaylistTypeAssert;
 import testing.faker.PlaylistFaker;
 import testing.spring.ConvertersConfiguration;
@@ -48,16 +49,17 @@ class R2dbcPlaylistRepositoryTest {
         Playlist playlist = PlaylistFaker.createWithNoId().get();
 
         Playlist saved = r2dbcPlaylistRepository.save(playlist).block();
+        Images images = Images.of(Image.builder().url("https://cdn.sonata.com/i/something").build());
 
-        Playlist updated = Playlist.from(saved).images(Images.of(Image.builder().url("https://cdn.sonata.com/i/something").build())).build();
+        //noinspection DataFlowIssue
+        Playlist updated = Playlist.from(saved).images(images).build();
 
         r2dbcPlaylistRepository.save(updated).block();
 
-        Playlist foundById = r2dbcPlaylistRepository.findById(saved.getId()).block();
-
-        assertThat(foundById).isNotNull();
-        assertThat(foundById.getImages()).isNotNull();
-        assertThat(foundById.getImages().isEmpty()).isFalse();
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> !it.getImages().isEmpty())
+                .verifyComplete();
     }
 
     @Test
