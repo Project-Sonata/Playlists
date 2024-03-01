@@ -110,14 +110,13 @@ public class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @NotNull
     private static R2dbcPlaylistEntity createPlaylistEntity(Playlist playlist, R2dbcPlaylistOwnerEntity playlistOwner) {
-        PlaylistType playlistType = playlist.getPlaylistType() != null ? playlist.getPlaylistType() : PlaylistType.PRIVATE;
         String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
 
         R2dbcPlaylistEntity.R2dbcPlaylistEntityBuilder builder = toPlaylistEntityBuilder(playlist);
 
 
         return builder.publicId(playlistId)
-                .playlistType(playlistType)
+                .playlistType(playlist.getPlaylistType())
                 .playlistOwner(playlistOwner)
                 .build();
     }

@@ -16,7 +16,8 @@ public class Playlist {
     String id;
     String name;
     String description;
-    PlaylistType playlistType;
+    @Builder.Default
+    PlaylistType playlistType = PlaylistType.PRIVATE;
     Images images;
     PlaylistOwner playlistOwner;
     @Builder.Default
