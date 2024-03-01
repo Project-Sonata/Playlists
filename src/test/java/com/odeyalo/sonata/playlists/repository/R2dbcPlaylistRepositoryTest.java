@@ -77,11 +77,13 @@ class R2dbcPlaylistRepositoryTest {
     }
 
     @Test
-    void shouldSaveTheValuesPresented() {
+    void shouldSaveThePlaylistNameAsProvided() {
         Playlist saved = createAndSavePlaylist();
 
-        assertThat(saved).isNotNull();
-        assertThat(saved.getName()).isEqualTo(saved.getName());
+        r2dbcPlaylistRepository.findById(saved.getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getName(), saved.getName()))
+                .verifyComplete();
     }
 
     @Test
@@ -169,9 +171,14 @@ class R2dbcPlaylistRepositoryTest {
     private Playlist createAndSavePlaylist() {
         Playlist playlist = PlaylistFaker.createWithNoId().setPlaylistType(PlaylistType.PRIVATE).get();
 
+        return insertPlaylist(playlist);
+    }
+
+    @NotNull
+    private Playlist insertPlaylist(Playlist playlist) {
         return Objects.requireNonNull(
                 r2dbcPlaylistRepository.save(playlist).block(),
-                "There is a problem during saving the Playlist to R2DBC repository."
+                String.format("There is a problem during saving the Playlist: [%s] to R2DBC repository.", playlist)
         );
     }
 }
