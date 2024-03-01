@@ -19,17 +19,15 @@ import org.springframework.data.relational.core.mapping.Table;
 public class PlaylistOwnerEntity implements Persistable<Long> {
     @Id
     Long id;
-    @NonNull
-    @NotNull
     @Column("public_id")
+    @NotNull
     String publicId;
-    @Nullable
     @Column("display_name")
+    @Nullable
     String displayName;
-    @Builder.Default
-    @NonNull
     @NotNull
     @Column("entity_type")
+    @Builder.Default
     EntityType entityType = EntityType.USER;
 
     @Override
