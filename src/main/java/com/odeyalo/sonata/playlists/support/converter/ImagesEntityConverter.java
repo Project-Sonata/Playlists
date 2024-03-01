@@ -29,4 +29,8 @@ public abstract class ImagesEntityConverter {
         return Images.of(images);
     }
 
+    public List<ImageEntity> toImageEntities(Images images) {
+        return images.stream().map(imageEntityConverter::toImageEntity).toList();
+    }
+
 }

@@ -15,4 +15,10 @@ public interface PlaylistConverter {
     @Mapping(target = "name", source = "playlistName")
     @Mapping(target = "description", source = "playlistDescription")
     Playlist toPlaylist(PlaylistEntity playlistEntity);
+
+    @Mapping(target = "publicId", source = "id")
+    @Mapping(target = "playlistName", source = "name")
+    @Mapping(target = "playlistDescription", source = "description")
+    @Mapping(target = "id", ignore = true)
+    PlaylistEntity toPlaylistEntity(Playlist playlist);
 }

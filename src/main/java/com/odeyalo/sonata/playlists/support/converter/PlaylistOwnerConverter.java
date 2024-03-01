@@ -18,6 +18,7 @@ public interface PlaylistOwnerConverter {
     PlaylistOwner toPlaylistOwner(PlaylistOwnerEntity entity);
 
     @Mapping(target = "publicId", source = "id")
+    @Mapping(target = "id", ignore = true)
     PlaylistOwnerEntity toPlaylistOwnerEntity(PlaylistOwner owner);
 
 }
