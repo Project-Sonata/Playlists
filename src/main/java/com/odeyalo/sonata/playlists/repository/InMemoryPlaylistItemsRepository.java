@@ -18,17 +18,12 @@ import java.util.stream.Collectors;
 public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepository {
     private final Map<Long, List<PlaylistItemEntity>> cache;
 
-    public InMemoryPlaylistItemsRepository(List<PlaylistItemEntity> cache) {
-        this.cache = cache.stream()
-                .collect(
-                        Collectors.groupingBy(
-                                PlaylistItemEntity::getPlaylistId,
-                                Collectors.mapping(Function.identity(), Collectors.toList())
-                        ));
-    }
-
     public InMemoryPlaylistItemsRepository() {
         this.cache = new ConcurrentHashMap<>();
+    }
+
+    public InMemoryPlaylistItemsRepository(List<PlaylistItemEntity> cache) {
+        this.cache = toMap(cache);
     }
 
     @Override
@@ -39,5 +34,14 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
         return Flux.fromIterable(
                 cache.getOrDefault(playlistId, Collections.emptyList())
         );
+    }
+
+    @NotNull
+    private static Map<Long, List<PlaylistItemEntity>> toMap(List<PlaylistItemEntity> cache) {
+        return cache.stream().collect(
+                Collectors.groupingBy(
+                        PlaylistItemEntity::getPlaylistId,
+                        Collectors.mapping(Function.identity(), Collectors.toList())
+                ));
     }
 }
