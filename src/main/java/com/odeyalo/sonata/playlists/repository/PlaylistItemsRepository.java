@@ -9,9 +9,14 @@ import reactor.core.publisher.Flux;
  * Simple repository to work with items saved in playlist
  */
 public interface PlaylistItemsRepository {
-
+    /**
+     * Search for the all items in playlist with pagination support
+     * @param playlistId - id of the public. NOTE: ID should be public ID that shown for user! Not the internal one
+     * @param pageable - pagination info
+     * @return - {@link  Flux} with {@link PlaylistItemEntity} with items from this playlist, with pagination support(if was used)
+     */
     @NotNull
-    Flux<PlaylistItemEntity> findAllByPlaylistId(@NotNull Long playlistId,
+    Flux<PlaylistItemEntity> findAllByPlaylistId(@NotNull String playlistId,
                                                  @NotNull Pageable pageable);
 
 }

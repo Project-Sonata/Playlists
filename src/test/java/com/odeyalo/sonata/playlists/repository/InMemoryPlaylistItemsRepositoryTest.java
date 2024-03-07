@@ -14,13 +14,13 @@ class InMemoryPlaylistItemsRepositoryTest {
     @Test
     void shouldReturnPlaylistItemsForSavedPlaylist() {
         List<PlaylistItemEntity> playlistItems = List.of(
-                PlaylistItemEntityFaker.create(1L).get(),
-                PlaylistItemEntityFaker.create(1L).get()
+                PlaylistItemEntityFaker.create("1").get(),
+                PlaylistItemEntityFaker.create("1").get()
         );
 
         final var testable = new InMemoryPlaylistItemsRepository(playlistItems);
 
-        testable.findAllByPlaylistId(1L, Pageable.unpaged())
+        testable.findAllByPlaylistId("1", Pageable.unpaged())
                 .as(StepVerifier::create)
                 .expectNext(playlistItems.get(0))
                 .expectNext(playlistItems.get(1))
@@ -30,13 +30,13 @@ class InMemoryPlaylistItemsRepositoryTest {
     @Test
     void shouldReturnPlaylistItemsForSinglePlaylist() {
         List<PlaylistItemEntity> playlistItems = List.of(
-                PlaylistItemEntityFaker.create(1L).get(),
-                PlaylistItemEntityFaker.create(2L).get()
+                PlaylistItemEntityFaker.create("1").get(),
+                PlaylistItemEntityFaker.create("2").get()
         );
 
         final var testable = new InMemoryPlaylistItemsRepository(playlistItems);
 
-        testable.findAllByPlaylistId(1L, Pageable.unpaged())
+        testable.findAllByPlaylistId("1", Pageable.unpaged())
                 .as(StepVerifier::create)
                 .expectNext(playlistItems.get(0))
                 .verifyComplete();
@@ -46,7 +46,7 @@ class InMemoryPlaylistItemsRepositoryTest {
     void shouldReturnNothingIfPlaylistDoesNotHaveSavedItems() {
         final var testable = new InMemoryPlaylistItemsRepository();
 
-        testable.findAllByPlaylistId(1L, Pageable.unpaged())
+        testable.findAllByPlaylistId("1", Pageable.unpaged())
                 .as(StepVerifier::create)
                 .verifyComplete();
     }

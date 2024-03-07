@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * In memory implementation of {@link PlaylistItemsRepository} that saves the values in simple {@link Map}
  */
 public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepository {
-    private final Map<Long, List<PlaylistItemEntity>> cache;
+    private final Map<String, List<PlaylistItemEntity>> cache;
 
     public InMemoryPlaylistItemsRepository() {
         this.cache = new ConcurrentHashMap<>();
@@ -28,7 +28,7 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
 
     @Override
     @NotNull
-    public Flux<PlaylistItemEntity> findAllByPlaylistId(@NotNull Long playlistId,
+    public Flux<PlaylistItemEntity> findAllByPlaylistId(@NotNull String playlistId,
                                                         @NotNull Pageable pageable) {
 
         return Flux.fromIterable(
@@ -37,7 +37,7 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
     }
 
     @NotNull
-    private static Map<Long, List<PlaylistItemEntity>> toMap(List<PlaylistItemEntity> cache) {
+    private static Map<String, List<PlaylistItemEntity>> toMap(List<PlaylistItemEntity> cache) {
         return cache.stream().collect(
                 Collectors.groupingBy(
                         PlaylistItemEntity::getPlaylistId,

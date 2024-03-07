@@ -11,7 +11,7 @@ public final class PlaylistItemEntityFaker {
     private final PlaylistItemEntity.PlaylistItemEntityBuilder builder = PlaylistItemEntity.builder();
     private final Faker faker = Faker.instance();
 
-    public PlaylistItemEntityFaker(Long playlistId) {
+    public PlaylistItemEntityFaker(String playlistId) {
         ItemEntity item = ItemEntityFaker.create().get();
 
         Instant addedAt = faker.date().past(1, TimeUnit.HOURS).toInstant();
@@ -22,7 +22,7 @@ public final class PlaylistItemEntityFaker {
                 .build();
     }
 
-    public static PlaylistItemEntityFaker create(Long playlistId) {
+    public static PlaylistItemEntityFaker create(String playlistId) {
         return new PlaylistItemEntityFaker(playlistId);
     }
 

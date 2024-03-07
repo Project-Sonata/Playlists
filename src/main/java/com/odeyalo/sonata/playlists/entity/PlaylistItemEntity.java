@@ -21,5 +21,5 @@ public class PlaylistItemEntity {
 
     ItemEntity item;
 
-    Long playlistId;
+    String playlistId;
 }
