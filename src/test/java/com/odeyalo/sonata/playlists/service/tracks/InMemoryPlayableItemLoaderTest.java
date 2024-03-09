@@ -1,9 +1,9 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.playlists.model.PlayableItem;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
+import testing.MockPlayableItem;
 
 class InMemoryPlayableItemLoaderTest {
 
@@ -26,19 +26,5 @@ class InMemoryPlayableItemLoaderTest {
         testable.loadItem("test")
                 .as(StepVerifier::create)
                 .verifyComplete();
-    }
-
-
-    private record MockPlayableItem(String contextUri) implements PlayableItem {
-
-        public static PlayableItem create(@NotNull String contextUri) {
-            return new MockPlayableItem(contextUri);
-        }
-
-        @Override
-        @NotNull
-        public String getContextUri() {
-            return contextUri;
-        }
     }
 }
