@@ -1,9 +1,6 @@
 package com.odeyalo.sonata.playlists.controller;
 
-import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
-import com.odeyalo.sonata.playlists.dto.ImagesDto;
-import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
-import com.odeyalo.sonata.playlists.dto.PlaylistDto;
+import com.odeyalo.sonata.playlists.dto.*;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
@@ -13,6 +10,7 @@ import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverte
 import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
 import com.odeyalo.suite.security.auth.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 
@@ -52,6 +52,33 @@ public class PlaylistController {
                 .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
                 .map(HttpStatuses::defaultOkStatus)
                 .defaultIfEmpty(defaultUnprocessableEntityStatus());
+    }
+
+    @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId,
+                                                                     Pagination pagination) {
+        int limit = pagination.getLimit();
+        int offset = pagination.getOffset();
+        List<PlaylistItemDto> items = List.of(
+                new PlaylistItemDto("1"),
+                new PlaylistItemDto("2"),
+                new PlaylistItemDto("3")
+        );
+
+        if (offset == limit) {
+            return Mono.just(
+                    HttpStatuses.defaultOkStatus(
+                            new PlaylistItemsDto(items.subList(offset, limit + 1))
+                    )
+            );
+        }
+
+        return Mono.just(
+                HttpStatuses.defaultOkStatus(new PlaylistItemsDto(
+                        items.subList(Math.min(offset, items.size()),
+                                Math.min(limit, items.size()))
+                ))
+        );
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
