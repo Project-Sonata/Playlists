@@ -1,8 +1,10 @@
 package com.odeyalo.sonata.playlists.controller.support;
 
+import com.odeyalo.sonata.playlists.exception.InvalidPaginationLimitException;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.BindingContext;
@@ -35,12 +37,36 @@ public final class PaginationMethodArgumentHandlerResolver implements HandlerMet
             paginationBuilder.offset(NumberUtils.toInt(offset));
         }
 
-        if ( NumberUtils.isParsable(limit) ) {
-            paginationBuilder.limit(NumberUtils.toInt(limit));
-        }
+        Mono<Object> error = maybeBuildLimit(limit, paginationBuilder);
+
+        if ( error != null ) return error;
 
         return Mono.just(
                 paginationBuilder.build()
         );
+    }
+
+    @Nullable
+    private static Mono<Object> maybeBuildLimit(String limit, Pagination.PaginationBuilder paginationBuilder) {
+        if (limit == null) {
+            // Do nothing, we should use default values
+            return null;
+        }
+
+        if ( !NumberUtils.isParsable(limit) ) {
+            return Mono.error(
+                    InvalidPaginationLimitException.withCustomMessage("'limit' isn't number. Must be greater than 0")
+            );
+        }
+
+        int limitValue = NumberUtils.toInt(limit);
+
+        if ( limitValue <= 0 ) {
+            return Mono.error(InvalidPaginationLimitException.withCustomMessage("'limit' must be greater than 0"));
+        }
+
+        paginationBuilder.limit(limitValue);
+
+        return null;
     }
 }

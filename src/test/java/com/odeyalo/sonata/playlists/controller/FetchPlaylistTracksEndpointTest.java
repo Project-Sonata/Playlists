@@ -134,6 +134,13 @@ class FetchPlaylistTracksEndpointTest {
                 .hasSameElementsAs(List.of(TRACK_2_ID));
     }
 
+    @Test
+    void shouldReturn400BadRequestIfNegativeLimitIsUsed() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(defaultOffset(), limit(-1));
+
+        responseSpec.expectStatus().isBadRequest();
+    }
+
     @NotNull
     private WebTestClient.ResponseSpec fetchPlaylistItems(@NotNull Offset offset,
                                                           @NotNull Limit limit) {
