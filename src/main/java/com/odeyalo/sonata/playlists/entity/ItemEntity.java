@@ -16,6 +16,8 @@ import org.springframework.data.relational.core.mapping.Column;
 public class ItemEntity {
     @Id
     Long id;
+    @Column("public_id")
+    String publicId;
     @Column("context_uri")
     String contextUri;
 }

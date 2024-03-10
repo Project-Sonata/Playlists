@@ -9,7 +9,7 @@ class InMemoryPlayableItemLoaderTest {
 
     @Test
     void shouldLoadExistingItemByContextUri() {
-        PlayableItem item = MockPlayableItem.create("test");
+        PlayableItem item = MockPlayableItem.create("test", "test");
         InMemoryPlayableItemLoader testable = new InMemoryPlayableItemLoader(item);
 
         testable.loadItem("test")

@@ -8,6 +8,9 @@ import org.jetbrains.annotations.NotNull;
 public interface PlayableItem {
 
     @NotNull
+    String getId();
+
+    @NotNull
     PlayableItemType getType();
 
     @NotNull

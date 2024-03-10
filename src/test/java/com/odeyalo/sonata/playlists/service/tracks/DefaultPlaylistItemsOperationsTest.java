@@ -52,8 +52,8 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_1.getItem().getContextUri()),
-                MockPlayableItem.create(TRACK_2.getItem().getContextUri())
+                MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri()),
+                MockPlayableItem.create(TRACK_2.getItem().getPublicId(), TRACK_2.getItem().getContextUri())
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
@@ -69,7 +69,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldReturnPlaylistPlayableItemIfExist() {
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
-        final PlayableItem playableItem = MockPlayableItem.create(TRACK_1.getItem().getContextUri());
+        final PlayableItem playableItem = MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri());
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
                 playableItem
@@ -91,7 +91,7 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_1.getItem().getContextUri())
+                MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri())
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
@@ -125,7 +125,7 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(existingContextUri)
+                MockPlayableItem.create(TRACK_2.getItem().getPublicId(), existingContextUri)
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
