@@ -89,7 +89,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnOnlyItemsCountThatWasRequested() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(1);
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(null, 1);
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
                 .returnResult().getResponseBody();
@@ -98,13 +98,33 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems()).hasSize(1);
     }
 
-    private WebTestClient.ResponseSpec fetchPlaylistItems(Integer limit) {
+    @Test
+    void shouldReturnItemsFromIndexThatWasRequested() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(1, null);
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(2);
+
+        assertThat(responseBody.getItems())
+                .map(PlaylistItemDto::getId)
+                .hasSameElementsAs(List.of(TRACK_2_ID, TRACK_3_ID));
+    }
+
+    private WebTestClient.ResponseSpec fetchPlaylistItems(Integer offset, Integer limit) {
         return webTestClient.get()
                 .uri(builder -> {
                     builder.path("/playlist/{id}/items");
 
                     if (limit != null) {
                         builder.queryParam("limit", limit);
+                    }
+
+                    if (offset != null) {
+                        builder.queryParam("offset", offset);
                     }
 
                     return builder.build(EXISTING_PLAYLIST_ID);
@@ -115,6 +135,6 @@ class FetchPlaylistTracksEndpointTest {
 
     @NotNull
     private WebTestClient.ResponseSpec fetchPlaylistItems() {
-        return fetchPlaylistItems(null);
+        return fetchPlaylistItems(null, null);
     }
 }

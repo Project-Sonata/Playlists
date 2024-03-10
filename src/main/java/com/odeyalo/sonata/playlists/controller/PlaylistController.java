@@ -12,7 +12,6 @@ import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpda
 import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
 import com.odeyalo.suite.security.auth.AuthenticatedUser;
-import jakarta.ws.rs.QueryParam;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.MediaType;
@@ -56,6 +55,7 @@ public class PlaylistController {
 
     @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId,
+                                                                     @RequestParam(value = "offset", defaultValue = "0") int offset,
                                                                      @RequestParam(value = "limit", defaultValue = "50") int limit) {
         List<PlaylistItemDto> items = List.of(
                 new PlaylistItemDto("1"),
@@ -66,7 +66,8 @@ public class PlaylistController {
 
         return Mono.just(
                 HttpStatuses.defaultOkStatus(new PlaylistItemsDto(
-                        items.subList(0, limit > items.size() ? items.size() : limit)
+                        items.subList(offset > items.size() ? items.size() : offset,
+                                limit > items.size() ? items.size() : limit)
                 ))
         );
     }
