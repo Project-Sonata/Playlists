@@ -114,6 +114,22 @@ class FetchPlaylistTracksEndpointTest {
                 .hasSameElementsAs(List.of(TRACK_2_ID, TRACK_3_ID));
     }
 
+    @Test
+    void shouldReturnItemsFromIndexWithLimitThatWasRequested() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(1, 1);
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(PlaylistItemDto::getId)
+                .hasSameElementsAs(List.of(TRACK_2_ID));
+    }
+
     private WebTestClient.ResponseSpec fetchPlaylistItems(Integer offset, Integer limit) {
         return webTestClient.get()
                 .uri(builder -> {

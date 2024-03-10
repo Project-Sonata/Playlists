@@ -63,6 +63,13 @@ public class PlaylistController {
                 new PlaylistItemDto("3")
         );
 
+        if (offset == limit) {
+            return Mono.just(
+                    HttpStatuses.defaultOkStatus(
+                            new PlaylistItemsDto(items.subList(offset, limit + 1))
+                    )
+            );
+        }
 
         return Mono.just(
                 HttpStatuses.defaultOkStatus(new PlaylistItemsDto(
