@@ -75,8 +75,8 @@ public class PlaylistController {
 
         return Mono.just(
                 HttpStatuses.defaultOkStatus(new PlaylistItemsDto(
-                        items.subList(offset > items.size() ? items.size() : offset,
-                                limit > items.size() ? items.size() : limit)
+                        items.subList(Math.min(offset, items.size()),
+                                Math.min(limit, items.size()))
                 ))
         );
     }
