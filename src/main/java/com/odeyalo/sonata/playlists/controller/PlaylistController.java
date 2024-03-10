@@ -20,6 +20,8 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 
 @RestController
@@ -54,13 +56,14 @@ public class PlaylistController {
     @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId) {
         return Mono.just(
-                HttpStatuses.defaultOkStatus(new PlaylistItemsDto("mock"))
+                HttpStatuses.defaultOkStatus(new PlaylistItemsDto(
+                        List.of(
+                                new PlaylistItemDto("1"),
+                                new PlaylistItemDto("2"),
+                                new PlaylistItemDto("3")
+                        )
+                ))
         );
-//
-//        return playlistOperations.findById(playlistId)
-//                .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
-//                .map(HttpStatuses::defaultOkStatus)
-//                .defaultIfEmpty(defaultUnprocessableEntityStatus());
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)

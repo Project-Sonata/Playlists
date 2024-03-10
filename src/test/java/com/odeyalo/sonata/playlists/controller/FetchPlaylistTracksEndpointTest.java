@@ -57,6 +57,17 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody).isNotNull();
     }
 
+    @Test
+    void shouldReturnPlaylistItemsAsArray() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(3);
+    }
+
     @NotNull
     private WebTestClient.ResponseSpec fetchPlaylistItems() {
         return webTestClient.get()
