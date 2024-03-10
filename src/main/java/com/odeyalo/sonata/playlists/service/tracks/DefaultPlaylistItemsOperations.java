@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
@@ -26,11 +24,10 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @Override
     @NotNull
-    public Mono<List<PlaylistItem>> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist) {
+    public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist) {
         return isPlaylistExist(targetPlaylist)
                 .flatMapMany(playlist -> getPlaylistItems(targetPlaylist))
-                .flatMap(this::loadPlaylistItem)
-                .collectList();
+                .flatMap(this::loadPlaylistItem);
     }
 
     @NotNull

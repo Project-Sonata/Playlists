@@ -18,7 +18,6 @@ import testing.factory.PlaylistItemsRepositories;
 import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -60,6 +59,7 @@ class DefaultPlaylistItemsOperationsTest {
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET)
+                .collectList()
                 .as(StepVerifier::create)
                 .expectNextMatches(it -> Objects.equals(it.size(), 2))
                 .verifyComplete();
@@ -77,7 +77,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)
@@ -96,7 +96,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .peekFirst()
@@ -114,7 +114,6 @@ class DefaultPlaylistItemsOperationsTest {
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET)
                 .as(StepVerifier::create)
-                .expectNext(Collections.emptyList())
                 .verifyComplete();
     }
 
@@ -131,7 +130,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)
