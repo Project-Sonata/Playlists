@@ -10,6 +10,7 @@ import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverte
 import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
 import com.odeyalo.suite.security.auth.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +56,9 @@ public class PlaylistController {
 
     @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId,
-                                                                     @RequestParam(value = "offset", defaultValue = "0") int offset,
-                                                                     @RequestParam(value = "limit", defaultValue = "50") int limit) {
+                                                                     Pagination pagination) {
+        int limit = pagination.getLimit();
+        int offset = pagination.getOffset();
         List<PlaylistItemDto> items = List.of(
                 new PlaylistItemDto("1"),
                 new PlaylistItemDto("2"),
