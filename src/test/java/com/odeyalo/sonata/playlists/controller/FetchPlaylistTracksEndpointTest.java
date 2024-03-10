@@ -18,6 +18,10 @@ import reactor.core.publisher.Hooks;
 
 import java.util.List;
 
+import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Limit.limit;
+import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Limit.noLimit;
+import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Offset.defaultOffset;
+import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Offset.offset;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 
@@ -89,7 +93,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnOnlyItemsCountThatWasRequested() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(null, 1);
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(defaultOffset(), limit(1));
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
                 .returnResult().getResponseBody();
@@ -100,7 +104,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnItemsFromIndexThatWasRequested() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(1, null);
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(1), noLimit());
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -116,7 +120,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnItemsFromIndexWithLimitThatWasRequested() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(1, 1);
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(1), limit(1));
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -131,27 +135,42 @@ class FetchPlaylistTracksEndpointTest {
     }
 
     @NotNull
-    private WebTestClient.ResponseSpec fetchPlaylistItems(Integer offset, Integer limit) {
+    private WebTestClient.ResponseSpec fetchPlaylistItems(@NotNull Offset offset,
+                                                          @NotNull Limit limit) {
         return webTestClient.get()
-                .uri(builder -> {
-                    builder.path("/playlist/{id}/items");
-
-                    if (limit != null) {
-                        builder.queryParam("limit", limit);
-                    }
-
-                    if (offset != null) {
-                        builder.queryParam("offset", offset);
-                    }
-
-                    return builder.build(EXISTING_PLAYLIST_ID);
-                })
+                .uri(builder -> builder
+                        .path("/playlist/{id}/items")
+                        .queryParam("limit", limit.limit())
+                        .queryParam("offset", offset.offset())
+                        .build(EXISTING_PLAYLIST_ID))
                 .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
                 .exchange();
     }
 
     @NotNull
     private WebTestClient.ResponseSpec fetchPlaylistItems() {
-        return fetchPlaylistItems(null, null);
+        return fetchPlaylistItems(defaultOffset(), noLimit());
+    }
+
+
+    record Offset(Integer offset) {
+        public static Offset offset(int value) {
+            return new Offset(value);
+        }
+
+        public static Offset defaultOffset() {
+            return new Offset(null);
+        }
+    }
+
+    record Limit(Integer limit) {
+
+        public static Limit limit(int value) {
+            return new Limit(value);
+        }
+
+        public static Limit noLimit() {
+            return new Limit(null);
+        }
     }
 }
