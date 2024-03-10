@@ -141,6 +141,13 @@ class FetchPlaylistTracksEndpointTest {
         responseSpec.expectStatus().isBadRequest();
     }
 
+    @Test
+    void shouldReturn400BadRequestIfNegativeOffsetIsUsed() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(-1), noLimit());
+
+        responseSpec.expectStatus().isBadRequest();
+    }
+
     @NotNull
     private WebTestClient.ResponseSpec fetchPlaylistItems(@NotNull Offset offset,
                                                           @NotNull Limit limit) {

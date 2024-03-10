@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.controller.support;
 
 import com.odeyalo.sonata.playlists.exception.InvalidPaginationLimitException;
+import com.odeyalo.sonata.playlists.exception.InvalidPaginationOffsetException;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +34,13 @@ public final class PaginationMethodArgumentHandlerResolver implements HandlerMet
 
         Pagination.PaginationBuilder paginationBuilder = Pagination.builder();
 
-        if ( NumberUtils.isParsable(offset) ) {
-            paginationBuilder.offset(NumberUtils.toInt(offset));
-        }
+        Mono<Object> offsetError = maybeBuildOffset(offset, paginationBuilder);
 
-        Mono<Object> error = maybeBuildLimit(limit, paginationBuilder);
+        if ( offsetError != null ) return offsetError;
 
-        if ( error != null ) return error;
+        Mono<Object> limitError = maybeBuildLimit(limit, paginationBuilder);
+
+        if ( limitError != null ) return limitError;
 
         return Mono.just(
                 paginationBuilder.build()
@@ -47,8 +48,30 @@ public final class PaginationMethodArgumentHandlerResolver implements HandlerMet
     }
 
     @Nullable
+    private static Mono<Object> maybeBuildOffset(String offset, Pagination.PaginationBuilder paginationBuilder) {
+        if (offset == null) {
+            // Do nothing, we should use default values
+            return null;
+        }
+
+        if ( !NumberUtils.isParsable(offset) ) {
+            return Mono.error(new InvalidPaginationOffsetException("Offset parameter is not parsable!"));
+        }
+
+        int offsetValue = NumberUtils.toInt(offset);
+
+        if (offsetValue < 0) {
+            return Mono.error(new InvalidPaginationOffsetException("Offset parameter must be greater or equal to 0!"));
+        }
+
+
+        paginationBuilder.offset(offsetValue);
+        return null;
+    }
+
+    @Nullable
     private static Mono<Object> maybeBuildLimit(String limit, Pagination.PaginationBuilder paginationBuilder) {
-        if (limit == null) {
+        if ( limit == null ) {
             // Do nothing, we should use default values
             return null;
         }
