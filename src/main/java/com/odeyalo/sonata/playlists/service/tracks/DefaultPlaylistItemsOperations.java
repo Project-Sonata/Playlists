@@ -8,6 +8,7 @@ import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +25,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @Override
     @NotNull
-    public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist) {
+    public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull Pagination pagination) {
         return isPlaylistExist(targetPlaylist)
                 .flatMapMany(playlist -> getPlaylistItems(targetPlaylist))
                 .flatMap(this::loadPlaylistItem);

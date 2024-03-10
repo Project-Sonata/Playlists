@@ -21,6 +21,8 @@ import testing.faker.PlaylistFaker;
 import java.util.List;
 import java.util.Objects;
 
+import static com.odeyalo.sonata.playlists.support.pagination.Pagination.defaultPagination;
+
 class DefaultPlaylistItemsOperationsTest {
 
     static final String PLAYLIST_ID = "odeyalo";
@@ -40,7 +42,7 @@ class DefaultPlaylistItemsOperationsTest {
                 PlaylistItemsRepositories.empty()
         );
 
-        testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET)
+        testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
                 .expectError(PlaylistNotFoundException.class)
                 .verify();
@@ -58,7 +60,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET)
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .collectList()
                 .as(StepVerifier::create)
                 .expectNextMatches(it -> Objects.equals(it.size(), 2))
@@ -77,7 +79,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).collectList().block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)
@@ -96,7 +98,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).collectList().block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .peekFirst()
@@ -112,7 +114,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET)
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
                 .verifyComplete();
     }
@@ -130,7 +132,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).collectList().block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)

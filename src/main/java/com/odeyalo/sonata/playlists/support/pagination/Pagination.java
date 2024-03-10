@@ -13,6 +13,10 @@ public class Pagination {
     @Builder.Default
     int limit = 50;
 
+    public static Pagination defaultPagination() {
+        return builder().build();
+    }
+
     public static Pagination withOffset(int offset) {
         return builder().offset(offset).build();
     }
