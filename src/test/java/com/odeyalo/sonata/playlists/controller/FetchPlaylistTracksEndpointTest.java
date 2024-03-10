@@ -1,6 +1,8 @@
 package com.odeyalo.sonata.playlists.controller;
 
 
+import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -13,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 
 @SpringBootTest
@@ -39,11 +42,26 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturn200OkStatusForExistingPlaylist() {
-        WebTestClient.ResponseSpec responseSpec = webTestClient.get()
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems();
+
+        responseSpec.expectStatus().isOk();
+    }
+
+    @Test
+    void shouldReturnNotNullPlaylistItems() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        assertThat(responseBody).isNotNull();
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec fetchPlaylistItems() {
+        return webTestClient.get()
                 .uri("/playlist/{id}/items", EXISTING_PLAYLIST_ID)
                 .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
                 .exchange();
-
-        responseSpec.expectStatus().isOk();
     }
 }

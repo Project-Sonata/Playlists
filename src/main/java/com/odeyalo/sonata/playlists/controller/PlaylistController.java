@@ -1,9 +1,6 @@
 package com.odeyalo.sonata.playlists.controller;
 
-import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
-import com.odeyalo.sonata.playlists.dto.ImagesDto;
-import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
-import com.odeyalo.sonata.playlists.dto.PlaylistDto;
+import com.odeyalo.sonata.playlists.dto.*;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
@@ -55,8 +52,10 @@ public class PlaylistController {
     }
 
     @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Void>> fetchPlaylistItems(@PathVariable String playlistId) {
-        return Mono.empty();
+    public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId) {
+        return Mono.just(
+                HttpStatuses.defaultOkStatus(new PlaylistItemsDto("mock"))
+        );
 //
 //        return playlistOperations.findById(playlistId)
 //                .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
