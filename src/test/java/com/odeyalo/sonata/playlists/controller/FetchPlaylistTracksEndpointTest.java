@@ -130,6 +130,7 @@ class FetchPlaylistTracksEndpointTest {
                 .hasSameElementsAs(List.of(TRACK_2_ID));
     }
 
+    @NotNull
     private WebTestClient.ResponseSpec fetchPlaylistItems(Integer offset, Integer limit) {
         return webTestClient.get()
                 .uri(builder -> {
