@@ -54,6 +54,16 @@ public class PlaylistController {
                 .defaultIfEmpty(defaultUnprocessableEntityStatus());
     }
 
+    @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Void>> fetchPlaylistItems(@PathVariable String playlistId) {
+        return Mono.empty();
+//
+//        return playlistOperations.findById(playlistId)
+//                .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
+//                .map(HttpStatuses::defaultOkStatus)
+//                .defaultIfEmpty(defaultUnprocessableEntityStatus());
+    }
+
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
         CreatePlaylistInfo playlistInfo = createPlaylistInfoConverter.toCreatePlaylistInfo(body);
