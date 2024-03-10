@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.controller;
 
 
+import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,6 +16,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 
@@ -26,6 +29,9 @@ import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerPro
         ids = "com.odeyalo.sonata:authorization:+")
 @TestPropertySource(locations = "classpath:application-test.properties")
 class FetchPlaylistTracksEndpointTest {
+    public static final String TRACK_1_ID = "1";
+    public static final String TRACK_2_ID = "2";
+    public static final String TRACK_3_ID = "3";
     @Autowired
     WebTestClient webTestClient;
 
@@ -66,6 +72,19 @@ class FetchPlaylistTracksEndpointTest {
 
         //noinspection DataFlowIssue
         assertThat(responseBody.getItems()).hasSize(3);
+    }
+
+    @Test
+    void shouldReturnPlaylistItemsWithIds() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(PlaylistItemDto::getId)
+                .hasSameElementsAs(List.of(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID));
     }
 
     @NotNull
