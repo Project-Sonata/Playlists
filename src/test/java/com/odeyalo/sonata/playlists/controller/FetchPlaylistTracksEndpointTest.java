@@ -87,11 +87,34 @@ class FetchPlaylistTracksEndpointTest {
                 .hasSameElementsAs(List.of(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID));
     }
 
-    @NotNull
-    private WebTestClient.ResponseSpec fetchPlaylistItems() {
+    @Test
+    void shouldReturnOnlyItemsCountThatWasRequested() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(1);
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+    }
+
+    private WebTestClient.ResponseSpec fetchPlaylistItems(Integer limit) {
         return webTestClient.get()
-                .uri("/playlist/{id}/items", EXISTING_PLAYLIST_ID)
+                .uri(builder -> {
+                    builder.path("/playlist/{id}/items");
+
+                    if (limit != null) {
+                        builder.queryParam("limit", limit);
+                    }
+
+                    return builder.build(EXISTING_PLAYLIST_ID);
+                })
                 .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
                 .exchange();
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec fetchPlaylistItems() {
+        return fetchPlaylistItems(null);
     }
 }
