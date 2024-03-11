@@ -75,7 +75,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldReturnPlaylistPlayableItemIfExist() {
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
-        final PlayableItem playableItem = MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri());
+        final PlayableItem playableItem = playableItemFrom(TRACK_1);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
                 playableItem
