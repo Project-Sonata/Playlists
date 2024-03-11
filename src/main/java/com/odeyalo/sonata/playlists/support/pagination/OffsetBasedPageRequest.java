@@ -17,7 +17,7 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
     @Serial
     private static final long serialVersionUID = -25822477129613575L;
     private static final int DEFAULT_LIMIT = 50;
-    public static final int STARTING_OFFSET = 0;
+    private static final int STARTING_OFFSET = 0;
 
     int limit;
     long offset;
@@ -63,6 +63,10 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
      */
     public OffsetBasedPageRequest(int offset, int limit) {
         this(offset, limit, Sort.unsorted());
+    }
+
+    public static OffsetBasedPageRequest of(int offset, int limit) {
+        return new OffsetBasedPageRequest(offset, limit);
     }
 
     public static Pageable withOffset(int offset) {

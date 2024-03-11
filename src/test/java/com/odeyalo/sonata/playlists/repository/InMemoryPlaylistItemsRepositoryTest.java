@@ -87,4 +87,33 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .expectNextCount(0)
                 .verifyComplete();
     }
+
+    @Test
+    void shouldReturnPlaylistItemsWithLimitAndOffset() {
+        final String playlistId = "1";
+
+        List<PlaylistItemEntity> playlistItems = List.of(
+                PlaylistItemEntityFaker.create(playlistId).get(),
+                PlaylistItemEntityFaker.create(playlistId).get(),
+                PlaylistItemEntityFaker.create(playlistId).get(),
+                PlaylistItemEntityFaker.create(playlistId).get(),
+                PlaylistItemEntityFaker.create(playlistId).get()
+        );
+
+        final var testable = new InMemoryPlaylistItemsRepository(playlistItems);
+
+        testable.findAllByPlaylistId(playlistId, OffsetBasedPageRequest.of(offset(1), limit(2)))
+                .as(StepVerifier::create)
+                .expectNext(playlistItems.get(1))
+                .expectNext(playlistItems.get(2))
+                .verifyComplete();
+    }
+
+    private static int limit(int limit) {
+        return limit;
+    }
+
+    private static int offset(int offset) {
+        return offset;
+    }
 }
