@@ -8,6 +8,7 @@ import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.MockPlayableItem;
@@ -30,6 +31,7 @@ class DefaultPlaylistItemsOperationsTest {
 
     static final PlaylistItemEntity TRACK_1 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
     static final PlaylistItemEntity TRACK_2 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
+    static final PlaylistItemEntity TRACK_3 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
 
     static final TargetPlaylist EXISTING_PLAYLIST_TARGET = TargetPlaylist.just(PLAYLIST_ID);
     static final TargetPlaylist NOT_EXISTING_PLAYLIST_TARGET = TargetPlaylist.just("not_exist");
@@ -137,5 +139,29 @@ class DefaultPlaylistItemsOperationsTest {
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)
                 .hasNotPlayableItem(TRACK_1);
+    }
+
+    @Test
+    void shouldReturnListOfItemsFromTheGivenOffset() {
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2, TRACK_3);
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
+                MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri()),
+                MockPlayableItem.create(TRACK_2.getItem().getPublicId(), TRACK_2.getItem().getContextUri()),
+                MockPlayableItem.create(TRACK_3.getItem().getPublicId(), TRACK_3.getItem().getContextUri())
+        );
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
+                .collectList().block();
+
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
+
+        asserter
+                .hasSize(2)
+                .peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
+
+        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
     }
 }
