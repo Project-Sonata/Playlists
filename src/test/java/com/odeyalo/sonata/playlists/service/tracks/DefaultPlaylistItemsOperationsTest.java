@@ -173,18 +173,17 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri()),
-                MockPlayableItem.create(TRACK_2.getItem().getPublicId(), TRACK_2.getItem().getContextUri()),
-                MockPlayableItem.create(TRACK_3.getItem().getPublicId(), TRACK_3.getItem().getContextUri())
+                playableItemFrom(TRACK_1),
+                playableItemFrom(TRACK_2),
+                playableItemFrom(TRACK_3)
         );
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
                 .collectList().block();
 
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
-
-        asserter.hasSize(2);
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
+                .hasSize(2);
 
         asserter.peekFirst().playableItem().hasId(TRACK_1.getItem().getPublicId());
 
