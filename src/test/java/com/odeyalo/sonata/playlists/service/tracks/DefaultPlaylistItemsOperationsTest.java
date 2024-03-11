@@ -20,6 +20,7 @@ import testing.factory.PlaylistItemsRepositories;
 import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -191,17 +192,7 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldReturnListOfItemsWithTheGivenLimitFromOffset() {
         // given
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2, TRACK_3, TRACK_4);
-
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItemFrom(TRACK_1),
-                playableItemFrom(TRACK_2),
-                playableItemFrom(TRACK_3),
-                playableItemFrom(TRACK_4)
-        );
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
-
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3, TRACK_4);
         // when
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET,
                         Pagination.builder()
@@ -221,6 +212,16 @@ class DefaultPlaylistItemsOperationsTest {
         asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
     }
 
+    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
+
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
+                Arrays.stream(items).map(it -> playableItemFrom(it))
+        );
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+
+    }
     @NotNull
     private static PlayableItem playableItemFrom(@NotNull PlaylistItemEntity playlistItem) {
         return MockPlayableItem.create(playlistItem.getItem().getPublicId(), playlistItem.getItem().getContextUri());
