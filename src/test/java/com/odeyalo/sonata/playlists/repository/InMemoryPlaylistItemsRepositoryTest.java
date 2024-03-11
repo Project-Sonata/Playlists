@@ -68,4 +68,23 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .expectNext(playlistItems.get(2))
                 .verifyComplete();
     }
+
+    @Test
+    void shouldReturnPlaylistItemsWithLimit() {
+        final String playlistId = "1";
+
+        List<PlaylistItemEntity> playlistItems = List.of(
+                PlaylistItemEntityFaker.create(playlistId).get(),
+                PlaylistItemEntityFaker.create(playlistId).get(),
+                PlaylistItemEntityFaker.create(playlistId).get()
+        );
+
+        final var testable = new InMemoryPlaylistItemsRepository(playlistItems);
+
+        testable.findAllByPlaylistId(playlistId, OffsetBasedPageRequest.withLimit(1))
+                .as(StepVerifier::create)
+                .expectNext(playlistItems.get(0))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
 }
