@@ -9,6 +9,7 @@ import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.MockPlayableItem;
@@ -32,6 +33,7 @@ class DefaultPlaylistItemsOperationsTest {
     static final PlaylistItemEntity TRACK_1 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
     static final PlaylistItemEntity TRACK_2 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
     static final PlaylistItemEntity TRACK_3 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
+    static final PlaylistItemEntity TRACK_4 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
 
     static final TargetPlaylist EXISTING_PLAYLIST_TARGET = TargetPlaylist.just(PLAYLIST_ID);
     static final TargetPlaylist NOT_EXISTING_PLAYLIST_TARGET = TargetPlaylist.just("not_exist");
@@ -165,7 +167,6 @@ class DefaultPlaylistItemsOperationsTest {
         asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
     }
 
-
     @Test
     void shouldReturnListOfItemsWithTheGivenLimit() {
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2, TRACK_3);
@@ -190,5 +191,41 @@ class DefaultPlaylistItemsOperationsTest {
         asserter.peekSecond().playableItem().hasId(TRACK_2.getItem().getPublicId());
     }
 
+    @Test
+    void shouldReturnListOfItemsWithTheGivenLimitFromOffset() {
+        // given
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2, TRACK_3, TRACK_4);
 
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
+                playableItemFrom(TRACK_1),
+                playableItemFrom(TRACK_2),
+                playableItemFrom(TRACK_3),
+                playableItemFrom(TRACK_4)
+        );
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+
+        // when
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET,
+                        Pagination.builder()
+                                .offset(1)
+                                .limit(3)
+                                .build())
+                .collectList().block();
+
+        // then
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
+                .hasSize(3);
+
+        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
+
+        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
+
+        asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
+    }
+
+    @NotNull
+    private static PlayableItem playableItemFrom(@NotNull PlaylistItemEntity playlistItem) {
+        return MockPlayableItem.create(playlistItem.getItem().getPublicId(), playlistItem.getItem().getContextUri());
+    }
 }
