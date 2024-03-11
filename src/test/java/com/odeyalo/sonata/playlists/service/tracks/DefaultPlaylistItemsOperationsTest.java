@@ -164,4 +164,31 @@ class DefaultPlaylistItemsOperationsTest {
 
         asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
     }
+
+
+    @Test
+    void shouldReturnListOfItemsWithTheGivenLimit() {
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2, TRACK_3);
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
+                MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri()),
+                MockPlayableItem.create(TRACK_2.getItem().getPublicId(), TRACK_2.getItem().getContextUri()),
+                MockPlayableItem.create(TRACK_3.getItem().getPublicId(), TRACK_3.getItem().getContextUri())
+        );
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
+                .collectList().block();
+
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
+
+        asserter.hasSize(2);
+
+        asserter.peekFirst().playableItem().hasId(TRACK_1.getItem().getPublicId());
+
+        asserter.peekSecond().playableItem().hasId(TRACK_2.getItem().getPublicId());
+    }
+
+
 }
