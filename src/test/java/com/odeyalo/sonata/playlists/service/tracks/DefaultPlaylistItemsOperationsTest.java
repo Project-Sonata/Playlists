@@ -125,13 +125,11 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsButNotIncludeItemsThatNotExistByContextUri() {
-        final String existingContextUri = TRACK_2.getItem().getContextUri();
-
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2);
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_2.getItem().getPublicId(), existingContextUri)
+                playableItemFrom(TRACK_2)
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
