@@ -38,6 +38,10 @@ public final class PlaylistItemsAssert extends AbstractListAssert<PlaylistItemsA
         return peek(1);
     }
 
+    public PlaylistItemAssert peekThird() {
+        return peek(2);
+    }
+
     private PlaylistItemAssert peek(int index) {
         if ( actual.size() <= index ) {
             throw new IllegalStateException("Index is greater than size!" + actual);

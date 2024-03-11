@@ -8,6 +8,8 @@ import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.MockPlayableItem;
@@ -18,9 +20,11 @@ import testing.factory.PlaylistItemsRepositories;
 import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import static com.odeyalo.sonata.playlists.support.pagination.Pagination.defaultPagination;
 
 class DefaultPlaylistItemsOperationsTest {
 
@@ -29,6 +33,8 @@ class DefaultPlaylistItemsOperationsTest {
 
     static final PlaylistItemEntity TRACK_1 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
     static final PlaylistItemEntity TRACK_2 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
+    static final PlaylistItemEntity TRACK_3 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
+    static final PlaylistItemEntity TRACK_4 = PlaylistItemEntityFaker.create(PLAYLIST_ID).get();
 
     static final TargetPlaylist EXISTING_PLAYLIST_TARGET = TargetPlaylist.just(PLAYLIST_ID);
     static final TargetPlaylist NOT_EXISTING_PLAYLIST_TARGET = TargetPlaylist.just("not_exist");
@@ -41,7 +47,7 @@ class DefaultPlaylistItemsOperationsTest {
                 PlaylistItemsRepositories.empty()
         );
 
-        testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET)
+        testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
                 .expectError(PlaylistNotFoundException.class)
                 .verify();
@@ -49,17 +55,10 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistItemsIfPlaylistExist() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2);
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_1.getItem().getContextUri()),
-                MockPlayableItem.create(TRACK_2.getItem().getContextUri())
-        );
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
-
-        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET)
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList()
                 .as(StepVerifier::create)
                 .expectNextMatches(it -> Objects.equals(it.size(), 2))
                 .verifyComplete();
@@ -69,7 +68,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldReturnPlaylistPlayableItemIfExist() {
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
-        final PlayableItem playableItem = MockPlayableItem.create(TRACK_1.getItem().getContextUri());
+        final PlayableItem playableItem = playableItemFrom(TRACK_1);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
                 playableItem
@@ -77,7 +76,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)
@@ -91,12 +90,12 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_1.getItem().getContextUri())
+                playableItemFrom(TRACK_1)
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .peekFirst()
@@ -112,29 +111,95 @@ class DefaultPlaylistItemsOperationsTest {
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET)
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
-                .expectNext(Collections.emptyList())
                 .verifyComplete();
     }
 
     @Test
     void shouldReturnListOfItemsButNotIncludeItemsThatNotExistByContextUri() {
-        final String existingContextUri = TRACK_2.getItem().getContextUri();
-
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2);
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(existingContextUri)
+                playableItemFrom(TRACK_2)
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET).block();
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
         PlaylistItemsAssert.forList(playlistItems)
                 .hasSize(1)
                 .hasNotPlayableItem(TRACK_1);
+    }
+
+    @Test
+    void shouldReturnListOfItemsFromTheGivenOffset() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
+                .collectList().block();
+
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
+
+        asserter.hasSize(2);
+
+        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
+
+        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
+    }
+
+    @Test
+    void shouldReturnListOfItemsWithTheGivenLimit() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
+                .collectList().block();
+
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
+                .hasSize(2);
+
+        asserter.peekFirst().playableItem().hasId(TRACK_1.getItem().getPublicId());
+
+        asserter.peekSecond().playableItem().hasId(TRACK_2.getItem().getPublicId());
+    }
+
+    @Test
+    void shouldReturnListOfItemsWithTheGivenLimitFromOffset() {
+        // given
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3, TRACK_4);
+        // when
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET,
+                        Pagination.builder()
+                                .offset(1)
+                                .limit(3)
+                                .build())
+                .collectList().block();
+
+        // then
+        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
+                .hasSize(3);
+
+        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
+
+        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
+
+        asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
+    }
+
+    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
+
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
+                Arrays.stream(items).map(it -> playableItemFrom(it))
+        );
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+
+    }
+    @NotNull
+    private static PlayableItem playableItemFrom(@NotNull PlaylistItemEntity playlistItem) {
+        return MockPlayableItem.create(playlistItem.getItem().getPublicId(), playlistItem.getItem().getContextUri());
     }
 }

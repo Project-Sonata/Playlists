@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -18,6 +19,12 @@ public final class InMemoryPlayableItemLoader implements PlayableItemLoader {
 
     public InMemoryPlayableItemLoader(PlayableItem... items) {
         this.cache = Arrays.stream(items).collect(
+                Collectors.toConcurrentMap(PlayableItem::getContextUri, Function.identity())
+        );
+    }
+
+    public InMemoryPlayableItemLoader(List<PlayableItem> items) {
+        this.cache = items.stream().collect(
                 Collectors.toConcurrentMap(PlayableItem::getContextUri, Function.identity())
         );
     }

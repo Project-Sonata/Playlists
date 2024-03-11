@@ -30,4 +30,8 @@ public final class PlaylistItemAssert extends AbstractAssert<PlaylistItemAssert,
         }
         throw failureWithActualExpected(addedAt, actual.getAddedAt(), "Added at is not equal!");
     }
+
+    public PlayableItemAssert playableItem() {
+        return new PlayableItemAssert(actual.getItem());
+    }
 }

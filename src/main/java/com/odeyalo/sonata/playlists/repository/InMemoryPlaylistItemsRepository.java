@@ -30,10 +30,14 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
     @NotNull
     public Flux<PlaylistItemEntity> findAllByPlaylistId(@NotNull String playlistId,
                                                         @NotNull Pageable pageable) {
+        final long offset = pageable.isUnpaged() ? 0 : pageable.getOffset();
+        final int limit = pageable.isUnpaged() ? 50 : pageable.getPageSize();
 
         return Flux.fromIterable(
                 cache.getOrDefault(playlistId, Collections.emptyList())
-        );
+        )
+                .skip(offset)
+                .take(limit);
     }
 
     @NotNull

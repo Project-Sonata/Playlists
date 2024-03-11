@@ -4,10 +4,16 @@ import com.odeyalo.sonata.playlists.model.PlayableItem;
 import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import org.jetbrains.annotations.NotNull;
 
-public record MockPlayableItem(String contextUri) implements PlayableItem {
+public record MockPlayableItem(String id, String contextUri) implements PlayableItem {
 
-    public static PlayableItem create(@NotNull String contextUri) {
-        return new MockPlayableItem(contextUri);
+    public static PlayableItem create(@NotNull String id, @NotNull String contextUri) {
+        return new MockPlayableItem(id, contextUri);
+    }
+
+    @Override
+    @NotNull
+    public String getId() {
+        return id;
     }
 
     @Override

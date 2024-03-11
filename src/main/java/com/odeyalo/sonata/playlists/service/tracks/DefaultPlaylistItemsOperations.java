@@ -8,14 +8,13 @@ import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -26,11 +25,10 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @Override
     @NotNull
-    public Mono<List<PlaylistItem>> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist) {
+    public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull Pagination pagination) {
         return isPlaylistExist(targetPlaylist)
-                .flatMapMany(playlist -> getPlaylistItems(targetPlaylist))
-                .flatMap(this::loadPlaylistItem)
-                .collectList();
+                .flatMapMany(playlist -> getPlaylistItems(targetPlaylist, pagination))
+                .flatMap(this::loadPlaylistItem);
     }
 
     @NotNull
@@ -42,8 +40,11 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     }
 
     @NotNull
-    private Flux<PlaylistItemEntity> getPlaylistItems(@NotNull TargetPlaylist targetPlaylist) {
-        return itemsRepository.findAllByPlaylistId(targetPlaylist.getPlaylistId(), Pageable.unpaged());
+    private Flux<PlaylistItemEntity> getPlaylistItems(@NotNull TargetPlaylist targetPlaylist,
+                                                      @NotNull Pagination pagination) {
+        return itemsRepository.findAllByPlaylistId(targetPlaylist.getPlaylistId(),
+                OffsetBasedPageRequest.of(pagination.getOffset(), pagination.getLimit())
+        );
     }
 
     @NotNull

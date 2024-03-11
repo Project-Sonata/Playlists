@@ -6,6 +6,7 @@ import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
 import com.odeyalo.sonata.playlists.service.PlaylistOperations;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.service.tracks.PlaylistItemsOperations;
 import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverter;
 import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
@@ -21,8 +22,6 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 
 @RestController
@@ -35,6 +34,7 @@ public class PlaylistController {
     private final PartialPlaylistDetailsUpdateInfoConverter playlistDetailsUpdateInfoConverter;
     private final ImagesDtoConverter imagesDtoConverter;
     private final CreatePlaylistInfoConverter createPlaylistInfoConverter;
+    private final PlaylistItemsOperations playlistItemsOperations;
 
     @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable String playlistId) {
@@ -57,28 +57,10 @@ public class PlaylistController {
     @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId,
                                                                      Pagination pagination) {
-        int limit = pagination.getLimit();
-        int offset = pagination.getOffset();
-        List<PlaylistItemDto> items = List.of(
-                new PlaylistItemDto("1"),
-                new PlaylistItemDto("2"),
-                new PlaylistItemDto("3")
-        );
-
-        if (offset == limit) {
-            return Mono.just(
-                    HttpStatuses.defaultOkStatus(
-                            new PlaylistItemsDto(items.subList(offset, limit + 1))
-                    )
-            );
-        }
-
-        return Mono.just(
-                HttpStatuses.defaultOkStatus(new PlaylistItemsDto(
-                        items.subList(Math.min(offset, items.size()),
-                                Math.min(limit, items.size()))
-                ))
-        );
+        return playlistItemsOperations.loadPlaylistItems(TargetPlaylist.just(playlistId), pagination)
+                .map(item -> new PlaylistItemDto(item.getItem().getId()))
+                .collectList()
+                .map(items -> defaultOkStatus(new PlaylistItemsDto(items)));
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)

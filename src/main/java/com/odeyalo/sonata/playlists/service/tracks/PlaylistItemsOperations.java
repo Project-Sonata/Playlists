@@ -2,10 +2,9 @@ package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 /**
  * Operations to work with playlist item
@@ -13,6 +12,6 @@ import java.util.List;
 public interface PlaylistItemsOperations {
 
     @NotNull
-    Mono<List<PlaylistItem>> loadPlaylistItems(@NotNull final TargetPlaylist targetPlaylist);
+    Flux<PlaylistItem> loadPlaylistItems(@NotNull final TargetPlaylist targetPlaylist, @NotNull Pagination pagination);
 
 }
