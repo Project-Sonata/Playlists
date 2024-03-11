@@ -97,7 +97,7 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                MockPlayableItem.create(TRACK_1.getItem().getPublicId(), TRACK_1.getItem().getContextUri())
+                playableItemFrom(TRACK_1)
         );
 
         final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
