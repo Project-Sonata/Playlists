@@ -11,7 +11,6 @@ import java.util.List;
 
 class InMemoryPlaylistItemsRepositoryTest {
 
-
     @Test
     void shouldReturnPlaylistItemsForSavedPlaylist() {
         List<PlaylistItemEntity> playlistItems = List.of(
@@ -84,7 +83,6 @@ class InMemoryPlaylistItemsRepositoryTest {
         testable.findAllByPlaylistId(playlistId, OffsetBasedPageRequest.withLimit(1))
                 .as(StepVerifier::create)
                 .expectNext(playlistItems.get(0))
-                .expectNextCount(0)
                 .verifyComplete();
     }
 
