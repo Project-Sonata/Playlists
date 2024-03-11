@@ -158,9 +158,9 @@ class DefaultPlaylistItemsOperationsTest {
 
         PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
 
-        asserter
-                .hasSize(2)
-                .peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
+        asserter.hasSize(2);
+
+        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
 
         asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
     }
