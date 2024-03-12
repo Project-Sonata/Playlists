@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.odeyalo.sonata.playlists.model.EntityType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -14,4 +15,6 @@ public class PlaylistCollaboratorDto {
     String id;
     @NotNull
     String displayName;
+    @NotNull
+    EntityType type;
 }
