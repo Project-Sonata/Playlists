@@ -1,6 +1,8 @@
 package com.odeyalo.sonata.playlists.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.odeyalo.sonata.playlists.model.track.AlbumType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -15,4 +17,7 @@ public class SimplifiedAlbumInfoDto {
     String id;
     @NotNull
     String name;
+    @NotNull
+    @JsonProperty("album_type")
+    AlbumType albumType;
 }
