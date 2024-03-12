@@ -504,6 +504,23 @@ class FetchPlaylistTracksEndpointTest {
                 .map(it -> it.getAlbum().getTotalTracks())
                 .containsOnly(PLAYABLE_ITEM_1.getAlbum().getTotalTracksCount());
     }
+
+
+    @Test
+    void shouldReturnTrackPlayableItemWithAlbumReleaseDate() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(it -> it.getAlbum().getReleaseDate())
+                .containsOnly(PLAYABLE_ITEM_1.getAlbum().getReleaseDate());
+    }
+
+
     @Test
     void shouldReturn400BadRequestIfNegativeLimitIsUsed() {
         WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(defaultOffset(), limit(-1));
