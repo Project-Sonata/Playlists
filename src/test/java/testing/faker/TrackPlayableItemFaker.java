@@ -15,7 +15,8 @@ public final class TrackPlayableItemFaker {
                 .name(faker.music().instrument())
                 .durationMs(faker.random().nextLong(Long.MAX_VALUE / 2))
                 .explicit(faker.random().nextBoolean())
-                .trackNumber(faker.random().nextInt(1, 10));
+                .trackNumber(faker.random().nextInt(1, 10))
+                .discNumber(faker.random().nextInt(1, 2));
     }
 
 

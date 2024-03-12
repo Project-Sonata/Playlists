@@ -22,7 +22,8 @@ public class TrackPlayableItemDto implements PlayableItemDto {
     boolean explicit;
     @JsonProperty("track_number")
     int trackNumber;
-
+    @JsonProperty("disc_number")
+    int discNumber;
     @Override
     @NotNull
     public PlayableItemType getType() {

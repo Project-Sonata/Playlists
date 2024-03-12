@@ -18,6 +18,8 @@ public class TrackPlayableItem implements PlayableItem {
     long durationMs;
     boolean explicit;
     int trackNumber;
+    int discNumber;
+
     @Override
     @NotNull
     public PlayableItemType getType() {
