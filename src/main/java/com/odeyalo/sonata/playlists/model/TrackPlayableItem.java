@@ -16,6 +16,7 @@ public class TrackPlayableItem implements PlayableItem {
     @NotNull
     String name;
     long durationMs;
+    boolean explicit;
 
     @Override
     @NotNull

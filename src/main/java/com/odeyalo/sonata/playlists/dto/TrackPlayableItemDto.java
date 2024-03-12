@@ -19,7 +19,7 @@ public class TrackPlayableItemDto implements PlayableItemDto {
     String name;
     @JsonProperty("duration_ms")
     long durationMs;
-
+    boolean explicit;
     @Override
     @NotNull
     public PlayableItemType getType() {
