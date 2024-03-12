@@ -26,7 +26,7 @@ public class TrackPlayableItemDto implements PlayableItemDto {
     int discNumber;
     @NotNull
     ArtistContainerDto artists;
-
+    SimplifiedAlbumInfoDto album;
     @Override
     @NotNull
     public PlayableItemType getType() {

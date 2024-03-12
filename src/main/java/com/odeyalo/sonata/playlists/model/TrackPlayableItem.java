@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.model;
 
 import com.odeyalo.sonata.playlists.model.track.ArtistContainer;
+import com.odeyalo.sonata.playlists.model.track.SimplifiedAlbumInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -20,7 +21,10 @@ public class TrackPlayableItem implements PlayableItem {
     boolean explicit;
     int trackNumber;
     int discNumber;
+    @NotNull
     ArtistContainer artists;
+    @NotNull
+    SimplifiedAlbumInfo album;
 
     @Override
     @NotNull

@@ -3,6 +3,7 @@ package testing.faker;
 import com.github.javafaker.Faker;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.model.track.ArtistContainer;
+import com.odeyalo.sonata.playlists.model.track.SimplifiedAlbumInfo;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public final class TrackPlayableItemFaker {
                 ArtistFaker.create().get()
         ));
 
+        SimplifiedAlbumInfo albumInfo = SimplifiedAlbumFaker.create().get();
+
         builder.id(id)
                 .contextUri("sonata:track:" + id)
                 .name(faker.music().instrument())
@@ -25,7 +28,8 @@ public final class TrackPlayableItemFaker {
                 .explicit(faker.random().nextBoolean())
                 .trackNumber(faker.random().nextInt(1, 10))
                 .discNumber(faker.random().nextInt(1, 2))
-                .artists(artists);
+                .artists(artists)
+                .album(albumInfo);
     }
 
 
