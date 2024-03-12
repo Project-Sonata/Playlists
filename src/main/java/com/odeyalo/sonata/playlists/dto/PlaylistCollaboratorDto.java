@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.odeyalo.sonata.playlists.model.EntityType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +18,7 @@ public class PlaylistCollaboratorDto {
     String displayName;
     @NotNull
     EntityType type;
+    @NotNull
+    @JsonProperty("uri")
+    String contextUri;
 }
