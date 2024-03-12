@@ -212,7 +212,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnAddedAtTime() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(0), limit(1));
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -228,7 +228,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnPlaylistCollaboratorId() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(0), limit(1));
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -244,7 +244,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnPlaylistCollaboratorDisplayName() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(0), limit(1));
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -260,7 +260,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnPlaylistCollaboratorType() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(0), limit(1));
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -276,7 +276,7 @@ class FetchPlaylistTracksEndpointTest {
 
     @Test
     void shouldReturnPlaylistCollaboratorContextUri() {
-        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(0), limit(1));
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
 
 
         PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
@@ -302,6 +302,11 @@ class FetchPlaylistTracksEndpointTest {
         WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(-1), noLimit());
 
         responseSpec.expectStatus().isBadRequest();
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec fetchFirstItem() {
+        return fetchPlaylistItems(offset(0), limit(1));
     }
 
     @NotNull
