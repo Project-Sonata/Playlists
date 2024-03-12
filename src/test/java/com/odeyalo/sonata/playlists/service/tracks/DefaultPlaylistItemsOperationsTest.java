@@ -188,6 +188,58 @@ class DefaultPlaylistItemsOperationsTest {
         asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
     }
 
+    @Test
+    void shouldReturnCollaboratorIdThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasId(TRACK_1.getAddedBy().getId());
+    }
+
+    @Test
+    void shouldReturnCollaboratorDisplayNameThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasDisplayName(TRACK_1.getAddedBy().getDisplayName());
+    }
+
+    @Test
+    void shouldReturnCollaboratorEntityTypeThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasEntityType(TRACK_1.getAddedBy().getType());
+    }
+
+    @Test
+    void shouldReturnCollaboratorContextUriThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasContextUri(TRACK_1.getAddedBy().getContextUri());
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
@@ -198,6 +250,7 @@ class DefaultPlaylistItemsOperationsTest {
         return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
     }
+
     @NotNull
     private static PlayableItem playableItemFrom(@NotNull PlaylistItemEntity playlistItem) {
         return MockPlayableItem.create(playlistItem.getItem().getPublicId(), playlistItem.getItem().getContextUri());

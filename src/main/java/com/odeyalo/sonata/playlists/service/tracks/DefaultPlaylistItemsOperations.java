@@ -1,9 +1,11 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.PlayableItem;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
@@ -63,8 +65,19 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     @NotNull
     private static PlaylistItem convertToPlaylistItem(@NotNull PlaylistItemEntity playlistItemEntity,
                                                       @NotNull PlayableItem item) {
+
+        PlaylistCollaboratorEntity addedBy = playlistItemEntity.getAddedBy();
+
+        PlaylistCollaborator collaborator = PlaylistCollaborator.builder()
+                .id(addedBy.getId())
+                .displayName(addedBy.getDisplayName())
+                .type(addedBy.getType())
+                .contextUri(addedBy.getContextUri())
+                .build();
+
         return PlaylistItem.builder()
                 .addedAt(playlistItemEntity.getAddedAt())
+                .addedBy(collaborator)
                 .item(item)
                 .build();
 
