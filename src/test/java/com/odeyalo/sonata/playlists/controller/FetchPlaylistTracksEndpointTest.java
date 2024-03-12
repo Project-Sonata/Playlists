@@ -227,6 +227,22 @@ class FetchPlaylistTracksEndpointTest {
     }
 
     @Test
+    void shouldReturnPlaylistCollaboratorId() {
+        WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(0), limit(1));
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(it -> it.getAddedBy().getId())
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getId()));
+    }
+
+    @Test
     void shouldReturn400BadRequestIfNegativeLimitIsUsed() {
         WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(defaultOffset(), limit(-1));
 
