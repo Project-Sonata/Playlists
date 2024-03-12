@@ -15,6 +15,7 @@ public class PlaylistCollaboratorDto {
     @NotNull
     String id;
     @NotNull
+    @JsonProperty("display_name")
     String displayName;
     @NotNull
     EntityType type;
