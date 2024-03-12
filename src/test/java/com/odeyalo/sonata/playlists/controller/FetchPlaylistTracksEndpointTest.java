@@ -4,6 +4,7 @@ package com.odeyalo.sonata.playlists.controller;
 import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.TestConfig;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
+import com.odeyalo.sonata.playlists.dto.TrackPlayableItemDto;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.model.PlayableItemType;
@@ -303,6 +304,19 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems())
                 .map(it -> it.getItem().getType())
                 .hasSameElementsAs(List.of(PlayableItemType.TRACK));
+    }
+
+    @Test
+    void shouldReturnPlayableItemOfSpecificType() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(PlaylistItemDto::getItem)
+                .hasOnlyElementsOfType(TrackPlayableItemDto.class);
     }
 
     @Test
