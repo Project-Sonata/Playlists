@@ -7,6 +7,7 @@ import org.springframework.util.Assert;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Container for multiple artists
@@ -39,6 +40,10 @@ public class ArtistContainer implements Iterable<Artist> {
 
     public Artist get(int index) {
         return artists.get(index);
+    }
+
+    public Stream<Artist> stream() {
+        return artists.stream();
     }
 
     @NotNull

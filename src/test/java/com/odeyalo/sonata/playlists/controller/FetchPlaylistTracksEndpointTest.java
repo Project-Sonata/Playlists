@@ -2,12 +2,14 @@ package com.odeyalo.sonata.playlists.controller;
 
 
 import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.TestConfig;
-import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
-import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
+import com.odeyalo.sonata.playlists.dto.*;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.Image;
+import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
+import com.odeyalo.sonata.playlists.model.track.Artist;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
@@ -79,7 +81,7 @@ class FetchPlaylistTracksEndpointTest {
             Instant.now(),
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(2L, TRACK_2_ID,
-            "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
+                    "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
 
     static final PlaylistItemEntity PLAYLIST_ITEM_3 = PlaylistItemEntity.of(
             3L,
@@ -87,6 +89,8 @@ class FetchPlaylistTracksEndpointTest {
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(3L, TRACK_3_ID, "sonata:track:" + TRACK_3_ID),
             EXISTING_PLAYLIST_ID);
+
+    static final TrackPlayableItem PLAYABLE_ITEM_1 = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
 
     @BeforeAll
     void setup() {
@@ -96,13 +100,13 @@ class FetchPlaylistTracksEndpointTest {
     @TestConfiguration
     static class TestConfig {
 
+
         @Bean
         @Primary
         public PlayableItemLoader testPlayableItemLoader() {
-            TrackPlayableItem playableItem = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
             TrackPlayableItem playableItem2 = TrackPlayableItemFaker.create().setPublicId(TRACK_2_ID).get();
             TrackPlayableItem playableItem3 = TrackPlayableItemFaker.create().setPublicId(TRACK_3_ID).get();
-            return new InMemoryPlayableItemLoader(playableItem, playableItem2, playableItem3);
+            return new InMemoryPlayableItemLoader(PLAYABLE_ITEM_1, playableItem2, playableItem3);
         }
 
         @Bean
@@ -283,11 +287,254 @@ class FetchPlaylistTracksEndpointTest {
                 .returnResult().getResponseBody();
 
         //noinspection DataFlowIssue
-        assertThat(responseBody.getItems()).hasSize(1);
 
         assertThat(responseBody.getItems())
                 .map(it -> it.getAddedBy().getContextUri())
                 .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getContextUri()));
+    }
+
+    @Test
+    void shouldReturnPlayableItemType() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> it.getItem().getType())
+                .hasSameElementsAs(List.of(PlayableItemType.TRACK));
+    }
+
+    @Test
+    void shouldReturnPlayableItemOfSpecificType() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(PlaylistItemDto::getItem)
+                .hasOnlyElementsOfType(TrackPlayableItemDto.class);
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackName() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(TrackPlayableItemDto::getName)
+                .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.getName()));
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackDurationMs() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(TrackPlayableItemDto::getDurationMs)
+                .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.getDurationMs()));
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithExplicitValue() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(TrackPlayableItemDto::isExplicit)
+                .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.isExplicit()));
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackNumber() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(TrackPlayableItemDto::getTrackNumber)
+                .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.getTrackNumber()));
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithDiscNumber() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(TrackPlayableItemDto::getDiscNumber)
+                .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.getDiscNumber()));
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackArtistIds() {
+        List<String> expectedIds = PLAYABLE_ITEM_1.getArtists().stream()
+                .map(Artist::getId)
+                .toList();
+
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .flatMap(it -> it.getArtists().asList())
+                .map(ArtistDto::getId)
+                .hasSameElementsAs(expectedIds);
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackArtistNames() {
+        List<String> expectedNames = PLAYABLE_ITEM_1.getArtists().stream()
+                .map(Artist::getName)
+                .toList();
+
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .flatMap(it -> it.getArtists().asList())
+                .map(ArtistDto::getName)
+                .hasSameElementsAs(expectedNames);
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackAlbumId() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(it -> it.getAlbum().getId())
+                .containsOnly(PLAYABLE_ITEM_1.getAlbum().getId());
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackAlbumName() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(it -> it.getAlbum().getName())
+                .containsOnly(PLAYABLE_ITEM_1.getAlbum().getName());
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackAlbumType() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(it -> it.getAlbum().getAlbumType())
+                .containsOnly(PLAYABLE_ITEM_1.getAlbum().getAlbumType());
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackReleaseDate() {
+        List<String> expectedArtistIds = PLAYABLE_ITEM_1.getAlbum()
+                .getArtists().stream()
+                .map(Artist::getId)
+                .toList();
+
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .flatMap(it -> it.getAlbum().getArtists().asList())
+                .map(ArtistDto::getId)
+                .hasSameElementsAs(expectedArtistIds);
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTotalTrackCount() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(it -> it.getAlbum().getTotalTracks())
+                .containsOnly(PLAYABLE_ITEM_1.getAlbum().getTotalTracksCount());
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithAlbumReleaseDate() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(it -> it.getAlbum().getReleaseDate())
+                .containsOnly(PLAYABLE_ITEM_1.getAlbum().getReleaseDate());
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithAlbumCoverImages() {
+        List<String> expectedImageUrls = PLAYABLE_ITEM_1.getAlbum()
+                .getCoverImages().stream()
+                .map(Image::getUrl)
+                .toList();
+
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .flatMap(it -> it.getAlbum().getCoverImages().asList())
+                .map(ImageDto::getUrl)
+                .hasSameElementsAs(expectedImageUrls);
     }
 
     @Test
