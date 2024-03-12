@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,8 @@ public class TrackPlayableItemDto implements PlayableItemDto {
     String id;
     @NotNull
     String name;
+    @JsonProperty("duration_ms")
+    long durationMs;
 
     @Override
     @NotNull

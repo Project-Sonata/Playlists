@@ -12,7 +12,8 @@ public final class TrackPlayableItemFaker {
         String id = RandomStringUtils.randomAlphanumeric(22);
         builder.id(id)
                 .contextUri("sonata:track:" + id)
-                .name(faker.music().instrument());
+                .name(faker.music().instrument())
+                .durationMs(faker.random().nextLong(Long.MAX_VALUE / 2));
     }
 
 

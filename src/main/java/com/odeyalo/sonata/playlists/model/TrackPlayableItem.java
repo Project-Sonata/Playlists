@@ -15,6 +15,7 @@ public class TrackPlayableItem implements PlayableItem {
     String contextUri;
     @NotNull
     String name;
+    long durationMs;
 
     @Override
     @NotNull
