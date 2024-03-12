@@ -67,9 +67,11 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                                       @NotNull PlayableItem item) {
 
         PlaylistCollaboratorEntity addedBy = playlistItemEntity.getAddedBy();
+
         PlaylistCollaborator collaborator = PlaylistCollaborator.builder()
                 .id(addedBy.getId())
                 .displayName(addedBy.getDisplayName())
+                .type(addedBy.getType())
                 .build();
 
         return PlaylistItem.builder()

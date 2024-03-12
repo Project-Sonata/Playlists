@@ -2,6 +2,7 @@ package testing;
 
 import com.github.javafaker.Faker;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
+import com.odeyalo.sonata.playlists.model.EntityType;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public final class PlaylistCollaboratorEntityFaker {
@@ -12,7 +13,8 @@ public final class PlaylistCollaboratorEntityFaker {
     public PlaylistCollaboratorEntityFaker() {
         builder
                 .id(RandomStringUtils.randomAlphanumeric(22))
-                .displayName(faker.name().username());
+                .displayName(faker.name().username())
+                .type(EntityType.USER);
     }
 
 

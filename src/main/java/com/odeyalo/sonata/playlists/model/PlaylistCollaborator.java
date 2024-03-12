@@ -13,4 +13,6 @@ public class PlaylistCollaborator {
     String id;
     @NotNull
     String displayName;
+    @NotNull
+    EntityType type;
 }

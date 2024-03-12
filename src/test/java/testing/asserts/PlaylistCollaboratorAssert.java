@@ -1,5 +1,6 @@
 package testing.asserts;
 
+import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import org.assertj.core.api.AbstractAssert;
 import org.jetbrains.annotations.NotNull;
@@ -24,5 +25,12 @@ public final class PlaylistCollaboratorAssert extends AbstractAssert<PlaylistCol
             return this;
         }
         throw failureWithActualExpected(actual.getDisplayName(), displayName, "Display name mismatch");
+    }
+
+    public PlaylistCollaboratorAssert hasEntityType(EntityType type) {
+        if ( Objects.equals(actual.getType(), type) ) {
+            return this;
+        }
+        throw failureWithActualExpected(actual.getType(), type, "Entity type mismatch");
     }
 }

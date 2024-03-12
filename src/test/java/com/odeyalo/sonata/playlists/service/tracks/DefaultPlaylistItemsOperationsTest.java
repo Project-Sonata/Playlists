@@ -214,6 +214,19 @@ class DefaultPlaylistItemsOperationsTest {
                 .hasDisplayName(TRACK_1.getAddedBy().getDisplayName());
     }
 
+    @Test
+    void shouldReturnCollaboratorEntityTypeThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasEntityType(TRACK_1.getAddedBy().getType());
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
