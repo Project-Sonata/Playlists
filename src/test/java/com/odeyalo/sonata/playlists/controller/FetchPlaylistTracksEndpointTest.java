@@ -2,10 +2,8 @@ package com.odeyalo.sonata.playlists.controller;
 
 
 import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.TestConfig;
-import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
-import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
@@ -150,7 +148,7 @@ class FetchPlaylistTracksEndpointTest {
 
         //noinspection DataFlowIssue
         assertThat(responseBody.getItems())
-                .map(PlaylistItemDto::getId)
+                .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID));
     }
 
@@ -177,7 +175,7 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems()).hasSize(2);
 
         assertThat(responseBody.getItems())
-                .map(PlaylistItemDto::getId)
+                .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_2_ID, TRACK_3_ID));
     }
 
@@ -193,7 +191,7 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems()).hasSize(1);
 
         assertThat(responseBody.getItems())
-                .map(PlaylistItemDto::getId)
+                .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_2_ID));
     }
 
