@@ -17,7 +17,7 @@ public class TrackPlayableItem implements PlayableItem {
     String name;
     long durationMs;
     boolean explicit;
-
+    int trackNumber;
     @Override
     @NotNull
     public PlayableItemType getType() {
