@@ -6,7 +6,9 @@ import com.odeyalo.sonata.playlists.model.PlayableItem;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {
+        ArtistDtoContainerConverter.class
+})
 public interface PlayableItemConverter {
 
     default PlayableItemDto toPlayableItemDto(PlayableItem item) {

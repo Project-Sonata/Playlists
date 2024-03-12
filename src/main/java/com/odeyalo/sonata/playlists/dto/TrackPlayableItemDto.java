@@ -24,6 +24,9 @@ public class TrackPlayableItemDto implements PlayableItemDto {
     int trackNumber;
     @JsonProperty("disc_number")
     int discNumber;
+    @NotNull
+    ArtistContainerDto artists;
+
     @Override
     @NotNull
     public PlayableItemType getType() {

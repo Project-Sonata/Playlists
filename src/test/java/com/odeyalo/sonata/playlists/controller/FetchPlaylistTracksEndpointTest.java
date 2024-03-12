@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.controller;
 
 
 import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.TestConfig;
+import com.odeyalo.sonata.playlists.dto.ArtistDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.dto.TrackPlayableItemDto;
@@ -10,6 +11,7 @@ import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
+import com.odeyalo.sonata.playlists.model.track.Artist;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
@@ -387,6 +389,25 @@ class FetchPlaylistTracksEndpointTest {
                 .map(it -> ((TrackPlayableItemDto) it.getItem()))
                 .map(TrackPlayableItemDto::getDiscNumber)
                 .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.getDiscNumber()));
+    }
+
+    @Test
+    void shouldReturnTrackPlayableItemWithTrackArtistIds() {
+        List<String> expectedIds = PLAYABLE_ITEM_1.getArtists().stream()
+                .map(Artist::getId)
+                .toList();
+
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .flatMap(it -> it.getArtists().asList())
+                .map(ArtistDto::getId)
+                .hasSameElementsAs(expectedIds);
     }
 
     @Test
