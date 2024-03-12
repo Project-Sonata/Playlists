@@ -6,6 +6,7 @@ import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
@@ -79,7 +80,7 @@ class FetchPlaylistTracksEndpointTest {
             Instant.now(),
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(2L, TRACK_2_ID,
-            "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
+                    "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
 
     static final PlaylistItemEntity PLAYLIST_ITEM_3 = PlaylistItemEntity.of(
             3L,
@@ -87,6 +88,8 @@ class FetchPlaylistTracksEndpointTest {
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(3L, TRACK_3_ID, "sonata:track:" + TRACK_3_ID),
             EXISTING_PLAYLIST_ID);
+
+    static final TrackPlayableItem PLAYABLE_ITEM_1 = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
 
     @BeforeAll
     void setup() {
@@ -96,13 +99,13 @@ class FetchPlaylistTracksEndpointTest {
     @TestConfiguration
     static class TestConfig {
 
+
         @Bean
         @Primary
         public PlayableItemLoader testPlayableItemLoader() {
-            TrackPlayableItem playableItem = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
             TrackPlayableItem playableItem2 = TrackPlayableItemFaker.create().setPublicId(TRACK_2_ID).get();
             TrackPlayableItem playableItem3 = TrackPlayableItemFaker.create().setPublicId(TRACK_3_ID).get();
-            return new InMemoryPlayableItemLoader(playableItem, playableItem2, playableItem3);
+            return new InMemoryPlayableItemLoader(PLAYABLE_ITEM_1, playableItem2, playableItem3);
         }
 
         @Bean
@@ -283,11 +286,23 @@ class FetchPlaylistTracksEndpointTest {
                 .returnResult().getResponseBody();
 
         //noinspection DataFlowIssue
-        assertThat(responseBody.getItems()).hasSize(1);
 
         assertThat(responseBody.getItems())
                 .map(it -> it.getAddedBy().getContextUri())
                 .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getContextUri()));
+    }
+
+    @Test
+    void shouldReturnPlayableItemType() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> it.getItem().getType())
+                .hasSameElementsAs(List.of(PlayableItemType.TRACK));
     }
 
     @Test
