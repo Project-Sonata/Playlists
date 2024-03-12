@@ -189,7 +189,7 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     @Test
-    void shouldReturnNotNullCollaboratorThatAddedTrackToPlaylist() {
+    void shouldReturnCollaboratorIdThatAddedTrackToPlaylist() {
         final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
