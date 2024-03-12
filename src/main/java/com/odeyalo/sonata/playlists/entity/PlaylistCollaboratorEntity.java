@@ -9,4 +9,5 @@ import org.jetbrains.annotations.NotNull;
 public class PlaylistCollaboratorEntity {
     @NotNull
     String id;
+    String displayName;
 }

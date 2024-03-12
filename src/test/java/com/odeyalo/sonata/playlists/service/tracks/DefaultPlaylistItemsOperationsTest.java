@@ -201,6 +201,19 @@ class DefaultPlaylistItemsOperationsTest {
                 .hasId(TRACK_1.getAddedBy().getId());
     }
 
+    @Test
+    void shouldReturnCollaboratorDisplayNameThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasDisplayName(TRACK_1.getAddedBy().getDisplayName());
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
@@ -211,6 +224,7 @@ class DefaultPlaylistItemsOperationsTest {
         return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
 
     }
+
     @NotNull
     private static PlayableItem playableItemFrom(@NotNull PlaylistItemEntity playlistItem) {
         return MockPlayableItem.create(playlistItem.getItem().getPublicId(), playlistItem.getItem().getContextUri());

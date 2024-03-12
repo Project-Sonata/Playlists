@@ -11,7 +11,8 @@ public final class PlaylistCollaboratorEntityFaker {
 
     public PlaylistCollaboratorEntityFaker() {
         builder
-                .id(RandomStringUtils.randomAlphanumeric(22));
+                .id(RandomStringUtils.randomAlphanumeric(22))
+                .displayName(faker.name().username());
     }
 
 
@@ -21,6 +22,11 @@ public final class PlaylistCollaboratorEntityFaker {
 
     public PlaylistCollaboratorEntityFaker id(String id) {
         builder.id(id);
+        return this;
+    }
+
+    public PlaylistCollaboratorEntityFaker displayName(String displayName) {
+        builder.displayName(displayName);
         return this;
     }
 

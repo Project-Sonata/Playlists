@@ -18,4 +18,11 @@ public final class PlaylistCollaboratorAssert extends AbstractAssert<PlaylistCol
         }
         throw failureWithActualExpected(actual.getId(), id, "Collaborator ID mismatch");
     }
+
+    public PlaylistCollaboratorAssert hasDisplayName(String displayName) {
+        if ( Objects.equals(actual.getDisplayName(), displayName) ) {
+            return this;
+        }
+        throw failureWithActualExpected(actual.getDisplayName(), displayName, "Display name mismatch");
+    }
 }
