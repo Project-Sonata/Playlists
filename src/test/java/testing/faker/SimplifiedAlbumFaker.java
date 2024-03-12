@@ -1,6 +1,7 @@
 package testing.faker;
 
 import com.github.javafaker.Faker;
+import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.ReleaseDate;
 import com.odeyalo.sonata.playlists.model.track.AlbumType;
 import com.odeyalo.sonata.playlists.model.track.Artist;
@@ -18,13 +19,15 @@ public class SimplifiedAlbumFaker {
 
     public SimplifiedAlbumFaker() {
         artists.add(ArtistFaker.create().get());
+        Images images = ImagesFaker.create(3).get();
 
         builder.id(RandomStringUtils.randomAlphanumeric(22))
                 .name(faker.name().title())
                 .albumType(faker.options().option(AlbumType.class))
                 .totalTracksCount(faker.random().nextInt(0, 10))
                 .releaseDate(ReleaseDateFaker.randomReleaseDate().get())
-                .artists(ArtistContainer.multiple(artists));
+                .artists(ArtistContainer.multiple(artists))
+                .coverImages(images);
     }
 
     public static SimplifiedAlbumFaker create() {

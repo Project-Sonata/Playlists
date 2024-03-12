@@ -27,4 +27,6 @@ public class SimplifiedAlbumInfoDto {
     int totalTracks;
     @JsonProperty("release_date")
     ReleaseDate releaseDate;
+    @JsonProperty("images")
+    ImagesDto coverImages;
 }

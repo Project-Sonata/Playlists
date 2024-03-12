@@ -2,12 +2,10 @@ package com.odeyalo.sonata.playlists.controller;
 
 
 import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.TestConfig;
-import com.odeyalo.sonata.playlists.dto.ArtistDto;
-import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
-import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
-import com.odeyalo.sonata.playlists.dto.TrackPlayableItemDto;
+import com.odeyalo.sonata.playlists.dto.*;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
@@ -505,7 +503,6 @@ class FetchPlaylistTracksEndpointTest {
                 .containsOnly(PLAYABLE_ITEM_1.getAlbum().getTotalTracksCount());
     }
 
-
     @Test
     void shouldReturnTrackPlayableItemWithAlbumReleaseDate() {
         WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
@@ -520,6 +517,25 @@ class FetchPlaylistTracksEndpointTest {
                 .containsOnly(PLAYABLE_ITEM_1.getAlbum().getReleaseDate());
     }
 
+    @Test
+    void shouldReturnTrackPlayableItemWithAlbumCoverImages() {
+        List<String> expectedImageUrls = PLAYABLE_ITEM_1.getAlbum()
+                .getCoverImages().stream()
+                .map(Image::getUrl)
+                .toList();
+
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .flatMap(it -> it.getAlbum().getCoverImages().asList())
+                .map(ImageDto::getUrl)
+                .hasSameElementsAs(expectedImageUrls);
+    }
 
     @Test
     void shouldReturn400BadRequestIfNegativeLimitIsUsed() {

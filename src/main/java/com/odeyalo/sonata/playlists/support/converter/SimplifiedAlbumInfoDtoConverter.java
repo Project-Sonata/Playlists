@@ -6,7 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
-        ArtistDtoContainerConverter.class
+        ArtistDtoContainerConverter.class,
+        ImagesDtoConverter.class
 })
 public interface SimplifiedAlbumInfoDtoConverter {
 

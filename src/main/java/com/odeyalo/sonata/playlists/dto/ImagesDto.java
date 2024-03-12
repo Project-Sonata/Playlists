@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Dto to transfer collection of ImageDto
@@ -59,5 +60,9 @@ public class ImagesDto implements Iterable<ImageDto> {
     @Override
     public Iterator<ImageDto> iterator() {
         return images.iterator();
+    }
+
+    public List<ImageDto> asList() {
+        return unmodifiableList(images);
     }
 }

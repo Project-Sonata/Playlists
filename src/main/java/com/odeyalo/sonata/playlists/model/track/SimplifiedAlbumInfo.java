@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.model.track;
 
+import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.ReleaseDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,4 +25,6 @@ public class SimplifiedAlbumInfo {
     int totalTracksCount;
     @NotNull
     ArtistContainer artists;
+    @NotNull
+    Images coverImages;
 }
