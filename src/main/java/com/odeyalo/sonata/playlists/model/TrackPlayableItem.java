@@ -13,7 +13,8 @@ public class TrackPlayableItem implements PlayableItem {
     String id;
     @NotNull
     String contextUri;
-
+    @NotNull
+    String name;
 
     @Override
     @NotNull

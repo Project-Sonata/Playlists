@@ -320,6 +320,20 @@ class FetchPlaylistTracksEndpointTest {
     }
 
     @Test
+    void shouldReturnTrackPlayableItemWithTrackName() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> ((TrackPlayableItemDto) it.getItem()))
+                .map(TrackPlayableItemDto::getName)
+                .hasSameElementsAs(List.of(PLAYABLE_ITEM_1.getName()));
+    }
+
+    @Test
     void shouldReturn400BadRequestIfNegativeLimitIsUsed() {
         WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(defaultOffset(), limit(-1));
 

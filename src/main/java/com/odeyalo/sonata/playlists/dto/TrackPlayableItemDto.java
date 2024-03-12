@@ -14,7 +14,8 @@ import org.jetbrains.annotations.NotNull;
 public class TrackPlayableItemDto implements PlayableItemDto {
     @NotNull
     String id;
-
+    @NotNull
+    String name;
 
     @Override
     @NotNull
