@@ -9,7 +9,9 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 @Builder
 public class TrackPlayableItem implements PlayableItem {
+    @NotNull
     String id;
+    @NotNull
     String contextUri;
 
 
