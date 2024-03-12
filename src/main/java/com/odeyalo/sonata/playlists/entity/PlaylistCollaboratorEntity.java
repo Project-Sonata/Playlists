@@ -14,4 +14,5 @@ public class PlaylistCollaboratorEntity {
     String displayName;
     @NotNull
     EntityType type;
+    String contextUri;
 }

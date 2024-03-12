@@ -11,10 +11,12 @@ public final class PlaylistCollaboratorEntityFaker {
 
 
     public PlaylistCollaboratorEntityFaker() {
+        String id = RandomStringUtils.randomAlphanumeric(22);
         builder
-                .id(RandomStringUtils.randomAlphanumeric(22))
+                .id(id)
                 .displayName(faker.name().username())
-                .type(EntityType.USER);
+                .type(EntityType.USER)
+                .contextUri("sonata:user:" + id);
     }
 
 

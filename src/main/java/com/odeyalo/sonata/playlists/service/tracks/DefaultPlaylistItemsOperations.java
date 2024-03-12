@@ -72,6 +72,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                 .id(addedBy.getId())
                 .displayName(addedBy.getDisplayName())
                 .type(addedBy.getType())
+                .contextUri(addedBy.getContextUri())
                 .build();
 
         return PlaylistItem.builder()

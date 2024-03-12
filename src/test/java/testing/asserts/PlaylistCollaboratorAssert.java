@@ -33,4 +33,11 @@ public final class PlaylistCollaboratorAssert extends AbstractAssert<PlaylistCol
         }
         throw failureWithActualExpected(actual.getType(), type, "Entity type mismatch");
     }
+
+    public PlaylistCollaboratorAssert hasContextUri(String contextUri) {
+        if ( Objects.equals(actual.getContextUri(), contextUri) ) {
+            return this;
+        }
+        throw failureWithActualExpected(actual.getContextUri(), contextUri, "Context URI mismatch");
+    }
 }
