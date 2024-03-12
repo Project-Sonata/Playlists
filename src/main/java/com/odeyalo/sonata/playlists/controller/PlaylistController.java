@@ -7,10 +7,7 @@ import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
 import com.odeyalo.sonata.playlists.service.PlaylistOperations;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.service.tracks.PlaylistItemsOperations;
-import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverter;
-import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
-import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
-import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
+import com.odeyalo.sonata.playlists.support.converter.*;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
 import com.odeyalo.suite.security.auth.AuthenticatedUser;
@@ -35,6 +32,7 @@ public class PlaylistController {
     private final ImagesDtoConverter imagesDtoConverter;
     private final CreatePlaylistInfoConverter createPlaylistInfoConverter;
     private final PlaylistItemsOperations playlistItemsOperations;
+    private final PlaylistItemDtoConverter playlistItemDtoConverter;
 
     @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable String playlistId) {
@@ -58,7 +56,7 @@ public class PlaylistController {
     public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId,
                                                                      Pagination pagination) {
         return playlistItemsOperations.loadPlaylistItems(TargetPlaylist.just(playlistId), pagination)
-                .map(item -> new PlaylistItemDto(item.getItem().getId()))
+                .map(playlistItemDtoConverter::toPlaylistItemDto)
                 .collectList()
                 .map(items -> defaultOkStatus(new PlaylistItemsDto(items)));
     }

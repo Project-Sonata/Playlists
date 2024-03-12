@@ -5,7 +5,6 @@ import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.T
 import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
-import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
@@ -69,6 +68,26 @@ class FetchPlaylistTracksEndpointTest {
     static final String TRACK_2_ID = "2";
     static final String TRACK_3_ID = "3";
 
+    static final PlaylistItemEntity PLAYLIST_ITEM_1 = PlaylistItemEntity.of(
+            1L,
+            Instant.now(), PlaylistCollaboratorEntityFaker.create().get(),
+            ItemEntity.of(1L, TRACK_1_ID, "sonata:track:" + TRACK_1_ID),
+            EXISTING_PLAYLIST_ID);
+
+    static final PlaylistItemEntity PLAYLIST_ITEM_2 = PlaylistItemEntity.of(
+            2L,
+            Instant.now(),
+            PlaylistCollaboratorEntityFaker.create().get(),
+            ItemEntity.of(2L, TRACK_2_ID,
+            "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
+
+    static final PlaylistItemEntity PLAYLIST_ITEM_3 = PlaylistItemEntity.of(
+            3L,
+            Instant.now(),
+            PlaylistCollaboratorEntityFaker.create().get(),
+            ItemEntity.of(3L, TRACK_3_ID, "sonata:track:" + TRACK_3_ID),
+            EXISTING_PLAYLIST_ID);
+
     @BeforeAll
     void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
@@ -103,13 +122,7 @@ class FetchPlaylistTracksEndpointTest {
         @Primary
         public PlaylistItemsRepository testPlaylistItemsRepository() {
 
-            var track = PlaylistItemEntity.of(1L, Instant.now(), PlaylistCollaboratorEntityFaker.create().get(), ItemEntity.of(1L, TRACK_1_ID,
-                    "sonata:track:" + TRACK_1_ID), EXISTING_PLAYLIST_ID);
-            var track2 = PlaylistItemEntity.of(2L, Instant.now(),PlaylistCollaboratorEntityFaker.create().get(), ItemEntity.of(2L, TRACK_2_ID,
-                    "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
-            var track3 = PlaylistItemEntity.of(3L, Instant.now(), PlaylistCollaboratorEntityFaker.create().get(),ItemEntity.of(3L, TRACK_3_ID,
-                    "sonata:track:" + TRACK_3_ID), EXISTING_PLAYLIST_ID);
-            return new InMemoryPlaylistItemsRepository(List.of(track, track2, track3));
+            return new InMemoryPlaylistItemsRepository(List.of(PLAYLIST_ITEM_1, PLAYLIST_ITEM_2, PLAYLIST_ITEM_3));
         }
     }
 
@@ -150,7 +163,7 @@ class FetchPlaylistTracksEndpointTest {
 
         //noinspection DataFlowIssue
         assertThat(responseBody.getItems())
-                .map(PlaylistItemDto::getId)
+                .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID));
     }
 
@@ -177,7 +190,7 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems()).hasSize(2);
 
         assertThat(responseBody.getItems())
-                .map(PlaylistItemDto::getId)
+                .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_2_ID, TRACK_3_ID));
     }
 
@@ -193,8 +206,88 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems()).hasSize(1);
 
         assertThat(responseBody.getItems())
-                .map(PlaylistItemDto::getId)
+                .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_2_ID));
+    }
+
+    @Test
+    void shouldReturnAddedAtTime() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(PlaylistItemDto::getAddedAt)
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedAt()));
+    }
+
+    @Test
+    void shouldReturnPlaylistCollaboratorId() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(it -> it.getAddedBy().getId())
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getId()));
+    }
+
+    @Test
+    void shouldReturnPlaylistCollaboratorDisplayName() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(it -> it.getAddedBy().getDisplayName())
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getDisplayName()));
+    }
+
+    @Test
+    void shouldReturnPlaylistCollaboratorType() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(it -> it.getAddedBy().getType())
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getType()));
+    }
+
+    @Test
+    void shouldReturnPlaylistCollaboratorContextUri() {
+        WebTestClient.ResponseSpec responseSpec = fetchFirstItem();
+
+
+        PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems()).hasSize(1);
+
+        assertThat(responseBody.getItems())
+                .map(it -> it.getAddedBy().getContextUri())
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getContextUri()));
     }
 
     @Test
@@ -209,6 +302,11 @@ class FetchPlaylistTracksEndpointTest {
         WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(-1), noLimit());
 
         responseSpec.expectStatus().isBadRequest();
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec fetchFirstItem() {
+        return fetchPlaylistItems(offset(0), limit(1));
     }
 
     @NotNull
