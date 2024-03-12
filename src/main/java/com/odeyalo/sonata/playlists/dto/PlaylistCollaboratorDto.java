@@ -12,4 +12,6 @@ import org.jetbrains.annotations.NotNull;
 public class PlaylistCollaboratorDto {
     @NotNull
     String id;
+    @NotNull
+    String displayName;
 }
