@@ -22,4 +22,6 @@ public class SimplifiedAlbumInfoDto {
     AlbumType albumType;
     @NotNull
     ArtistContainerDto artists;
+    @JsonProperty("total_tracks")
+    int totalTracks;
 }
