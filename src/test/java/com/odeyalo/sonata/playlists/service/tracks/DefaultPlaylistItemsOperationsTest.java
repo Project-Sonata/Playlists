@@ -188,6 +188,19 @@ class DefaultPlaylistItemsOperationsTest {
         asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
     }
 
+    @Test
+    void shouldReturnNotNullCollaboratorThatAddedTrackToPlaylist() {
+        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+
+        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .collectList().block();
+
+        PlaylistItemsAssert.forList(playlistItems)
+                .peekFirst()
+                .playlistCollaborator()
+                .hasId(TRACK_1.getAddedBy().getId());
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);

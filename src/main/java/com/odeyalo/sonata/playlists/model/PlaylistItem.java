@@ -18,6 +18,7 @@ public class PlaylistItem  {
     Instant addedAt;
     @NotNull
     PlayableItem item;
+    PlaylistCollaborator addedBy;
 
     @NotNull
     public Instant getAddedAt() {

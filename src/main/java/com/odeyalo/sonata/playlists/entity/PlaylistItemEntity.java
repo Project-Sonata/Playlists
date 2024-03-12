@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.entity;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 
 import java.time.Instant;
@@ -18,8 +19,8 @@ public class PlaylistItemEntity {
     @Id
     Long id;
     Instant addedAt;
-
+    @NotNull
+    PlaylistCollaboratorEntity addedBy;
     ItemEntity item;
-
     String playlistId;
 }

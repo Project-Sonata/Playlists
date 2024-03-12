@@ -5,6 +5,7 @@ import com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.T
 import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
@@ -32,6 +33,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
+import testing.PlaylistCollaboratorEntityFaker;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
@@ -100,11 +102,12 @@ class FetchPlaylistTracksEndpointTest {
         @Bean
         @Primary
         public PlaylistItemsRepository testPlaylistItemsRepository() {
-            var track = PlaylistItemEntity.of(1L, Instant.now(), ItemEntity.of(1L, TRACK_1_ID,
+
+            var track = PlaylistItemEntity.of(1L, Instant.now(), PlaylistCollaboratorEntityFaker.create().get(), ItemEntity.of(1L, TRACK_1_ID,
                     "sonata:track:" + TRACK_1_ID), EXISTING_PLAYLIST_ID);
-            var track2 = PlaylistItemEntity.of(2L, Instant.now(), ItemEntity.of(2L, TRACK_2_ID,
+            var track2 = PlaylistItemEntity.of(2L, Instant.now(),PlaylistCollaboratorEntityFaker.create().get(), ItemEntity.of(2L, TRACK_2_ID,
                     "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
-            var track3 = PlaylistItemEntity.of(3L, Instant.now(), ItemEntity.of(3L, TRACK_3_ID,
+            var track3 = PlaylistItemEntity.of(3L, Instant.now(), PlaylistCollaboratorEntityFaker.create().get(),ItemEntity.of(3L, TRACK_3_ID,
                     "sonata:track:" + TRACK_3_ID), EXISTING_PLAYLIST_ID);
             return new InMemoryPlaylistItemsRepository(List.of(track, track2, track3));
         }

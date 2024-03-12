@@ -34,4 +34,8 @@ public final class PlaylistItemAssert extends AbstractAssert<PlaylistItemAssert,
     public PlayableItemAssert playableItem() {
         return new PlayableItemAssert(actual.getItem());
     }
+
+    public PlaylistCollaboratorAssert playlistCollaborator() {
+        return new PlaylistCollaboratorAssert(actual.getAddedBy());
+    }
 }
