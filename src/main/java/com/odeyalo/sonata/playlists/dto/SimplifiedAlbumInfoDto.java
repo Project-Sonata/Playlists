@@ -20,4 +20,6 @@ public class SimplifiedAlbumInfoDto {
     @NotNull
     @JsonProperty("album_type")
     AlbumType albumType;
+    @NotNull
+    ArtistContainerDto artists;
 }
