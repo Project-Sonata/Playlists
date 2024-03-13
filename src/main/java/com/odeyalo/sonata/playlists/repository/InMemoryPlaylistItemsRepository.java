@@ -4,6 +4,7 @@ import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,11 +34,17 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
         final long offset = pageable.isUnpaged() ? 0 : pageable.getOffset();
         final int limit = pageable.isUnpaged() ? 50 : pageable.getPageSize();
 
-        return Flux.fromIterable(
-                cache.getOrDefault(playlistId, Collections.emptyList())
-        )
+        List<PlaylistItemEntity> items = cache.getOrDefault(playlistId, Collections.emptyList());
+
+        return Flux.fromIterable(items)
                 .skip(offset)
                 .take(limit);
+    }
+
+    @Override
+    @NotNull
+    public Mono<PlaylistItemEntity> save(@NotNull PlaylistItemEntity entity) {
+        return Mono.just(entity);
     }
 
     @NotNull

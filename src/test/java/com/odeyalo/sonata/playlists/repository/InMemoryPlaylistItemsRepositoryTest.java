@@ -107,6 +107,19 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldReturnEntityUnchangedIfIdIsSet() {
+        final String playlistId = "1";
+        final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).get();
+
+        final var testable = new InMemoryPlaylistItemsRepository();
+
+        testable.save(entity)
+                .as(StepVerifier::create)
+                .expectNext(entity)
+                .verifyComplete();
+    }
+
     private static int limit(int limit) {
         return limit;
     }
