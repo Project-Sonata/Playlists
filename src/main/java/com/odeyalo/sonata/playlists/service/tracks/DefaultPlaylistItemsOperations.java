@@ -33,6 +33,12 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                 .flatMap(this::loadPlaylistItem);
     }
 
+    @Override
+    @NotNull
+    public Mono<Void> addItems(@NotNull Playlist existingPlaylist, @NotNull AddItemPayload addItemPayload) {
+        return Mono.empty();
+    }
+
     @NotNull
     private Mono<Playlist> isPlaylistExist(@NotNull TargetPlaylist targetPlaylist) {
         return playlistLoader.loadPlaylist(targetPlaylist)

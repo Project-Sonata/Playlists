@@ -5,6 +5,7 @@ import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.PlayableItem;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistItem;
+import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
@@ -19,6 +20,7 @@ import testing.factory.PlayableItemLoaders;
 import testing.factory.PlaylistItemsRepositories;
 import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
+import testing.faker.TrackPlayableItemFaker;
 
 import java.util.Arrays;
 import java.util.List;
@@ -240,6 +242,24 @@ class DefaultPlaylistItemsOperationsTest {
                 .hasContextUri(TRACK_1.getAddedBy().getContextUri());
     }
 
+    @Test
+    void shouldCompleteSuccessfully() {
+        TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+                .as(StepVerifier::create)
+                .verifyComplete();
+    }
+
+    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
+
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
@@ -248,7 +268,6 @@ class DefaultPlaylistItemsOperationsTest {
                 Arrays.stream(items).map(it -> playableItemFrom(it))
         );
         return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
-
     }
 
     @NotNull
