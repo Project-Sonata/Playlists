@@ -335,7 +335,6 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
     }
 
-
     @Test
     void shouldAddItemToPlaylistWithPlaylistCollaboratorContextUri() {
         PlaylistCollaborator collaborator = collaborator();
@@ -354,6 +353,23 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorEntityType() {
+        PlaylistCollaborator collaborator = collaborator();
+
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getType(), collaborator.getType()))
+                .verifyComplete();
+    }
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);

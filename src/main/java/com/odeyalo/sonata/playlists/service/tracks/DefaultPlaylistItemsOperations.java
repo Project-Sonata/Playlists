@@ -61,7 +61,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                             .addedBy(PlaylistCollaboratorEntity.builder()
                                     .id(collaborator.getId())
                                     .displayName(collaborator.getDisplayName())
-                                    .type(EntityType.USER)
+                                    .type(collaborator.getType())
                                     .contextUri(collaborator.getContextUri())
                                     .build())
                             .build();
