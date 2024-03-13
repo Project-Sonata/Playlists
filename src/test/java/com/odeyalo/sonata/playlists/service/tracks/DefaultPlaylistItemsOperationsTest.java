@@ -20,6 +20,7 @@ import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -282,12 +283,36 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldAddItemToPlaylistAndSetTheTime() {
+        final Instant addedAt = Instant.now();
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, new MockClock(addedAt), trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getAddedAt(), addedAt))
+                .verifyComplete();
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
         return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
+    }
+
+    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, Clock clock, PlayableItem... items) {
+        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
+        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
+
+        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(), clock);
     }
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {

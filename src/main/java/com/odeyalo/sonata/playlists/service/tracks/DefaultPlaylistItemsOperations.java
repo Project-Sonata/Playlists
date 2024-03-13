@@ -13,8 +13,10 @@ import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,12 +24,14 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@AllArgsConstructor
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
     private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
     private final ContextUriParser contextUriParser;
+    private Clock clock = new JavaClock();
 
     @Override
     @NotNull
@@ -52,7 +56,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
                     PlaylistItemEntity playlistItemEntity = PlaylistItemEntity.builder()
                             .playlistId(existingPlaylist.getId())
-                            .addedAt(Instant.now())
+                            .addedAt(clock.now())
                             .item(item)
                             .addedBy(PlaylistCollaboratorEntity.builder()
                                     .id("123")
