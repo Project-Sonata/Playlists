@@ -3,10 +3,7 @@ package com.odeyalo.sonata.playlists.service.tracks;
 import com.odeyalo.sonata.common.context.HardcodedContextUriParser;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.model.PlayableItem;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistItem;
-import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
+import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
@@ -266,6 +263,22 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
                 .as(StepVerifier::create)
                 .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlayableItemType() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getType(), PlayableItemType.TRACK))
                 .verifyComplete();
     }
 
