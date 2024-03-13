@@ -3,17 +3,19 @@ package com.odeyalo.sonata.playlists.service.tracks;
 import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.common.context.ContextUriParser;
 import com.odeyalo.sonata.common.context.MalformedContextUriException;
-import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.model.*;
+import com.odeyalo.sonata.playlists.model.PlayableItem;
+import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
+import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +25,20 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@AllArgsConstructor
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
     private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
     private final ContextUriParser contextUriParser;
-    private Clock clock = new JavaClock();
+    private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
+
+    public DefaultPlaylistItemsOperations(PlaylistLoader playlistLoader, PlayableItemLoader playableItemLoader, PlaylistItemsRepository itemsRepository, ContextUriParser contextUriParser, Clock clock) {
+        this.playlistLoader = playlistLoader;
+        this.playableItemLoader = playableItemLoader;
+        this.itemsRepository = itemsRepository;
+        this.contextUriParser = contextUriParser;
+        this.playlistItemEntityConverter = new PlaylistItemEntityConverter(clock);
+    }
 
     @Override
     @NotNull
@@ -49,22 +58,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
         return tryParse(firstContextUriStr)
                 .flatMap(contextUri -> {
-                    ItemEntity item = ItemEntity.builder()
-                            .publicId(contextUri.getEntityId())
-                            .contextUri(firstContextUriStr)
-                            .build();
-
-                    PlaylistItemEntity playlistItemEntity = PlaylistItemEntity.builder()
-                            .playlistId(existingPlaylist.getId())
-                            .addedAt(clock.now())
-                            .item(item)
-                            .addedBy(PlaylistCollaboratorEntity.builder()
-                                    .id(collaborator.getId())
-                                    .displayName(collaborator.getDisplayName())
-                                    .type(collaborator.getType())
-                                    .contextUri(collaborator.getContextUri())
-                                    .build())
-                            .build();
+                    PlaylistItemEntity playlistItemEntity = playlistItemEntityConverter.createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
 
                     return itemsRepository.save(playlistItemEntity);
                 })
