@@ -61,6 +61,13 @@ public class PlaylistController {
                 .map(items -> defaultOkStatus(new PlaylistItemsDto(items)));
     }
 
+    @PostMapping(value = "/{playlistId}/items")
+    public Mono<ResponseEntity<Void>> addPlaylistItems(@PathVariable String playlistId) {
+        return Mono.just(
+                HttpStatuses.defaultCreatedStatus()
+        );
+    }
+
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
         CreatePlaylistInfo playlistInfo = createPlaylistInfoConverter.toCreatePlaylistInfo(body);

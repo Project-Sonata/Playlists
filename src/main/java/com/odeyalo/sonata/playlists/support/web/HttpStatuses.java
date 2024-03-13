@@ -22,6 +22,11 @@ public final class HttpStatuses {
     }
 
     @NotNull
+    public static <T> ResponseEntity<T> defaultCreatedStatus() {
+        return status(CREATED).build();
+    }
+
+    @NotNull
     public static <T> ResponseEntity<T> defaultOkStatus(T body) {
         return ok().body(body);
     }
