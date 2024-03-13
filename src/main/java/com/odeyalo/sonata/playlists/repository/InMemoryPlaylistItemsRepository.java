@@ -55,7 +55,7 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
                 entity.setId(id);
             }
 
-            List<PlaylistItemEntity> items = cache.computeIfAbsent(playlistId, (key) -> Lists.newArrayList(entity));
+            List<PlaylistItemEntity> items = cache.getOrDefault(playlistId, Lists.newArrayList());
 
             items.add(entity);
             cache.put(playlistId, items);

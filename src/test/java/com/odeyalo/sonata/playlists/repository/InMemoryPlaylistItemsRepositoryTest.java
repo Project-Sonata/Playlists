@@ -138,6 +138,23 @@ class InMemoryPlaylistItemsRepositoryTest {
     }
 
     @Test
+    void shouldSaveOnlyOneEntity() {
+        final String playlistId = "1";
+        final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).get();
+
+        final var testable = new InMemoryPlaylistItemsRepository();
+
+        final PlaylistItemEntity saved = testable.save(entity).block();
+
+        //noinspection DataFlowIssue
+        testable.findAllByPlaylistId(playlistId, OffsetBasedPageRequest.withLimit(50))
+                .as(StepVerifier::create)
+                .expectNext(saved)
+                .verifyComplete();
+    }
+
+
+    @Test
     void shouldAutoGenerateIdForPlaylistOnMissing() {
         final String playlistId = "1";
         final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).setId(null).get();
