@@ -247,7 +247,7 @@ class DefaultPlaylistItemsOperationsTest {
         TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
     }
@@ -257,7 +257,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -272,7 +272,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -289,7 +289,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, new MockClock(addedAt), trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -298,6 +298,25 @@ class DefaultPlaylistItemsOperationsTest {
                 .expectNextMatches(it -> Objects.equals(it.getAddedAt(), addedAt))
                 .verifyComplete();
     }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaborator() {
+        PlaylistCollaborator collaborator = collaborator();
+
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getDisplayName(), collaborator.getDisplayName()))
+                .verifyComplete();
+    }
+
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
@@ -323,6 +342,15 @@ class DefaultPlaylistItemsOperationsTest {
                 Arrays.stream(items).map(it -> playableItemFrom(it))
         );
         return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
+    }
+
+    private static PlaylistCollaborator collaborator() {
+        return PlaylistCollaborator.builder()
+                .id("odeyalooo")
+                .displayName("odeyalo123")
+                .contextUri("odeyalooo")
+                .type(EntityType.USER)
+                .build();
     }
 
     @NotNull

@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
@@ -19,5 +20,5 @@ public interface PlaylistItemsOperations {
 
     @NotNull
     Mono<Void> addItems(@NotNull final Playlist existingPlaylist,
-                        @NotNull final AddItemPayload addItemPayload);
+                        @NotNull final AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator);
 }

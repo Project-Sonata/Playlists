@@ -21,8 +21,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
-
 @Component
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @AllArgsConstructor
@@ -44,7 +42,9 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     @Override
     @NotNull
     public Mono<Void> addItems(@NotNull Playlist existingPlaylist,
-                               @NotNull AddItemPayload addItemPayload) {
+                               @NotNull AddItemPayload addItemPayload,
+                               @NotNull PlaylistCollaborator collaborator) {
+
         String firstContextUriStr = addItemPayload.getUris()[0];
 
         return tryParse(firstContextUriStr)
@@ -60,7 +60,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                             .item(item)
                             .addedBy(PlaylistCollaboratorEntity.builder()
                                     .id("123")
-                                    .displayName("odeyalo")
+                                    .displayName(collaborator.getDisplayName())
                                     .type(EntityType.USER)
                                     .build())
                             .build();
