@@ -336,6 +336,25 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
 
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorContextUri() {
+        PlaylistCollaborator collaborator = collaborator();
+
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getContextUri(), collaborator.getContextUri()))
+                .verifyComplete();
+    }
+
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
@@ -366,7 +385,7 @@ class DefaultPlaylistItemsOperationsTest {
         return PlaylistCollaborator.builder()
                 .id("odeyalooo")
                 .displayName("odeyalo123")
-                .contextUri("odeyalooo")
+                .contextUri("sonata:user:odeyalooo")
                 .type(EntityType.USER)
                 .build();
     }

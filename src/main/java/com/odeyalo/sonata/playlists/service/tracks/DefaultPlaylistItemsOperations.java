@@ -62,6 +62,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                     .id(collaborator.getId())
                                     .displayName(collaborator.getDisplayName())
                                     .type(EntityType.USER)
+                                    .contextUri(collaborator.getContextUri())
                                     .build())
                             .build();
 
