@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;
 import reactor.test.StepVerifier;
@@ -118,6 +119,27 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .as(StepVerifier::create)
                 .expectNext(entity)
                 .verifyComplete();
+    }
+
+    @Test
+    void shouldSaveEntity() {
+        final String playlistId = "1";
+        final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).get();
+
+        final var testable = new InMemoryPlaylistItemsRepository();
+
+        final PlaylistItemEntity saved = testable.save(entity).block();
+
+        //noinspection DataFlowIssue
+        testable.findAllByPlaylistId(playlistId, firstItemOnly())
+                .as(StepVerifier::create)
+                .expectNext(saved)
+                .verifyComplete();
+    }
+
+    @NotNull
+    private static OffsetBasedPageRequest firstItemOnly() {
+        return OffsetBasedPageRequest.of(offset(0), limit(1));
     }
 
     private static int limit(int limit) {

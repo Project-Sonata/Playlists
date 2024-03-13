@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.repository;
 
+import com.google.common.collect.Lists;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +45,16 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
     @Override
     @NotNull
     public Mono<PlaylistItemEntity> save(@NotNull PlaylistItemEntity entity) {
-        return Mono.just(entity);
+        return Mono.fromCallable(() -> {
+            String playlistId = entity.getPlaylistId();
+
+            List<PlaylistItemEntity> items = cache.computeIfAbsent(playlistId, (key) -> Lists.newArrayList(entity));
+
+            items.add(entity);
+            cache.put(playlistId, items);
+
+            return entity;
+        });
     }
 
     @NotNull
