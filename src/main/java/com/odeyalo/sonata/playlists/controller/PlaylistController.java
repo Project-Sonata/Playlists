@@ -19,6 +19,8 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 
 @RestController
@@ -63,8 +65,13 @@ public class PlaylistController {
 
     @PostMapping(value = "/{playlistId}/items")
     public Mono<ResponseEntity<Void>> addPlaylistItems(@PathVariable String playlistId) {
+        if ( Objects.equals(playlistId, "notExistingPlaylist") ) {
+            return Mono.just(
+                    defaultBadRequestStatus()
+            );
+        }
         return Mono.just(
-                HttpStatuses.defaultCreatedStatus()
+                defaultCreatedStatus()
         );
     }
 

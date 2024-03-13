@@ -35,6 +35,7 @@ class AddItemToPlaylistEndpointTest {
     static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
 
     static final String EXISTING_PLAYLIST_ID = "existingPlaylist";
+    static final String NOT_EXISTING_PLAYLIST_ID = "notExistingPlaylist";
 
     @BeforeAll
     void setup() {
@@ -49,10 +50,27 @@ class AddItemToPlaylistEndpointTest {
         responseSpec.expectStatus().isCreated();
     }
 
+    @Test
+    void shouldReturn400BadRequestIfPlaylistNotExist() {
+        WebTestClient.ResponseSpec responseSpec = addItemToNotExistingPlaylist();
+
+        responseSpec.expectStatus().isBadRequest();
+    }
+
     @NotNull
     private WebTestClient.ResponseSpec addItemToPlaylist() {
+        return addItemToPlaylist(EXISTING_PLAYLIST_ID);
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec addItemToNotExistingPlaylist() {
+        return addItemToPlaylist(NOT_EXISTING_PLAYLIST_ID);
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec addItemToPlaylist(String playlistId) {
         return webTestClient.post()
-                .uri("/playlist/{playlistId}/items", EXISTING_PLAYLIST_ID)
+                .uri("/playlist/{playlistId}/items", playlistId)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
                 .exchange();
