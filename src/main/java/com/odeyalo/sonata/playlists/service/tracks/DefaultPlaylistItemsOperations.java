@@ -1,12 +1,13 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.ContextUri;
+import com.odeyalo.sonata.common.context.ContextUriParser;
+import com.odeyalo.sonata.common.context.MalformedContextUriException;
+import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.model.PlayableItem;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
-import com.odeyalo.sonata.playlists.model.PlaylistItem;
+import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
@@ -18,12 +19,15 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
+
 @Component
 @RequiredArgsConstructor
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
     private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
+    private final ContextUriParser contextUriParser;
 
     @Override
     @NotNull
@@ -35,8 +39,40 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @Override
     @NotNull
-    public Mono<Void> addItems(@NotNull Playlist existingPlaylist, @NotNull AddItemPayload addItemPayload) {
-        return Mono.empty();
+    public Mono<Void> addItems(@NotNull Playlist existingPlaylist,
+                               @NotNull AddItemPayload addItemPayload) {
+        String firstContextUriStr = addItemPayload.getUris()[0];
+
+        return tryParse(firstContextUriStr)
+                .flatMap(contextUri -> {
+                    ItemEntity item = ItemEntity.builder()
+                            .publicId(contextUri.getEntityId())
+                            .contextUri(firstContextUriStr)
+                            .build();
+
+                    PlaylistItemEntity playlistItemEntity = PlaylistItemEntity.builder()
+                            .playlistId(existingPlaylist.getId())
+                            .addedAt(Instant.now())
+                            .item(item)
+                            .addedBy(PlaylistCollaboratorEntity.builder()
+                                    .id("123")
+                                    .displayName("odeyalo")
+                                    .type(EntityType.USER)
+                                    .build())
+                            .build();
+
+                    return itemsRepository.save(playlistItemEntity);
+                })
+                .then();
+    }
+
+    private Mono<ContextUri> tryParse(String contextUriStr) {
+        try {
+            ContextUri contextUri = contextUriParser.parse(contextUriStr);
+            return Mono.just(contextUri);
+        } catch (MalformedContextUriException e) {
+            return Mono.error(e);
+        }
     }
 
     @NotNull

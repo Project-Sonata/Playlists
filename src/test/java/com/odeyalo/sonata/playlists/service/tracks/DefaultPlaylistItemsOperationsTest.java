@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.HardcodedContextUriParser;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.PlayableItem;
@@ -46,7 +47,8 @@ class DefaultPlaylistItemsOperationsTest {
         final var testable = new DefaultPlaylistItemsOperations(
                 PlaylistLoaders.empty(),
                 PlayableItemLoaders.empty(),
-                PlaylistItemsRepositories.empty()
+                PlaylistItemsRepositories.empty(),
+                new HardcodedContextUriParser()
         );
 
         testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET, defaultPagination())
@@ -76,7 +78,7 @@ class DefaultPlaylistItemsOperationsTest {
                 playableItem
         );
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
@@ -95,7 +97,7 @@ class DefaultPlaylistItemsOperationsTest {
                 playableItemFrom(TRACK_1)
         );
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
@@ -111,7 +113,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
@@ -127,7 +129,7 @@ class DefaultPlaylistItemsOperationsTest {
                 playableItemFrom(TRACK_2)
         );
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
@@ -252,12 +254,27 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldAddItemToPlaylistAfterCompletion() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()))
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .as(StepVerifier::create)
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
     }
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
@@ -267,7 +284,7 @@ class DefaultPlaylistItemsOperationsTest {
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
                 Arrays.stream(items).map(it -> playableItemFrom(it))
         );
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser());
     }
 
     @NotNull
