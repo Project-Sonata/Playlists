@@ -137,6 +137,21 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldAutoGenerateIdForPlaylistOnMissing() {
+        final String playlistId = "1";
+        final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).setId(null).get();
+
+        final var testable = new InMemoryPlaylistItemsRepository();
+
+        final PlaylistItemEntity ignored = testable.save(entity).block();
+
+        testable.findAllByPlaylistId(playlistId, firstItemOnly())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> it.getId() != null)
+                .verifyComplete();
+    }
+
     @NotNull
     private static OffsetBasedPageRequest firstItemOnly() {
         return OffsetBasedPageRequest.of(offset(0), limit(1));

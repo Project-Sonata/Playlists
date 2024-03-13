@@ -32,4 +32,9 @@ public final class PlaylistItemEntityFaker {
     public PlaylistItemEntity get() {
         return builder.build();
     }
+
+    public PlaylistItemEntityFaker setId(Long id) {
+        builder.id(id);
+        return this;
+    }
 }

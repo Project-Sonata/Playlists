@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  */
 public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepository {
     private final Map<String, List<PlaylistItemEntity>> cache;
+    private final AtomicLong idGenerator = new AtomicLong(0);
 
     public InMemoryPlaylistItemsRepository() {
         this.cache = new ConcurrentHashMap<>();
@@ -47,6 +49,11 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
     public Mono<PlaylistItemEntity> save(@NotNull PlaylistItemEntity entity) {
         return Mono.fromCallable(() -> {
             String playlistId = entity.getPlaylistId();
+
+            if (entity.getId() == null) {
+                long id = idGenerator.incrementAndGet();
+                entity.setId(id);
+            }
 
             List<PlaylistItemEntity> items = cache.computeIfAbsent(playlistId, (key) -> Lists.newArrayList(entity));
 
