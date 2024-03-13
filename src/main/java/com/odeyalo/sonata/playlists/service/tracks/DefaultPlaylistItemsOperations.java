@@ -30,15 +30,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
     private final ContextUriParser contextUriParser;
-    private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
-
-    public DefaultPlaylistItemsOperations(PlaylistLoader playlistLoader, PlayableItemLoader playableItemLoader, PlaylistItemsRepository itemsRepository, ContextUriParser contextUriParser, Clock clock) {
-        this.playlistLoader = playlistLoader;
-        this.playableItemLoader = playableItemLoader;
-        this.itemsRepository = itemsRepository;
-        this.contextUriParser = contextUriParser;
-        this.playlistItemEntityConverter = new PlaylistItemEntityConverter(clock);
-    }
+    private final PlaylistItemEntityConverter playlistItemEntityConverter;
 
     @Override
     @NotNull
@@ -58,11 +50,15 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
         return tryParse(firstContextUriStr)
                 .flatMap(contextUri -> {
-                    PlaylistItemEntity playlistItemEntity = playlistItemEntityConverter.createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
+                    PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
 
                     return itemsRepository.save(playlistItemEntity);
                 })
                 .then();
+    }
+
+    private PlaylistItemEntity createPlaylistItemEntity(@NotNull Playlist existingPlaylist, @NotNull PlaylistCollaborator collaborator, ContextUri contextUri) {
+        return playlistItemEntityConverter.createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
     }
 
     private Mono<ContextUri> tryParse(String contextUriStr) {
