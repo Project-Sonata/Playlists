@@ -64,10 +64,14 @@ public class PlaylistController {
     }
 
     @PostMapping(value = "/{playlistId}/items")
-    public Mono<ResponseEntity<Void>> addPlaylistItems(@PathVariable String playlistId) {
+    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable String playlistId) {
         if ( Objects.equals(playlistId, "notExistingPlaylist") ) {
+            ExceptionMessage exceptionMessage = ExceptionMessage.withDescription(
+                    String.format("Playlist with ID: %s does not exist", playlistId)
+            );
+
             return Mono.just(
-                    defaultBadRequestStatus()
+                    defaultBadRequestStatus(exceptionMessage)
             );
         }
         return Mono.just(

@@ -2,6 +2,7 @@
 package com.odeyalo.sonata.playlists.controller;
 
 
+import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 
 @SpringBootTest
@@ -55,6 +57,20 @@ class AddItemToPlaylistEndpointTest {
         WebTestClient.ResponseSpec responseSpec = addItemToNotExistingPlaylist();
 
         responseSpec.expectStatus().isBadRequest();
+    }
+
+    @Test
+    void shouldReturnExceptionMessageIfPlaylistNotExist() {
+        WebTestClient.ResponseSpec responseSpec = addItemToNotExistingPlaylist();
+
+        ExceptionMessage responseBody = responseSpec.expectBody(ExceptionMessage.class)
+                .returnResult().getResponseBody();
+
+        assertThat(responseBody).isNotNull();
+
+        assertThat(responseBody.getDescription()).isEqualTo(
+                        String.format("Playlist with ID: %s does not exist", NOT_EXISTING_PLAYLIST_ID)
+                );
     }
 
     @NotNull

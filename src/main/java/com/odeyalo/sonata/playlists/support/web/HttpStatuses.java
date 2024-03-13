@@ -43,4 +43,8 @@ public final class HttpStatuses {
     public static <T> ResponseEntity<T> defaultBadRequestStatus() {
         return badRequest().build();
     }
+
+    public static <T> ResponseEntity<T> defaultBadRequestStatus(T body) {
+        return badRequest().body(body);
+    }
 }
