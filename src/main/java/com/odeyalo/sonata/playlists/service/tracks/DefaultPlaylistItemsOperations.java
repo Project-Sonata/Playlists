@@ -45,9 +45,8 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                @NotNull AddItemPayload addItemPayload,
                                @NotNull PlaylistCollaborator collaborator) {
 
-        String firstContextUriStr = addItemPayload.getUris()[0];
-
-        return contextUriParser.parse(firstContextUriStr)
+        return Flux.fromArray(addItemPayload.getUris())
+                .flatMap(contextUriParser::parse)
                 .flatMap(contextUri -> {
                     PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
 

@@ -15,4 +15,15 @@ public class AddItemPayload {
                 .uris(uris)
                 .build();
     }
+
+    public static AddItemPayload withItemUris(String... contextUris) {
+        String[] uris = new String[contextUris.length];
+
+        for (int i = 0; i < contextUris.length; i++) {
+            String uri = contextUris[i];
+            uris[i] = uri;
+        }
+
+        return new AddItemPayload(uris);
+    }
 }

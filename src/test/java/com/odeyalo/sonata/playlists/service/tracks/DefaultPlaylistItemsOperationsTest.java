@@ -396,6 +396,26 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldAddMultipleItemsToPlaylist() {
+        PlaylistCollaborator collaborator = collaborator();
+
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final TrackPlayableItem trackPlayableItem2 = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem, trackPlayableItem2);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri()), collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getContextUri(), trackPlayableItem.getContextUri()))
+                .expectNextMatches(it -> Objects.equals(it.getContextUri(), trackPlayableItem2.getContextUri()))
+                .verifyComplete();
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
