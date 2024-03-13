@@ -1,8 +1,6 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.common.context.ContextUri;
-import com.odeyalo.sonata.common.context.ContextUriParser;
-import com.odeyalo.sonata.common.context.MalformedContextUriException;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
@@ -13,6 +11,7 @@ import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
@@ -29,7 +28,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     private final PlaylistLoader playlistLoader;
     private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
-    private final ContextUriParser contextUriParser;
+    private final ReactiveContextUriParser contextUriParser;
     private final PlaylistItemEntityConverter playlistItemEntityConverter;
 
     @Override
@@ -48,7 +47,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
         String firstContextUriStr = addItemPayload.getUris()[0];
 
-        return tryParse(firstContextUriStr)
+        return contextUriParser.parse(firstContextUriStr)
                 .flatMap(contextUri -> {
                     PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
 
@@ -61,14 +60,6 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
         return playlistItemEntityConverter.createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
     }
 
-    private Mono<ContextUri> tryParse(String contextUriStr) {
-        try {
-            ContextUri contextUri = contextUriParser.parse(contextUriStr);
-            return Mono.just(contextUri);
-        } catch (MalformedContextUriException e) {
-            return Mono.error(e);
-        }
-    }
 
     @NotNull
     private Mono<Playlist> isPlaylistExist(@NotNull TargetPlaylist targetPlaylist) {

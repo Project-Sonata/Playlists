@@ -7,6 +7,7 @@ import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,9 @@ class DefaultPlaylistItemsOperationsTest {
                 PlaylistLoaders.empty(),
                 PlayableItemLoaders.empty(),
                 PlaylistItemsRepositories.empty(),
-                new HardcodedContextUriParser(),
+                new ReactiveContextUriParser(
+                        new HardcodedContextUriParser()
+                ),
                 new PlaylistItemEntityConverter(
                         new JavaClock()
                 )
@@ -80,10 +83,11 @@ class DefaultPlaylistItemsOperationsTest {
                 playableItem
         );
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(),
-                new PlaylistItemEntityConverter(
-                        new JavaClock()
-                ));
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ), new PlaylistItemEntityConverter(
+                new JavaClock()
+        ));
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
@@ -102,7 +106,9 @@ class DefaultPlaylistItemsOperationsTest {
                 playableItemFrom(TRACK_1)
         );
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(),
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ),
                 new PlaylistItemEntityConverter(
                         new JavaClock()
                 ));
@@ -121,7 +127,9 @@ class DefaultPlaylistItemsOperationsTest {
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(),
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ),
                 new PlaylistItemEntityConverter(
                         new JavaClock()
                 ));
@@ -140,7 +148,9 @@ class DefaultPlaylistItemsOperationsTest {
                 playableItemFrom(TRACK_2)
         );
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(), new PlaylistItemEntityConverter(
+        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ), new PlaylistItemEntityConverter(
                 new JavaClock()
         ));
 
@@ -392,7 +402,9 @@ class DefaultPlaylistItemsOperationsTest {
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
 
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(), new PlaylistItemEntityConverter(
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ), new PlaylistItemEntityConverter(
                 new JavaClock()
         ));
     }
@@ -402,7 +414,9 @@ class DefaultPlaylistItemsOperationsTest {
         final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
 
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(), new PlaylistItemEntityConverter(
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ), new PlaylistItemEntityConverter(
                 clock
         ));
     }
@@ -414,9 +428,12 @@ class DefaultPlaylistItemsOperationsTest {
         final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
                 Arrays.stream(items).map(it -> playableItemFrom(it))
         );
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new HardcodedContextUriParser(), new PlaylistItemEntityConverter(
-                new JavaClock()
-        ));
+        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
+                new HardcodedContextUriParser()
+        ),
+                new PlaylistItemEntityConverter(
+                        new JavaClock()
+                ));
     }
 
     private static PlaylistCollaborator collaborator() {
