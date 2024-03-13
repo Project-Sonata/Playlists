@@ -300,7 +300,7 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     @Test
-    void shouldAddItemToPlaylistWithPlaylistCollaborator() {
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorDisplayName() {
         PlaylistCollaborator collaborator = collaborator();
 
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
@@ -314,6 +314,24 @@ class DefaultPlaylistItemsOperationsTest {
                 .map(PlaylistItem::getAddedBy)
                 .as(StepVerifier::create)
                 .expectNextMatches(it -> Objects.equals(it.getDisplayName(), collaborator.getDisplayName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorId() {
+        PlaylistCollaborator collaborator = collaborator();
+
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+
+        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getId(), collaborator.getId()))
                 .verifyComplete();
     }
 

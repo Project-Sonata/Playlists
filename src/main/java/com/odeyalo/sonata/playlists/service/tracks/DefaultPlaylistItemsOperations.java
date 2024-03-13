@@ -59,7 +59,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                             .addedAt(clock.now())
                             .item(item)
                             .addedBy(PlaylistCollaboratorEntity.builder()
-                                    .id("123")
+                                    .id(collaborator.getId())
                                     .displayName(collaborator.getDisplayName())
                                     .type(EntityType.USER)
                                     .build())
