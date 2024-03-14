@@ -418,16 +418,10 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
-
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(items);
-
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
-                new HardcodedContextUriParser()
-        ), new PlaylistItemEntityConverter(
-                new JavaClock()
-        ));
+        return TestableBuilder.builder()
+                .withPlaylists(playlist)
+                .withPlayableItems(items)
+                .get();
     }
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, Clock clock, PlayableItem... items) {
@@ -454,7 +448,7 @@ class DefaultPlaylistItemsOperationsTest {
         private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
         private PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
         private ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
-        private PlaylistItemEntityConverter playlistItemEntityConverter;
+        private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
 
         public static TestableBuilder builder() {
             return new TestableBuilder();
