@@ -126,7 +126,8 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsFromTheGivenOffset() {
-        final var testable = TestableBuilder.builder().withPlaylists(EXISTING_PLAYLIST)
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
                 .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3)
                 .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3)
                 .get();
@@ -141,18 +142,19 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsWithTheGivenLimit() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
-                .collectList().block();
-
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(2);
-
-        asserter.peekFirst().playableItem().hasId(TRACK_1.getItem().getPublicId());
-
-        asserter.peekSecond().playableItem().hasId(TRACK_2.getItem().getPublicId());
-    }
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_1.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .verifyComplete();
+}
 
     @Test
     void shouldReturnListOfItemsWithTheGivenLimitFromOffset() {
