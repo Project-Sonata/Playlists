@@ -154,29 +154,27 @@ class DefaultPlaylistItemsOperationsTest {
                 .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_1.getItem().getPublicId()))
                 .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
                 .verifyComplete();
-}
+    }
 
     @Test
     void shouldReturnListOfItemsWithTheGivenLimitFromOffset() {
         // given
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3, TRACK_4);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .get();
+        final var paginationCriteria = Pagination.withOffsetAndLimit(1, 3);
+
         // when
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET,
-                        Pagination.builder()
-                                .offset(1)
-                                .limit(3)
-                                .build())
-                .collectList().block();
-
-        // then
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(3);
-
-        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
-
-        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
-
-        asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, paginationCriteria)
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                // then
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_3.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_4.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test

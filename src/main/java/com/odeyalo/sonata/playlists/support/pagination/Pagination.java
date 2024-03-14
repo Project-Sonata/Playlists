@@ -24,4 +24,8 @@ public class Pagination {
     public static Pagination withLimit(int limit) {
         return builder().limit(limit).build();
     }
+
+    public static Pagination withOffsetAndLimit(int offset, int limit) {
+        return builder().offset(offset).limit(limit).build();
+    }
 }
