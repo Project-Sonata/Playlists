@@ -1,28 +1,30 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.HardcodedContextUriParser;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.model.PlayableItem;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistItem;
+import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
+import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.MockPlayableItem;
 import testing.PlaylistItemEntityFaker;
-import testing.asserts.PlaylistItemsAssert;
 import testing.factory.PlayableItemLoaders;
 import testing.factory.PlaylistItemsRepositories;
 import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
+import testing.faker.TrackPlayableItemFaker;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static com.odeyalo.sonata.playlists.support.pagination.Pagination.defaultPagination;
 
@@ -41,11 +43,7 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnExceptionIfPlaylistNotExist() {
-        final var testable = new DefaultPlaylistItemsOperations(
-                PlaylistLoaders.empty(),
-                PlayableItemLoaders.empty(),
-                PlaylistItemsRepositories.empty()
-        );
+        final var testable = TestableBuilder.builder().get();
 
         testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
@@ -55,7 +53,10 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistItemsIfPlaylistExist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2);
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder().withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2)
+                .get();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .collectList()
@@ -66,50 +67,43 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistPlayableItemIfExist() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
         final PlayableItem playableItem = playableItemFrom(TRACK_1);
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItem
-        );
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItems(playableItem)
+                .get();
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
-
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(1)
-                .peekFirst()
-                .hasPlayableItem(playableItem);
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNext(playableItem)
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnPlaylistItemsWithSameAddedAtAsSaved() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItemFrom(TRACK_1)
-        );
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
-
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .hasAddedAtDate(TRACK_1.getAddedAt());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedAt)
+                .as(StepVerifier::create)
+                .expectNext(TRACK_1.getAddedAt())
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnEmptyListIfItemDoesNotExistById() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
-
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .get();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
@@ -118,137 +112,386 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsButNotIncludeItemsThatNotExistByContextUri() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2)
+                .withPlayableItemsFrom(TRACK_2)
+                .get();
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItemFrom(TRACK_2)
-        );
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
-
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(1)
-                .hasNotPlayableItem(TRACK_1);
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnListOfItemsFromTheGivenOffset() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
-                .collectList().block();
-
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
-
-        asserter.hasSize(2);
-
-        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
-
-        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
+                .map(it -> it.getItem().getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_2.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it, TRACK_3.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnListOfItemsWithTheGivenLimit() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
-                .collectList().block();
-
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(2);
-
-        asserter.peekFirst().playableItem().hasId(TRACK_1.getItem().getPublicId());
-
-        asserter.peekSecond().playableItem().hasId(TRACK_2.getItem().getPublicId());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_1.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnListOfItemsWithTheGivenLimitFromOffset() {
         // given
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3, TRACK_4);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .get();
+        final var paginationCriteria = Pagination.withOffsetAndLimit(1, 3);
+
         // when
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET,
-                        Pagination.builder()
-                                .offset(1)
-                                .limit(3)
-                                .build())
-                .collectList().block();
-
-        // then
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(3);
-
-        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
-
-        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
-
-        asserter.peekThird().playableItem().hasId(TRACK_4.getItem().getPublicId());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, paginationCriteria)
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                // then
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_3.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_4.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnCollaboratorIdThatAddedTrackToPlaylist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .playlistCollaborator()
-                .hasId(TRACK_1.getAddedBy().getId());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getAddedBy().getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getId()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnCollaboratorDisplayNameThatAddedTrackToPlaylist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .playlistCollaborator()
-                .hasDisplayName(TRACK_1.getAddedBy().getDisplayName());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getAddedBy().getDisplayName())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getDisplayName()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnCollaboratorEntityTypeThatAddedTrackToPlaylist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .playlistCollaborator()
-                .hasEntityType(TRACK_1.getAddedBy().getType());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getAddedBy().getType())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getType()))
+                .verifyComplete();
     }
 
     @Test
     void shouldReturnCollaboratorContextUriThatAddedTrackToPlaylist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .playlistCollaborator()
-                .hasContextUri(TRACK_1.getAddedBy().getContextUri());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getAddedBy().getContextUri())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getContextUri()))
+                .verifyComplete();
     }
 
-    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
+    @Test
+    void shouldCompleteSuccessfully() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                Arrays.stream(items).map(it -> playableItemFrom(it))
-        );
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository);
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
 
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAfterCompletion() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlayableItemType() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getType(), PlayableItemType.TRACK))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAndSetTheTime() {
+        final Instant addedAt = Instant.now();
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .withClock(new MockClock(addedAt))
+                .get();
+
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getAddedAt(), addedAt))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorDisplayName() {
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getDisplayName(), collaborator.getDisplayName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorId() {
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getId(), collaborator.getId()))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorContextUri() {
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getContextUri(), collaborator.getContextUri()))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithPlaylistCollaboratorEntityType() {
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getType(), collaborator.getType()))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddMultipleItemsToPlaylist() {
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var trackPlayableItem2 = TrackPlayableItemFaker.create().get();
+        final var itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
+
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem, trackPlayableItem2)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, itemUris, collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getItem().getContextUri())
+                .as(StepVerifier::create)
+                .expectNextMatches(actualContextUri -> Objects.equals(actualContextUri, trackPlayableItem.getContextUri()))
+                .expectNextMatches(actualContextUri -> Objects.equals(actualContextUri, trackPlayableItem2.getContextUri()))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnErrorIfPlaylistDoesNotExistOnAddItem() {
+        final var testable = TestableBuilder.builder().get();
+        final var payload = AddItemPayload.withItemUri("sonata:track:test");
+
+        testable.addItems(NOT_EXISTING_PLAYLIST_TARGET, payload, collaborator())
+                .as(StepVerifier::create)
+                .expectError(PlaylistNotFoundException.class)
+                .verify();
+    }
+
+    static class TestableBuilder {
+        private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
+        private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
+        private PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
+        private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
+        private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
+
+        public static TestableBuilder builder() {
+            return new TestableBuilder();
+        }
+
+        public TestableBuilder withPlaylists(Playlist... playlists) {
+            this.playlistLoader = PlaylistLoaders.withPlaylists(playlists);
+            return this;
+        }
+
+        public TestableBuilder withPlayableItems(PlayableItem... items) {
+            this.playableItemLoader = PlayableItemLoaders.withItems(items);
+            return this;
+        }
+
+        public TestableBuilder withPlaylistItems(PlaylistItemEntity... items) {
+            this.itemsRepository = PlaylistItemsRepositories.withItems(items);
+            return this;
+        }
+
+        public TestableBuilder withClock(Clock clock) {
+            this.playlistItemEntityConverter = new PlaylistItemEntityConverter(clock);
+            return this;
+        }
+
+        public TestableBuilder withPlayableItemsFrom(PlaylistItemEntity... items) {
+            Stream<PlayableItem> playableItems = Arrays.stream(items).map(DefaultPlaylistItemsOperationsTest::playableItemFrom);
+            this.playableItemLoader = PlayableItemLoaders.withItems(playableItems);
+            return this;
+        }
+
+        public DefaultPlaylistItemsOperations get() {
+            return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, contextUriParser, playlistItemEntityConverter);
+        }
+    }
+
+    private static PlaylistCollaborator collaborator() {
+        return PlaylistCollaborator.builder()
+                .id("odeyalooo")
+                .displayName("odeyalo123")
+                .contextUri("sonata:user:odeyalooo")
+                .type(EntityType.USER)
+                .build();
     }
 
     @NotNull

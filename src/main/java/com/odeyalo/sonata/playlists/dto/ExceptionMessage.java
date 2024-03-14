@@ -16,4 +16,8 @@ import lombok.experimental.SuperBuilder;
 public class ExceptionMessage {
     @JsonProperty("description")
     String description;
+
+    public static ExceptionMessage withDescription(String description) {
+        return builder().description(description).build();
+    }
 }

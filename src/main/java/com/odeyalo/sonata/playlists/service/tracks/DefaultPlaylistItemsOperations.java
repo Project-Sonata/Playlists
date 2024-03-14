@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
@@ -10,20 +11,25 @@ import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
+import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
     private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
+    private final ReactiveContextUriParser contextUriParser;
+    private final PlaylistItemEntityConverter playlistItemEntityConverter;
 
     @Override
     @NotNull
@@ -32,6 +38,34 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                 .flatMapMany(playlist -> getPlaylistItems(targetPlaylist, pagination))
                 .flatMap(this::loadPlaylistItem);
     }
+
+    @NotNull
+    public Mono<Void> addItems(@NotNull TargetPlaylist targetPlaylist,
+                               @NotNull AddItemPayload addItemPayload,
+                               @NotNull PlaylistCollaborator collaborator) {
+
+        return isPlaylistExist(targetPlaylist)
+                .flatMapMany(it -> doAddPlaylistItems(targetPlaylist, addItemPayload, collaborator))
+                .then();
+    }
+
+    @NotNull
+    private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
+        return Flux.fromArray(addItemPayload.getUris())
+                .flatMap(contextUriParser::parse)
+                .flatMap(contextUri -> {
+                    PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(targetPlaylist.getPlaylistId(), collaborator, contextUri);
+
+                    return itemsRepository.save(playlistItemEntity);
+                });
+    }
+
+    private PlaylistItemEntity createPlaylistItemEntity(@NotNull String playlistId,
+                                                        @NotNull PlaylistCollaborator collaborator,
+                                                        @NotNull ContextUri contextUri) {
+        return playlistItemEntityConverter.createPlaylistItemEntity(playlistId, collaborator, contextUri);
+    }
+
 
     @NotNull
     private Mono<Playlist> isPlaylistExist(@NotNull TargetPlaylist targetPlaylist) {

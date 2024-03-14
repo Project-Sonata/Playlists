@@ -1,11 +1,13 @@
 package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.*;
+import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
 import com.odeyalo.sonata.playlists.service.PlaylistOperations;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.service.tracks.AddItemPayload;
 import com.odeyalo.sonata.playlists.service.tracks.PlaylistItemsOperations;
 import com.odeyalo.sonata.playlists.support.converter.*;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
@@ -59,6 +61,15 @@ public class PlaylistController {
                 .map(playlistItemDtoConverter::toPlaylistItemDto)
                 .collectList()
                 .map(items -> defaultOkStatus(new PlaylistItemsDto(items)));
+    }
+
+    @PostMapping(value = "/{playlistId}/items")
+    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable final String playlistId,
+                                                         @NotNull final AddItemPayload addItemPayload,
+                                                         @NotNull final PlaylistCollaborator playlistCollaborator) {
+
+        return playlistItemsOperations.addItems(TargetPlaylist.just(playlistId), addItemPayload, playlistCollaborator)
+                .thenReturn(defaultCreatedStatus());
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)

@@ -22,6 +22,11 @@ public final class HttpStatuses {
     }
 
     @NotNull
+    public static <T> ResponseEntity<T> defaultCreatedStatus() {
+        return status(CREATED).build();
+    }
+
+    @NotNull
     public static <T> ResponseEntity<T> defaultOkStatus(T body) {
         return ok().body(body);
     }
@@ -33,5 +38,13 @@ public final class HttpStatuses {
     @NotNull
     public static <T> ResponseEntity<T> default204Response() {
         return noContent().build();
+    }
+
+    public static <T> ResponseEntity<T> defaultBadRequestStatus() {
+        return badRequest().build();
+    }
+
+    public static <T> ResponseEntity<T> defaultBadRequestStatus(T body) {
+        return badRequest().body(body);
     }
 }

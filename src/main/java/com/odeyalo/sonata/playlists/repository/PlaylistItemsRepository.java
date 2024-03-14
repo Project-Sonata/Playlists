@@ -4,6 +4,7 @@ import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Simple repository to work with items saved in playlist
@@ -19,4 +20,9 @@ public interface PlaylistItemsRepository {
     Flux<PlaylistItemEntity> findAllByPlaylistId(@NotNull String playlistId,
                                                  @NotNull Pageable pageable);
 
+    @NotNull
+    Mono<PlaylistItemEntity> save(@NotNull PlaylistItemEntity entity);
+
+    @NotNull
+    Mono<Void> clear();
 }
