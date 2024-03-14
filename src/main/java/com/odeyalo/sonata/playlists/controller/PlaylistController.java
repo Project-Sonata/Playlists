@@ -1,7 +1,6 @@
 package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.*;
-import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
@@ -80,8 +79,7 @@ public class PlaylistController {
             );
         }
 
-        return playlistItemsOperations.addItems(TargetPlaylist.just(playlistId),
-                        addItemPayload, playlistCollaborator)
+        return playlistItemsOperations.addItems(TargetPlaylist.just(playlistId), addItemPayload, playlistCollaborator)
                 .thenReturn(defaultCreatedStatus());
     }
 

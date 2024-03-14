@@ -62,6 +62,7 @@ class AddItemToPlaylistEndpointTest {
 
     static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
     static final String USER_ID = "1";
+    static final String USER_CONTEXT_URI = "sonata:user:1";
 
     static final String EXISTING_PLAYLIST_ID = "existingPlaylist";
     static final String NOT_EXISTING_PLAYLIST_ID = "notExistingPlaylist";
@@ -136,6 +137,17 @@ class AddItemToPlaylistEndpointTest {
         assertThat(items.getItems())
                 .map(PlaylistItemDto::getAddedBy).first()
                 .matches(it -> Objects.equals(it.getId(), USER_ID));
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithCorrectCollaboratorContextUri() {
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist();
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(PlaylistItemDto::getAddedBy).first()
+                .matches(it -> Objects.equals(it.getContextUri(), USER_CONTEXT_URI));
     }
 
     @Test
