@@ -44,14 +44,20 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                @NotNull AddItemPayload addItemPayload,
                                @NotNull PlaylistCollaborator collaborator) {
 
+        return isPlaylistExist(targetPlaylist)
+                .flatMapMany(it -> doAddPlaylistItems(targetPlaylist, addItemPayload, collaborator))
+                .then();
+    }
+
+    @NotNull
+    private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
         return Flux.fromArray(addItemPayload.getUris())
                 .flatMap(contextUriParser::parse)
                 .flatMap(contextUri -> {
                     PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(targetPlaylist.getPlaylistId(), collaborator, contextUri);
 
                     return itemsRepository.save(playlistItemEntity);
-                })
-                .then();
+                });
     }
 
     private PlaylistItemEntity createPlaylistItemEntity(@NotNull String playlistId,

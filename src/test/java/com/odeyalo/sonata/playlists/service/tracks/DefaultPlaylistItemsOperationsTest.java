@@ -420,6 +420,17 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldReturnErrorIfPlaylistDoesNotExistOnAddItem() {
+        final var testable = TestableBuilder.builder().get();
+        final var payload =  AddItemPayload.withItemUri("sonata:track:test");
+
+        testable.addItems(NOT_EXISTING_PLAYLIST_TARGET, payload, collaborator())
+                .as(StepVerifier::create)
+                .expectError(PlaylistNotFoundException.class)
+                .verify();
+    }
+
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
         return TestableBuilder.builder()
                 .withPlaylists(playlist)
