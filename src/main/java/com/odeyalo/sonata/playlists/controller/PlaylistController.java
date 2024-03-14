@@ -1,11 +1,14 @@
 package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.*;
+import com.odeyalo.sonata.playlists.model.EntityType;
+import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
 import com.odeyalo.sonata.playlists.service.PlaylistOperations;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.service.tracks.AddItemPayload;
 import com.odeyalo.sonata.playlists.service.tracks.PlaylistItemsOperations;
 import com.odeyalo.sonata.playlists.support.converter.*;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
@@ -64,7 +67,7 @@ public class PlaylistController {
     }
 
     @PostMapping(value = "/{playlistId}/items")
-    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable String playlistId) {
+    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable String playlistId, AddItemPayload addItemPayload) {
         if ( Objects.equals(playlistId, "notExistingPlaylist") ) {
             ExceptionMessage exceptionMessage = ExceptionMessage.withDescription(
                     String.format("Playlist with ID: %s does not exist", playlistId)
@@ -74,9 +77,10 @@ public class PlaylistController {
                     defaultBadRequestStatus(exceptionMessage)
             );
         }
-        return Mono.just(
-                defaultCreatedStatus()
-        );
+
+        return playlistItemsOperations.addItems(TargetPlaylist.just(playlistId),
+                        addItemPayload, PlaylistCollaborator.of("123", "odeyalo", EntityType.USER, "sonata:user:123"))
+                .thenReturn(defaultCreatedStatus());
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)

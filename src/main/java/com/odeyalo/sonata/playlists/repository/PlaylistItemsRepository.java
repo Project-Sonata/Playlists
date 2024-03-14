@@ -22,4 +22,7 @@ public interface PlaylistItemsRepository {
 
     @NotNull
     Mono<PlaylistItemEntity> save(@NotNull PlaylistItemEntity entity);
+
+    @NotNull
+    Mono<Void> clear();
 }
