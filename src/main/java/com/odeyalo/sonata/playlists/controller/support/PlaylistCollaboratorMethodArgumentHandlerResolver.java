@@ -1,6 +1,5 @@
 package com.odeyalo.sonata.playlists.controller.support;
 
-import com.odeyalo.sonata.playlists.controller.PlaylistController;
 import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.suite.security.auth.AuthenticatedUser;
@@ -36,7 +35,7 @@ public final class PlaylistCollaboratorMethodArgumentHandlerResolver implements 
     private static PlaylistCollaborator createPlaylistCollaborator(AuthenticatedUser user) {
         return PlaylistCollaborator.builder()
                 .id(user.getDetails().getId())
-                .displayName("mock")
+                .displayName(user.getDetails().getId())
                 .type(EntityType.USER)
                 .contextUri("sonata:user:" + user.getDetails().getId())
                 .build();

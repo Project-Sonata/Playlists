@@ -151,6 +151,17 @@ class AddItemToPlaylistEndpointTest {
     }
 
     @Test
+    void shouldAddItemToPlaylistAndUseIDAsPlaylistCollaboratorDisplayName() {
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist();
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(PlaylistItemDto::getAddedBy).first()
+                .matches(it -> Objects.equals(it.getDisplayName(), USER_ID));
+    }
+
+    @Test
     void shouldReturn400BadRequestIfPlaylistNotExist() {
         WebTestClient.ResponseSpec responseSpec = addItemToNotExistingPlaylist();
 
