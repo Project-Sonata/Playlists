@@ -4,6 +4,7 @@ package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.controller.AddItemToPlaylistEndpointTest.Config;
 import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
+import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
@@ -60,6 +61,7 @@ class AddItemToPlaylistEndpointTest {
     static final String TRACK_1_CONTEXT_URI = "sonata:track:OJd0n1Z4gFc";
 
     static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    static final String USER_ID = "1";
 
     static final String EXISTING_PLAYLIST_ID = "existingPlaylist";
     static final String NOT_EXISTING_PLAYLIST_ID = "notExistingPlaylist";
@@ -123,6 +125,17 @@ class AddItemToPlaylistEndpointTest {
         assertThat(items.getItems()).hasSize(1);
         assertThat(items.getItems()).first()
                 .matches(it -> Objects.equals(it.getItem().getId(), TRACK_1_ID));
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithCorrectCollaboratorId() {
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist();
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(PlaylistItemDto::getAddedBy).first()
+                .matches(it -> Objects.equals(it.getId(), USER_ID));
     }
 
     @Test

@@ -67,7 +67,9 @@ public class PlaylistController {
     }
 
     @PostMapping(value = "/{playlistId}/items")
-    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable String playlistId, AddItemPayload addItemPayload) {
+    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable final String playlistId,
+                                                         @NotNull final AddItemPayload addItemPayload,
+                                                         @NotNull final PlaylistCollaborator playlistCollaborator) {
         if ( Objects.equals(playlistId, "notExistingPlaylist") ) {
             ExceptionMessage exceptionMessage = ExceptionMessage.withDescription(
                     String.format("Playlist with ID: %s does not exist", playlistId)
@@ -79,7 +81,7 @@ public class PlaylistController {
         }
 
         return playlistItemsOperations.addItems(TargetPlaylist.just(playlistId),
-                        addItemPayload, PlaylistCollaborator.of("123", "odeyalo", EntityType.USER, "sonata:user:123"))
+                        addItemPayload, playlistCollaborator)
                 .thenReturn(defaultCreatedStatus());
     }
 
