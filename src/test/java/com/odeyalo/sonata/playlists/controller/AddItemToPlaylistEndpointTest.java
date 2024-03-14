@@ -6,6 +6,7 @@ import com.odeyalo.sonata.playlists.controller.AddItemToPlaylistEndpointTest.Con
 import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
+import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
@@ -159,6 +160,17 @@ class AddItemToPlaylistEndpointTest {
         assertThat(items.getItems())
                 .map(PlaylistItemDto::getAddedBy).first()
                 .matches(it -> Objects.equals(it.getDisplayName(), USER_ID));
+    }
+
+    @Test
+    void shouldAddItemToPlaylistWithCorrectCollaboratorEntityType() {
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist();
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(PlaylistItemDto::getAddedBy).first()
+                .matches(it -> Objects.equals(it.getType(), EntityType.USER));
     }
 
     @Test
