@@ -45,17 +45,7 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnExceptionIfPlaylistNotExist() {
-        final var testable = new DefaultPlaylistItemsOperations(
-                PlaylistLoaders.empty(),
-                PlayableItemLoaders.empty(),
-                PlaylistItemsRepositories.empty(),
-                new ReactiveContextUriParser(
-                        new HardcodedContextUriParser()
-                ),
-                new PlaylistItemEntityConverter(
-                        new JavaClock()
-                )
-        );
+        final var testable = TestableBuilder.builder().get();
 
         testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
@@ -76,19 +66,13 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistPlayableItemIfExist() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
         final PlayableItem playableItem = playableItemFrom(TRACK_1);
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItem
-        );
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
-                new HardcodedContextUriParser()
-        ), new PlaylistItemEntityConverter(
-                new JavaClock()
-        ));
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItems(playableItem)
+                .get();
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
@@ -100,19 +84,13 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistItemsWithSameAddedAtAsSaved() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+        final PlayableItem playableItem = playableItemFrom(TRACK_1);
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItemFrom(TRACK_1)
-        );
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
-                new HardcodedContextUriParser()
-        ),
-                new PlaylistItemEntityConverter(
-                        new JavaClock()
-                ));
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItems(playableItem)
+                .get();
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
@@ -123,17 +101,10 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnEmptyListIfItemDoesNotExistById() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
-
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
-                new HardcodedContextUriParser()
-        ),
-                new PlaylistItemEntityConverter(
-                        new JavaClock()
-                ));
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .get();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
@@ -142,18 +113,13 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsButNotIncludeItemsThatNotExistByContextUri() {
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(TRACK_1, TRACK_2);
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(EXISTING_PLAYLIST);
+        PlayableItem playableItem = playableItemFrom(TRACK_2);
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                playableItemFrom(TRACK_2)
-        );
-
-        final var testable = new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
-                new HardcodedContextUriParser()
-        ), new PlaylistItemEntityConverter(
-                new JavaClock()
-        ));
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2)
+                .withPlayableItems(playableItem)
+                .get();
 
         List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
 
