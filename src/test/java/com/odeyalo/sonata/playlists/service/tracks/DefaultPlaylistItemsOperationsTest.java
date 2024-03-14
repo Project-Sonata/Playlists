@@ -277,9 +277,15 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldAddItemToPlaylistWithPlayableItemType() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
