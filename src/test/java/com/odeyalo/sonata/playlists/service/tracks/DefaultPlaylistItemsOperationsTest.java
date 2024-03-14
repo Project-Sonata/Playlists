@@ -111,19 +111,17 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsButNotIncludeItemsThatNotExistByContextUri() {
-        PlayableItem playableItem = playableItemFrom(TRACK_2);
-
         final var testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlaylistItems(TRACK_1, TRACK_2)
-                .withPlayableItems(playableItem)
+                .withPlayableItemsFrom(TRACK_2)
                 .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(1)
-                .hasNotPlayableItem(TRACK_1);
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test
