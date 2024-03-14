@@ -21,8 +21,6 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 
 @RestController
@@ -69,15 +67,6 @@ public class PlaylistController {
     public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable final String playlistId,
                                                          @NotNull final AddItemPayload addItemPayload,
                                                          @NotNull final PlaylistCollaborator playlistCollaborator) {
-        if ( Objects.equals(playlistId, "notExistingPlaylist") ) {
-            ExceptionMessage exceptionMessage = ExceptionMessage.withDescription(
-                    String.format("Playlist with ID: %s does not exist", playlistId)
-            );
-
-            return Mono.just(
-                    defaultBadRequestStatus(exceptionMessage)
-            );
-        }
 
         return playlistItemsOperations.addItems(TargetPlaylist.just(playlistId), addItemPayload, playlistCollaborator)
                 .thenReturn(defaultCreatedStatus());
