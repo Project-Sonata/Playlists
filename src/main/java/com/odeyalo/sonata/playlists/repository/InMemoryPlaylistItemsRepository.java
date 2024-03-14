@@ -64,6 +64,12 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
         });
     }
 
+    @Override
+    @NotNull
+    public Mono<Void> clear() {
+        return Mono.fromRunnable(cache::clear);
+    }
+
     @NotNull
     private static Map<String, List<PlaylistItemEntity>> toMap(List<PlaylistItemEntity> cache) {
         return cache.stream().collect(

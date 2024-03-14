@@ -169,6 +169,20 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldClearRepository() {
+        final String playlistId = "1";
+        final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).setId(null).get();
+
+        final var testable = new InMemoryPlaylistItemsRepository(List.of(entity));
+
+        testable.clear().block();
+
+        testable.findAllByPlaylistId(playlistId, OffsetBasedPageRequest.withLimit(100))
+                .as(StepVerifier::create)
+                .verifyComplete();
+    }
+
     @NotNull
     private static OffsetBasedPageRequest firstItemOnly() {
         return OffsetBasedPageRequest.of(offset(0), limit(1));
