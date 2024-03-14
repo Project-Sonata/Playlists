@@ -83,19 +83,18 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistItemsWithSameAddedAtAsSaved() {
-        final PlayableItem playableItem = playableItemFrom(TRACK_1);
 
         final var testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlaylistItems(TRACK_1)
-                .withPlayableItems(playableItem)
+                .withPlayableItemsFrom(TRACK_1)
                 .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .hasAddedAtDate(TRACK_1.getAddedAt());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedAt)
+                .as(StepVerifier::create)
+                .expectNext(TRACK_1.getAddedAt())
+                .verifyComplete();
     }
 
     @Test
