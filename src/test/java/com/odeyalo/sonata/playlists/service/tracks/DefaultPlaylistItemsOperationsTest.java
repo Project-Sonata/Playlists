@@ -399,21 +399,24 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldAddMultipleItemsToPlaylist() {
-        PlaylistCollaborator collaborator = collaborator();
+        final PlaylistCollaborator collaborator = collaborator();
 
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final TrackPlayableItem trackPlayableItem2 = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem, trackPlayableItem2);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri()), collaborator)
+        AddItemPayload itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST, itemUris, collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination())
                 .map(PlaylistItem::getItem)
+                .map(PlayableItem::getContextUri)
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getContextUri(), trackPlayableItem.getContextUri()))
-                .expectNextMatches(it -> Objects.equals(it.getContextUri(), trackPlayableItem2.getContextUri()))
+                .expectNextMatches(actualContextUri -> Objects.equals(actualContextUri, trackPlayableItem.getContextUri()))
+                .expectNextMatches(actualContextUri -> Objects.equals(actualContextUri, trackPlayableItem2.getContextUri()))
                 .verifyComplete();
     }
 
