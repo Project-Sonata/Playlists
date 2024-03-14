@@ -209,15 +209,17 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnCollaboratorEntityTypeThatAddedTrackToPlaylist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .playlistCollaborator()
-                .hasEntityType(TRACK_1.getAddedBy().getType());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getAddedBy().getType())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getType()))
+                .verifyComplete();
     }
 
     @Test
