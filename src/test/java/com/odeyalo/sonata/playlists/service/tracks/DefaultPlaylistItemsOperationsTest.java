@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.MockPlayableItem;
 import testing.PlaylistItemEntityFaker;
-import testing.asserts.PlaylistItemsAssert;
 import testing.factory.PlayableItemLoaders;
 import testing.factory.PlaylistItemsRepositories;
 import testing.factory.PlaylistLoaders;
@@ -24,7 +23,6 @@ import testing.faker.TrackPlayableItemFaker;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -422,7 +420,6 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem, trackPlayableItem2)
                 .get();
 
-
         testable.addItems(EXISTING_PLAYLIST_TARGET, itemUris, collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
@@ -446,38 +443,12 @@ class DefaultPlaylistItemsOperationsTest {
                 .verify();
     }
 
-    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlayableItem... items) {
-        return TestableBuilder.builder()
-                .withPlaylists(playlist)
-                .withPlayableItems(items)
-                .get();
-    }
-
-    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, Clock clock, PlayableItem... items) {
-
-        return TestableBuilder.builder()
-                .withPlaylists(playlist)
-                .withClock(clock)
-                .withPlayableItems(items)
-                .get();
-    }
-
-    static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
-        Stream<PlayableItem> playableItems = Arrays.stream(items).map(it -> playableItemFrom(it));
-
-        return TestableBuilder.builder()
-                .withPlaylists(playlist)
-                .withPlaylistItems(items)
-                .withPlayableItems(playableItems)
-                .get();
-    }
-
     static class TestableBuilder {
         private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
         private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
         private PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
-        private ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
         private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
+        private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
 
         public static TestableBuilder builder() {
             return new TestableBuilder();
@@ -503,13 +474,8 @@ class DefaultPlaylistItemsOperationsTest {
             return this;
         }
 
-        public TestableBuilder withPlayableItems(Stream<PlayableItem> items) {
-            this.playableItemLoader = PlayableItemLoaders.withItems(items);
-            return this;
-        }
-
         public TestableBuilder withPlayableItemsFrom(PlaylistItemEntity... items) {
-            Stream<PlayableItem> playableItems = Arrays.stream(items).map(it -> playableItemFrom(it));
+            Stream<PlayableItem> playableItems = Arrays.stream(items).map(DefaultPlaylistItemsOperationsTest::playableItemFrom);
             this.playableItemLoader = PlayableItemLoaders.withItems(playableItems);
             return this;
         }
