@@ -224,15 +224,17 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnCollaboratorContextUriThatAddedTrackToPlaylist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1);
+        final var testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1)
+                .withPlayableItemsFrom(TRACK_1)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .peekFirst()
-                .playlistCollaborator()
-                .hasContextUri(TRACK_1.getAddedBy().getContextUri());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(it -> it.getAddedBy().getContextUri())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getContextUri()))
+                .verifyComplete();
     }
 
     @Test
