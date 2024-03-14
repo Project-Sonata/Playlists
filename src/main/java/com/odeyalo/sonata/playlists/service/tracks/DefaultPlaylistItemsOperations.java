@@ -39,24 +39,25 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                 .flatMap(this::loadPlaylistItem);
     }
 
-    @Override
     @NotNull
-    public Mono<Void> addItems(@NotNull Playlist existingPlaylist,
+    public Mono<Void> addItems(@NotNull TargetPlaylist targetPlaylist,
                                @NotNull AddItemPayload addItemPayload,
                                @NotNull PlaylistCollaborator collaborator) {
 
         return Flux.fromArray(addItemPayload.getUris())
                 .flatMap(contextUriParser::parse)
                 .flatMap(contextUri -> {
-                    PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
+                    PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(targetPlaylist.getPlaylistId(), collaborator, contextUri);
 
                     return itemsRepository.save(playlistItemEntity);
                 })
                 .then();
     }
 
-    private PlaylistItemEntity createPlaylistItemEntity(@NotNull Playlist existingPlaylist, @NotNull PlaylistCollaborator collaborator, ContextUri contextUri) {
-        return playlistItemEntityConverter.createPlaylistItemEntity(existingPlaylist, collaborator, contextUri);
+    private PlaylistItemEntity createPlaylistItemEntity(@NotNull String playlistId,
+                                                        @NotNull PlaylistCollaborator collaborator,
+                                                        @NotNull ContextUri contextUri) {
+        return playlistItemEntityConverter.createPlaylistItemEntity(playlistId, collaborator, contextUri);
     }
 
 

@@ -273,7 +273,7 @@ class DefaultPlaylistItemsOperationsTest {
         TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
     }
@@ -283,7 +283,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -298,7 +298,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -315,7 +315,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, new MockClock(addedAt), trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator())
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -332,7 +332,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -350,7 +350,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -368,7 +368,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -386,7 +386,7 @@ class DefaultPlaylistItemsOperationsTest {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
         final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
 
-        testable.addItems(EXISTING_PLAYLIST, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 
@@ -407,7 +407,7 @@ class DefaultPlaylistItemsOperationsTest {
 
         AddItemPayload itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
 
-        testable.addItems(EXISTING_PLAYLIST, itemUris, collaborator)
+        testable.addItems(EXISTING_PLAYLIST_TARGET, itemUris, collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 

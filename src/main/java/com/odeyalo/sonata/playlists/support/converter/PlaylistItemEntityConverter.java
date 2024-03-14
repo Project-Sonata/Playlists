@@ -4,7 +4,6 @@ import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
-import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.service.tracks.Clock;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +17,7 @@ public class PlaylistItemEntityConverter {
         this.clock = clock;
     }
 
-    public PlaylistItemEntity createPlaylistItemEntity(@NotNull Playlist existingPlaylist,
+    public PlaylistItemEntity createPlaylistItemEntity(@NotNull String playlistId,
                                                        @NotNull PlaylistCollaborator collaborator,
                                                        @NotNull ContextUri contextUri) {
         ItemEntity item = createItemEntity(contextUri);
@@ -26,7 +25,7 @@ public class PlaylistItemEntityConverter {
         PlaylistCollaboratorEntity collaboratorEntity = createCollaboratorEntity(collaborator);
 
         return PlaylistItemEntity.builder()
-                .playlistId(existingPlaylist.getId())
+                .playlistId(playlistId)
                 .addedAt(clock.now())
                 .item(item)
                 .addedBy(collaboratorEntity)
