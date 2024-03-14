@@ -74,12 +74,11 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(playableItem)
                 .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination()).collectList().block();
-
-        PlaylistItemsAssert.forList(playlistItems)
-                .hasSize(1)
-                .peekFirst()
-                .hasPlayableItem(playableItem);
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getItem)
+                .as(StepVerifier::create)
+                .expectNext(playableItem)
+                .verifyComplete();
     }
 
     @Test
@@ -388,7 +387,7 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldReturnErrorIfPlaylistDoesNotExistOnAddItem() {
         final var testable = TestableBuilder.builder().get();
-        final var payload =  AddItemPayload.withItemUri("sonata:track:test");
+        final var payload = AddItemPayload.withItemUri("sonata:track:test");
 
         testable.addItems(NOT_EXISTING_PLAYLIST_TARGET, payload, collaborator())
                 .as(StepVerifier::create)
