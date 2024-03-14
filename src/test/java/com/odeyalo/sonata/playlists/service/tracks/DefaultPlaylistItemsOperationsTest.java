@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static com.odeyalo.sonata.playlists.support.pagination.Pagination.defaultPagination;
 
@@ -442,18 +443,54 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     static DefaultPlaylistItemsOperations prepareTestable(Playlist playlist, PlaylistItemEntity... items) {
-        final PlaylistLoader playlistLoader = PlaylistLoaders.withPlaylists(playlist);
-        final PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.withItems(items);
+        Stream<PlayableItem> playableItems = Arrays.stream(items).map(it -> playableItemFrom(it));
 
-        final PlayableItemLoader playableItemLoader = PlayableItemLoaders.withItems(
-                Arrays.stream(items).map(it -> playableItemFrom(it))
-        );
-        return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, new ReactiveContextUriParser(
-                new HardcodedContextUriParser()
-        ),
-                new PlaylistItemEntityConverter(
-                        new JavaClock()
-                ));
+        return TestableBuilder.builder()
+                .withPlaylists(playlist)
+                .withPlaylistItems(items)
+                .withPlayableItems(playableItems)
+                .get();
+    }
+
+    static class TestableBuilder {
+        private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
+        private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
+        private PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
+        private ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
+        private PlaylistItemEntityConverter playlistItemEntityConverter;
+
+        public static TestableBuilder builder() {
+            return new TestableBuilder();
+        }
+
+        public TestableBuilder withPlaylists(Playlist... playlists) {
+            this.playlistLoader = PlaylistLoaders.withPlaylists(playlists);
+            return this;
+        }
+
+        public TestableBuilder withPlayableItems(PlayableItem... items) {
+            this.playableItemLoader = PlayableItemLoaders.withItems(items);
+            return this;
+        }
+
+        public TestableBuilder withPlaylistItems(PlaylistItemEntity... items) {
+            this.itemsRepository = PlaylistItemsRepositories.withItems(items);
+            return this;
+        }
+
+        public TestableBuilder withClock(Clock clock) {
+            this.playlistItemEntityConverter = new PlaylistItemEntityConverter(clock);
+            return this;
+        }
+
+        public TestableBuilder withPlayableItems(Stream<PlayableItem> items) {
+            this.playableItemLoader = PlayableItemLoaders.withItems(items);
+            return this;
+        }
+
+        public DefaultPlaylistItemsOperations get() {
+            return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, contextUriParser, playlistItemEntityConverter);
+        }
     }
 
     private static PlaylistCollaborator collaborator() {
