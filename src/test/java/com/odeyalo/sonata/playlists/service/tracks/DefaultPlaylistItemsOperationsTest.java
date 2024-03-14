@@ -55,7 +55,10 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnPlaylistItemsIfPlaylistExist() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2);
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder().withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2)
+                .get();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .collectList()
