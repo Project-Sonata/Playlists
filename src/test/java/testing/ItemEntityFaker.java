@@ -9,10 +9,13 @@ public final class ItemEntityFaker {
     private final Faker faker = Faker.instance();
 
     public ItemEntityFaker() {
-        String contextUri = "sonata:track:" + RandomStringUtils.randomAlphanumeric(12);
+        String publicId = RandomStringUtils.randomAlphanumeric(22);
+
+        String contextUri = "sonata:track:" + publicId;
 
         builder
                 .id(faker.random().nextLong(10000))
+                .publicId(publicId)
                 .contextUri(contextUri);
 
     }

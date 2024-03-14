@@ -130,18 +130,17 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldReturnListOfItemsFromTheGivenOffset() {
-        final var testable = prepareTestable(EXISTING_PLAYLIST, TRACK_1, TRACK_2, TRACK_3);
+        final var testable = TestableBuilder.builder().withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3)
+                .get();
 
-        List<PlaylistItem> playlistItems = testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
-                .collectList().block();
-
-        PlaylistItemsAssert asserter = PlaylistItemsAssert.forList(playlistItems);
-
-        asserter.hasSize(2);
-
-        asserter.peekFirst().playableItem().hasId(TRACK_2.getItem().getPublicId());
-
-        asserter.peekSecond().playableItem().hasId(TRACK_3.getItem().getPublicId());
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
+                .map(it -> it.getItem().getId())
+                .as(StepVerifier::create)
+                .expectNextMatches(it -> Objects.equals(it, TRACK_2.getItem().getPublicId()))
+                .expectNextMatches(it -> Objects.equals(it, TRACK_3.getItem().getPublicId()))
+                .verifyComplete();
     }
 
     @Test
@@ -456,6 +455,12 @@ class DefaultPlaylistItemsOperationsTest {
 
         public TestableBuilder withPlayableItems(Stream<PlayableItem> items) {
             this.playableItemLoader = PlayableItemLoaders.withItems(items);
+            return this;
+        }
+
+        public TestableBuilder withPlayableItemsFrom(PlaylistItemEntity... items) {
+            Stream<PlayableItem> playableItems = Arrays.stream(items).map(it -> playableItemFrom(it));
+            this.playableItemLoader = PlayableItemLoaders.withItems(playableItems);
             return this;
         }
 
