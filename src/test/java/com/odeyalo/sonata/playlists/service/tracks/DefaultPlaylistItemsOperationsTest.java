@@ -343,12 +343,16 @@ class DefaultPlaylistItemsOperationsTest {
 
     @Test
     void shouldAddItemToPlaylistWithPlaylistCollaboratorId() {
-        PlaylistCollaborator collaborator = collaborator();
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
 
-        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final DefaultPlaylistItemsOperations testable = prepareTestable(EXISTING_PLAYLIST, trackPlayableItem);
+        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
 
-        testable.addItems(EXISTING_PLAYLIST_TARGET, AddItemPayload.withItemUri(trackPlayableItem.getContextUri()), collaborator)
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator)
                 .as(StepVerifier::create)
                 .verifyComplete();
 
