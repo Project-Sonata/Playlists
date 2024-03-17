@@ -119,25 +119,27 @@ class DefaultPlaylistItemsOperationsTest {
                 .get();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .map(PlaylistItem::getItem)
+                .map(it -> it.getItem().getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .expectNext(TRACK_2.getItem().getPublicId())
                 .verifyComplete();
     }
 
     @Test
     void shouldReturnListOfItemsFromTheGivenOffset() {
+        // given
         final var testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3)
                 .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3)
                 .get();
-
+        // when
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withOffset(1))
                 .map(it -> it.getItem().getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it, TRACK_2.getItem().getPublicId()))
-                .expectNextMatches(it -> Objects.equals(it, TRACK_3.getItem().getPublicId()))
+                // then
+                .expectNext(TRACK_2.getItem().getPublicId())
+                .expectNext(TRACK_3.getItem().getPublicId())
                 .verifyComplete();
     }
 
@@ -150,10 +152,10 @@ class DefaultPlaylistItemsOperationsTest {
                 .get();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.withLimit(2))
-                .map(PlaylistItem::getItem)
+                .map(it -> it.getItem().getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_1.getItem().getPublicId()))
-                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
+                .expectNext(TRACK_1.getItem().getPublicId())
+                .expectNext(TRACK_2.getItem().getPublicId())
                 .verifyComplete();
     }
 
@@ -169,12 +171,12 @@ class DefaultPlaylistItemsOperationsTest {
 
         // when
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, paginationCriteria)
-                .map(PlaylistItem::getItem)
+                .map(it -> it.getItem().getId())
                 .as(StepVerifier::create)
                 // then
-                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_2.getItem().getPublicId()))
-                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_3.getItem().getPublicId()))
-                .expectNextMatches(it -> Objects.equals(it.getId(), TRACK_4.getItem().getPublicId()))
+                .expectNext(TRACK_2.getItem().getPublicId())
+                .expectNext(TRACK_3.getItem().getPublicId())
+                .expectNext(TRACK_4.getItem().getPublicId())
                 .verifyComplete();
     }
 
@@ -189,7 +191,7 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .map(it -> it.getAddedBy().getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getId()))
+                .expectNext(TRACK_1.getAddedBy().getId())
                 .verifyComplete();
     }
 
@@ -204,7 +206,7 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .map(it -> it.getAddedBy().getDisplayName())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getDisplayName()))
+                .expectNext(TRACK_1.getAddedBy().getDisplayName())
                 .verifyComplete();
     }
 
@@ -219,7 +221,7 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .map(it -> it.getAddedBy().getType())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getType()))
+                .expectNext(TRACK_1.getAddedBy().getType())
                 .verifyComplete();
     }
 
@@ -234,7 +236,7 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .map(it -> it.getAddedBy().getContextUri())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it, TRACK_1.getAddedBy().getContextUri()))
+                .expectNext(TRACK_1.getAddedBy().getContextUri())
                 .verifyComplete();
     }
 
@@ -242,7 +244,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldCompleteSuccessfully() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -258,7 +260,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldAddItemToPlaylistAfterCompletion() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -279,7 +281,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldAddItemToPlaylistWithPlayableItemType() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -291,9 +293,9 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .map(PlaylistItem::getItem)
+                .map(it -> it.getItem().getType())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getType(), PlayableItemType.TRACK))
+                .expectNext(PlayableItemType.TRACK)
                 .verifyComplete();
     }
 
@@ -302,7 +304,7 @@ class DefaultPlaylistItemsOperationsTest {
         final Instant addedAt = Instant.now();
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .withClock(new MockClock(addedAt))
@@ -315,8 +317,9 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .map(PlaylistItem::getAddedAt)
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getAddedAt(), addedAt))
+                .expectNext(addedAt)
                 .verifyComplete();
     }
 
@@ -326,7 +329,7 @@ class DefaultPlaylistItemsOperationsTest {
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
         final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -336,9 +339,9 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .map(PlaylistItem::getAddedBy)
+                .map(it -> it.getAddedBy().getDisplayName())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getDisplayName(), collaborator.getDisplayName()))
+                .expectNext(collaborator.getDisplayName())
                 .verifyComplete();
     }
 
@@ -348,7 +351,7 @@ class DefaultPlaylistItemsOperationsTest {
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
         final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -358,9 +361,9 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .map(PlaylistItem::getAddedBy)
+                .map(it -> it.getAddedBy().getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getId(), collaborator.getId()))
+                .expectNext(collaborator.getId())
                 .verifyComplete();
     }
 
@@ -370,7 +373,7 @@ class DefaultPlaylistItemsOperationsTest {
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
         final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -380,9 +383,9 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .map(PlaylistItem::getAddedBy)
+                .map(it -> it.getAddedBy().getContextUri())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getContextUri(), collaborator.getContextUri()))
+                .expectNext(collaborator.getContextUri())
                 .verifyComplete();
     }
 
@@ -392,7 +395,7 @@ class DefaultPlaylistItemsOperationsTest {
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
         final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem)
                 .get();
@@ -402,9 +405,9 @@ class DefaultPlaylistItemsOperationsTest {
                 .verifyComplete();
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
-                .map(PlaylistItem::getAddedBy)
+                .map(it -> it.getAddedBy().getType())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> Objects.equals(it.getType(), collaborator.getType()))
+                .expectNext(collaborator.getType())
                 .verifyComplete();
     }
 
@@ -415,7 +418,7 @@ class DefaultPlaylistItemsOperationsTest {
         final var trackPlayableItem2 = TrackPlayableItemFaker.create().get();
         final var itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
 
-        final DefaultPlaylistItemsOperations testable =TestableBuilder.builder()
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
                 .withPlayableItems(trackPlayableItem, trackPlayableItem2)
                 .get();
@@ -427,8 +430,8 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .map(it -> it.getItem().getContextUri())
                 .as(StepVerifier::create)
-                .expectNextMatches(actualContextUri -> Objects.equals(actualContextUri, trackPlayableItem.getContextUri()))
-                .expectNextMatches(actualContextUri -> Objects.equals(actualContextUri, trackPlayableItem2.getContextUri()))
+                .expectNext(trackPlayableItem.getContextUri())
+                .expectNext(trackPlayableItem2.getContextUri())
                 .verifyComplete();
     }
 
