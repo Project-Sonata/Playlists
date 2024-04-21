@@ -1,4 +1,4 @@
-package com.odeyalo.sonata.playlists.service.tracks;
+package com.odeyalo.sonata.playlists.support;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;

@@ -5,7 +5,7 @@ import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
-import com.odeyalo.sonata.playlists.service.tracks.Clock;
+import com.odeyalo.sonata.playlists.support.Clock;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
