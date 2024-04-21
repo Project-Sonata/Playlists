@@ -5,6 +5,7 @@ import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.PlaylistImagesRepository;
 import com.odeyalo.sonata.playlists.repository.R2dbcImageRepository;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import org.springframework.context.annotation.Lazy;
@@ -37,13 +38,13 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
     }
 
     @NotNull
-    private Mono<List<PlaylistImage>> saveImages(PlaylistEntity parent) {
-        List<ImageEntity> images = parent.getImages();
+    private Mono<List<PlaylistImage>> saveImages(PlaylistEntity playlist) {
+        List<ImageEntity> images = playlist.getImages();
         return Flux.fromIterable(images)
                 .filterWhen(this::isImageNotExist)
-                .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(parent.getId()).thenReturn(entity))
+                .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(playlist.getId()).thenReturn(entity))
                 .flatMap(r2DbcImageRepository::save)
-                .flatMap(imageEntity -> buildAndSave(parent, imageEntity))
+                .flatMap(imageEntity -> buildAndSave(playlist, imageEntity))
                 .collectList();
     }
 
@@ -56,9 +57,7 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
     @NotNull
     private Mono<Boolean> isImageNotExist(ImageEntity entity) {
         return r2DbcImageRepository.findByUrl(entity.getUrl())
-                .map(e -> false)
-                .defaultIfEmpty(true);
+                .hasElement()
+                .map(BooleanUtils::negate);
     }
-
-
 }
