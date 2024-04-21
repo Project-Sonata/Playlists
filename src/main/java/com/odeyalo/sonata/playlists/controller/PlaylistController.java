@@ -14,9 +14,7 @@ import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
-import com.odeyalo.suite.security.auth.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
@@ -55,10 +53,10 @@ public class PlaylistController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, AuthenticatedUser authenticatedUser) {
+    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, PlaylistOwner playlistOwner) {
         CreatePlaylistInfo playlistInfo = createPlaylistInfoConverter.toCreatePlaylistInfo(body);
 
-        return playlistOperations.createPlaylist(playlistInfo, resolveOwner(authenticatedUser))
+        return playlistOperations.createPlaylist(playlistInfo, playlistOwner)
                 .map(playlistDtoConverter::toPlaylistDto)
                 .map(HttpStatuses::defaultCreatedStatus);
     }
@@ -81,12 +79,5 @@ public class PlaylistController {
         return playlistOperations.updatePlaylistInfo(targetPlaylist, updateInfo)
                 .map(playlist -> default204Response())
                 .defaultIfEmpty(defaultUnprocessableEntityStatus());
-    }
-
-    @NotNull
-    public static PlaylistOwner resolveOwner(AuthenticatedUser authenticatedUser) {
-        return PlaylistOwner.builder()
-                .id(authenticatedUser.getDetails().getId())
-                .build();
     }
 }
