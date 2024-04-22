@@ -6,14 +6,14 @@ import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 /**
  * Custom ServerAuthenticationEntryPoint that wrap the exception and return 401 HTTP status
@@ -31,7 +31,9 @@ public class SonataServerAuthenticationEntrypoint implements ServerAuthenticatio
 
     @Override
     public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException ex) {
-        prepareUnauthorizedRequest(exchange);
+        exchange.getResponse().setStatusCode(UNAUTHORIZED);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
         DataBuffer buffer = getBody(exchange);
         return exchange.getResponse().writeWith(Mono.just(buffer));
     }
@@ -42,10 +44,5 @@ public class SonataServerAuthenticationEntrypoint implements ServerAuthenticatio
         ExceptionMessage message = ExceptionMessage.of(EXCEPTION_DESCRIPTION);
         String body = objectMapper.writeValueAsString(message);
         return exchange.getResponse().bufferFactory().wrap(body.getBytes());
-    }
-
-    private void prepareUnauthorizedRequest(ServerWebExchange exchange) {
-        exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(401));
-        exchange.getResponse().getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
     }
 }
