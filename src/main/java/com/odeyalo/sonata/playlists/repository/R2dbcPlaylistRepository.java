@@ -11,12 +11,12 @@ import reactor.core.publisher.Mono;
 
 
 /**
- * PlaylistRepository that save the data using R2DBC
+ * {@link PlaylistRepository} implementation that saves data using R2DBC
  *
  * @see PlaylistRepository for furher information
  */
 @Component
-public class R2dbcPlaylistRepository implements PlaylistRepository {
+public final class R2dbcPlaylistRepository implements PlaylistRepository {
     private final R2dbcPlaylistRepositoryDelegate playlistRepositoryDelegate;
     private final PlaylistConverter playlistConverter;
 

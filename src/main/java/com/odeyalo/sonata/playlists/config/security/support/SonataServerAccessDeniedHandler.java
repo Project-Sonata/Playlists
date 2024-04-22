@@ -5,9 +5,6 @@ import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -15,8 +12,11 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+
 /**
- * Custom ServerAccessDeniedHandler that returns 401 HTTP status with ExceptionMessage as body
+ * Custom {@link ServerAccessDeniedHandler} that returns 403 HTTP status with {@link ExceptionMessage} as body
  *
  * @see ExceptionMessage
  * @see ServerAccessDeniedHandler
@@ -32,8 +32,10 @@ public class SonataServerAccessDeniedHandler implements ServerAccessDeniedHandle
 
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, AccessDeniedException denied) {
+        exchange.getResponse().setStatusCode(FORBIDDEN);
+        exchange.getResponse().getHeaders().setContentType(APPLICATION_JSON);
+
         DataBuffer buffer = getBody(exchange);
-        prepareAccessDeniedResponse(exchange);
         return exchange.getResponse().writeWith(Flux.just(buffer));
     }
 
@@ -43,10 +45,5 @@ public class SonataServerAccessDeniedHandler implements ServerAccessDeniedHandle
         ExceptionMessage message = ExceptionMessage.of(ERROR_DESCRIPTION);
         String body = objectMapper.writeValueAsString(message);
         return exchange.getResponse().bufferFactory().wrap(body.getBytes());
-    }
-
-    private void prepareAccessDeniedResponse(ServerWebExchange exchange) {
-        exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(403));
-        exchange.getResponse().getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
     }
 }
