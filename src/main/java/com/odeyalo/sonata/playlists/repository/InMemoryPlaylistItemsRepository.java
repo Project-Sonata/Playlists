@@ -8,12 +8,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 
 /**
  * In memory implementation of {@link PlaylistItemsRepository} that saves the values in simple {@link Map}
@@ -38,6 +40,8 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
         final int limit = pageable.isUnpaged() ? 50 : pageable.getPageSize();
 
         List<PlaylistItemEntity> items = cache.getOrDefault(playlistId, Collections.emptyList());
+
+        items.sort(Comparator.comparingInt(PlaylistItemEntity::getIndex));
 
         return Flux.fromIterable(items)
                 .skip(offset)

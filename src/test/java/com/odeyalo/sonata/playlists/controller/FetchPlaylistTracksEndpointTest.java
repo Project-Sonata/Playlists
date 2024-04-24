@@ -74,21 +74,25 @@ class FetchPlaylistTracksEndpointTest {
             1L,
             Instant.now(), PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(1L, TRACK_1_ID, "sonata:track:" + TRACK_1_ID),
-            EXISTING_PLAYLIST_ID);
+            EXISTING_PLAYLIST_ID,
+            0);
 
     static final PlaylistItemEntity PLAYLIST_ITEM_2 = PlaylistItemEntity.of(
             2L,
             Instant.now(),
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(2L, TRACK_2_ID,
-                    "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
+                    "sonata:track:" + TRACK_2_ID),
+            EXISTING_PLAYLIST_ID,
+            1);
 
     static final PlaylistItemEntity PLAYLIST_ITEM_3 = PlaylistItemEntity.of(
             3L,
             Instant.now(),
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(3L, TRACK_3_ID, "sonata:track:" + TRACK_3_ID),
-            EXISTING_PLAYLIST_ID);
+            EXISTING_PLAYLIST_ID,
+            2);
 
     static final TrackPlayableItem PLAYABLE_ITEM_1 = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
 

@@ -37,4 +37,9 @@ public final class PlaylistItemEntityFaker {
         builder.id(id);
         return this;
     }
+
+    public PlaylistItemEntityFaker withIndex(int index) {
+        builder.index(index);
+        return this;
+    }
 }

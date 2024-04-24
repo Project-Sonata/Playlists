@@ -18,9 +18,13 @@ import java.time.Instant;
 public class PlaylistItemEntity {
     @Id
     Long id;
+    @NotNull
     Instant addedAt;
     @NotNull
     PlaylistCollaboratorEntity addedBy;
+    @NotNull
     ItemEntity item;
+    @NotNull
     String playlistId;
+    int index;
 }
