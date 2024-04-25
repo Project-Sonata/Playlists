@@ -59,6 +59,7 @@ import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerPro
 @ActiveProfiles("test")
 @Import(TestConfig.class)
 class FetchPlaylistTracksEndpointTest {
+
     @Autowired
     WebTestClient webTestClient;
 
@@ -72,23 +73,28 @@ class FetchPlaylistTracksEndpointTest {
 
     static final PlaylistItemEntity PLAYLIST_ITEM_1 = PlaylistItemEntity.of(
             1L,
-            Instant.now(), PlaylistCollaboratorEntityFaker.create().get(),
+            Instant.now(),
+            PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(1L, TRACK_1_ID, "sonata:track:" + TRACK_1_ID),
-            EXISTING_PLAYLIST_ID);
+            EXISTING_PLAYLIST_ID,
+            0);
 
     static final PlaylistItemEntity PLAYLIST_ITEM_2 = PlaylistItemEntity.of(
             2L,
             Instant.now(),
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(2L, TRACK_2_ID,
-                    "sonata:track:" + TRACK_2_ID), EXISTING_PLAYLIST_ID);
+                    "sonata:track:" + TRACK_2_ID),
+            EXISTING_PLAYLIST_ID,
+            1);
 
     static final PlaylistItemEntity PLAYLIST_ITEM_3 = PlaylistItemEntity.of(
             3L,
             Instant.now(),
             PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(3L, TRACK_3_ID, "sonata:track:" + TRACK_3_ID),
-            EXISTING_PLAYLIST_ID);
+            EXISTING_PLAYLIST_ID,
+            2);
 
     static final TrackPlayableItem PLAYABLE_ITEM_1 = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
 
@@ -212,6 +218,19 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems())
                 .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_2_ID));
+    }
+
+    @Test
+    void shouldReturnItemsSortedByIndex() {
+        final WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems();
+
+        final PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> it.getItem().getId())
+                .containsExactly(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID);
     }
 
     @Test

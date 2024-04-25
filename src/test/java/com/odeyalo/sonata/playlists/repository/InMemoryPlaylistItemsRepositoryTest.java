@@ -109,6 +109,28 @@ class InMemoryPlaylistItemsRepositoryTest {
     }
 
     @Test
+    void shouldSortPlaylistItemsAccordingByItemPosition() {
+        final String playlistId = "1";
+
+        final var playlistItem1 = PlaylistItemEntityFaker.create(playlistId).withIndex(0).get();
+        final var playlistItem2 = PlaylistItemEntityFaker.create(playlistId).withIndex(1).get();
+        final var playlistItem3 = PlaylistItemEntityFaker.create(playlistId).withIndex(2).get();
+
+        final List<PlaylistItemEntity> playlistItems = List.of(
+                playlistItem3,
+                playlistItem1,
+                playlistItem2
+        );
+
+        final var testable = new InMemoryPlaylistItemsRepository(playlistItems);
+
+        testable.findAllByPlaylistId(playlistId, Pageable.unpaged())
+                .as(StepVerifier::create)
+                .expectNext(playlistItem1, playlistItem2, playlistItem3)
+                .verifyComplete();
+    }
+
+    @Test
     void shouldReturnEntityUnchangedIfIdIsSet() {
         final String playlistId = "1";
         final PlaylistItemEntity entity = PlaylistItemEntityFaker.create(playlistId).get();
