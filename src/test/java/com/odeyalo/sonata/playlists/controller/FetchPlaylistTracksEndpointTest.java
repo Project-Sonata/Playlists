@@ -59,6 +59,7 @@ import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerPro
 @ActiveProfiles("test")
 @Import(TestConfig.class)
 class FetchPlaylistTracksEndpointTest {
+
     @Autowired
     WebTestClient webTestClient;
 
@@ -72,7 +73,8 @@ class FetchPlaylistTracksEndpointTest {
 
     static final PlaylistItemEntity PLAYLIST_ITEM_1 = PlaylistItemEntity.of(
             1L,
-            Instant.now(), PlaylistCollaboratorEntityFaker.create().get(),
+            Instant.now(),
+            PlaylistCollaboratorEntityFaker.create().get(),
             ItemEntity.of(1L, TRACK_1_ID, "sonata:track:" + TRACK_1_ID),
             EXISTING_PLAYLIST_ID,
             0);
@@ -216,6 +218,19 @@ class FetchPlaylistTracksEndpointTest {
         assertThat(responseBody.getItems())
                 .map(it -> it.getItem().getId())
                 .hasSameElementsAs(List.of(TRACK_2_ID));
+    }
+
+    @Test
+    void shouldReturnItemsSortedByIndex() {
+        final WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems();
+
+        final PlaylistItemsDto responseBody = responseSpec.expectBody(PlaylistItemsDto.class)
+                .returnResult().getResponseBody();
+
+        //noinspection DataFlowIssue
+        assertThat(responseBody.getItems())
+                .map(it -> it.getItem().getId())
+                .containsExactly(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID);
     }
 
     @Test
