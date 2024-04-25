@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * Represent the item(track, episode, podcast) that can be saved to playlist
@@ -13,6 +14,7 @@ import org.springframework.data.relational.core.mapping.Column;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Table(name = "items")
 public class ItemEntity {
     @Id
     Long id;
