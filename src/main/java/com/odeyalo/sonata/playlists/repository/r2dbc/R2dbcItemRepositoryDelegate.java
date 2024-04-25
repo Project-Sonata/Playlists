@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Mono;
 
+/**
+ * A simple support interface that used to work with R2DBC and used as delegate by {@link com.odeyalo.sonata.playlists.repository.R2dbcItemRepository}
+ */
 public interface R2dbcItemRepositoryDelegate extends R2dbcRepository<ItemEntity, Long> {
     /**
      * Finds an item entity by its context URI.
