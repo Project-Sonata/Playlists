@@ -44,7 +44,7 @@ public class PlaylistItemEntityConverter {
     @NotNull
     private static PlaylistCollaboratorEntity createCollaboratorEntity(@NotNull PlaylistCollaborator collaborator) {
         return PlaylistCollaboratorEntity.builder()
-                .id(collaborator.getId())
+                .publicId(collaborator.getId())
                 .displayName(collaborator.getDisplayName())
                 .type(collaborator.getType())
                 .contextUri(collaborator.getContextUri())

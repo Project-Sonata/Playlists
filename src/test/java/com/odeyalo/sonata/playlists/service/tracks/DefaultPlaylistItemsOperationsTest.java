@@ -194,7 +194,7 @@ class DefaultPlaylistItemsOperationsTest {
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .map(it -> it.getAddedBy().getId())
                 .as(StepVerifier::create)
-                .expectNext(TRACK_1.getAddedBy().getId())
+                .expectNext(TRACK_1.getAddedBy().getPublicId())
                 .verifyComplete();
     }
 

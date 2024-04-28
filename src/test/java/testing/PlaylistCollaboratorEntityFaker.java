@@ -13,7 +13,7 @@ public final class PlaylistCollaboratorEntityFaker {
     public PlaylistCollaboratorEntityFaker() {
         String id = RandomStringUtils.randomAlphanumeric(22);
         builder
-                .id(id)
+                .publicId(id)
                 .displayName(faker.name().username())
                 .type(EntityType.USER)
                 .contextUri("sonata:user:" + id);
@@ -24,8 +24,18 @@ public final class PlaylistCollaboratorEntityFaker {
         return new PlaylistCollaboratorEntityFaker();
     }
 
-    public PlaylistCollaboratorEntityFaker id(String id) {
+    public static PlaylistCollaboratorEntityFaker createWithoutId() {
+        return new PlaylistCollaboratorEntityFaker()
+                .id(null);
+    }
+
+    public PlaylistCollaboratorEntityFaker id(Long id) {
         builder.id(id);
+        return this;
+    }
+
+    public PlaylistCollaboratorEntityFaker publicId(String publicId) {
+        builder.publicId(publicId);
         return this;
     }
 
@@ -36,5 +46,10 @@ public final class PlaylistCollaboratorEntityFaker {
 
     public PlaylistCollaboratorEntity get() {
         return builder.build();
+    }
+
+    public PlaylistCollaboratorEntityFaker withContextUri(String contextUri) {
+        builder.contextUri(contextUri);
+        return this;
     }
 }
