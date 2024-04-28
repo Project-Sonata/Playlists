@@ -54,7 +54,7 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.findById(saved.getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> !it.getImages().isEmpty())
+                .expectNextMatches(it -> it.getImages().hasElements())
                 .verifyComplete();
     }
 
