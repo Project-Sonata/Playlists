@@ -38,4 +38,11 @@ class R2dbcPlaylistCollaboratorRepositoryDelegateTest {
                 .expectNext(collaborator)
                 .verifyComplete();
     }
+
+    @Test
+    void shouldReturnNothingIfCollaboratorDoesNotExistByContextUri() {
+        testable.findByContextUri("sonata:user:miku")
+                .as(StepVerifier::create)
+                .verifyComplete();
+    }
 }
