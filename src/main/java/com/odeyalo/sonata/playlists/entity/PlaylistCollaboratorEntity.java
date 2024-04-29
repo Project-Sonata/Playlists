@@ -20,7 +20,7 @@ public class PlaylistCollaboratorEntity {
     @Nullable
     Long id;
     @NotNull
-            @Column("public_id")
+    @Column("public_id")
     String publicId;
     @NotNull
     @Column("display_name")

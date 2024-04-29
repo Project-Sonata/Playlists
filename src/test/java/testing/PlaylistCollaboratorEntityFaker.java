@@ -52,4 +52,9 @@ public final class PlaylistCollaboratorEntityFaker {
         builder.contextUri(contextUri);
         return this;
     }
+
+    public PlaylistCollaboratorEntityFaker withPublicId(String publicId) {
+        builder.publicId(publicId);
+        return this;
+    }
 }
