@@ -44,5 +44,30 @@ class R2dbcPlaylistCollaboratorRepositoryDelegateTest {
         testable.findByContextUri("sonata:user:miku")
                 .as(StepVerifier::create)
                 .verifyComplete();
+
+    }
+
+    @Test
+    void shouldFindCollaboratorByPublicId() {
+        PlaylistCollaboratorEntity collaborator = PlaylistCollaboratorEntityFaker.createWithoutId()
+                .withPublicId("miku")
+                .get();
+
+        testable.save(collaborator)
+                .as(StepVerifier::create)
+                .expectNextCount(1)
+                .verifyComplete();
+
+        testable.findByPublicId("miku")
+                .as(StepVerifier::create)
+                .expectNext(collaborator)
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldReturnNothingIfCollaboratorDoesNotExistByPublicId() {
+        testable.findByContextUri("miku")
+                .as(StepVerifier::create)
+                .verifyComplete();
     }
 }
