@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.repository.ItemRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistCollaboratorRepository;
 import com.odeyalo.sonata.playlists.repository.R2dbcItemRepository;
@@ -19,6 +20,8 @@ import reactor.test.StepVerifier;
 import testing.PlaylistItemEntityFaker;
 import testing.faker.PlaylistEntityFaker;
 import testing.spring.R2dbcCallbacksConfiguration;
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,6 +64,28 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
         testable.save(playlistItemEntity)
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getId()).isNotNull())
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldBeFoundWithCorrectPlaylistCollaborator() {
+        PlaylistItemEntity playlistItemEntity = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        insertPlaylistItems(playlistItemEntity);
+
+        testable.findById(playlistItemEntity.getId())
+                .map(PlaylistItemEntity::getAddedBy)
+                .as(StepVerifier::create)
+                .expectNext(playlistItemEntity.getAddedBy())
+                .verifyComplete();
+    }
+
+    private void insertPlaylistItems(PlaylistItemEntity... playlistItemEntities) {
+        testable.saveAll(Arrays.asList(playlistItemEntities))
+                .as(StepVerifier::create)
+                .expectNextCount(playlistItemEntities.length)
                 .verifyComplete();
     }
 
