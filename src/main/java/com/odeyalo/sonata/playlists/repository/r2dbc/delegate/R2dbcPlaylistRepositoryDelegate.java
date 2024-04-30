@@ -1,4 +1,4 @@
-package com.odeyalo.sonata.playlists.repository.support;
+package com.odeyalo.sonata.playlists.repository.r2dbc.delegate;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;

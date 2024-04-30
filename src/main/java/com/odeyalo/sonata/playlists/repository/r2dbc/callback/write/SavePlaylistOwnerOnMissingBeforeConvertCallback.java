@@ -2,7 +2,7 @@ package com.odeyalo.sonata.playlists.repository.r2dbc.callback.write;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
-import com.odeyalo.sonata.playlists.repository.R2dbcPlaylistOwnerRepository;
+import com.odeyalo.sonata.playlists.repository.r2dbc.R2dbcPlaylistOwnerRepository;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import org.springframework.context.annotation.Lazy;

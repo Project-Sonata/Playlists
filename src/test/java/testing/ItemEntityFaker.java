@@ -24,7 +24,27 @@ public final class ItemEntityFaker {
         return new ItemEntityFaker();
     }
 
+    public static ItemEntityFaker createWithoutId() {
+        return new ItemEntityFaker()
+                .withId(null);
+    }
+
     public ItemEntity get() {
         return builder.build();
+    }
+
+    public ItemEntityFaker withContextUri(String contextUri) {
+        builder.contextUri(contextUri);
+        return this;
+    }
+
+    public ItemEntityFaker withPublicId(String publicId) {
+        builder.publicId(publicId);
+        return this;
+    }
+
+    public ItemEntityFaker withId(Long id) {
+        builder.id(id);
+        return this;
     }
 }

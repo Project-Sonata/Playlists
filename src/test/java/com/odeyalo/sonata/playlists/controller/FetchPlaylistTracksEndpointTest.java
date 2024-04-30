@@ -262,7 +262,7 @@ class FetchPlaylistTracksEndpointTest {
 
         assertThat(responseBody.getItems())
                 .map(it -> it.getAddedBy().getId())
-                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getId()));
+                .hasSameElementsAs(List.of(PLAYLIST_ITEM_1.getAddedBy().getPublicId()));
     }
 
     @Test

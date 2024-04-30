@@ -3,7 +3,7 @@ package com.odeyalo.sonata.playlists.repository.r2dbc.callback.read;
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.PlaylistImagesRepository;
-import com.odeyalo.sonata.playlists.repository.R2dbcImageRepository;
+import com.odeyalo.sonata.playlists.repository.r2dbc.R2dbcImageRepository;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import org.springframework.context.annotation.Lazy;

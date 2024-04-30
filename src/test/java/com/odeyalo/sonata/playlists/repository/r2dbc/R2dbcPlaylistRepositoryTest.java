@@ -1,4 +1,4 @@
-package com.odeyalo.sonata.playlists.repository;
+package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
@@ -54,7 +54,7 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.findById(saved.getId())
                 .as(StepVerifier::create)
-                .expectNextMatches(it -> !it.getImages().isEmpty())
+                .expectNextMatches(it -> it.getImages().hasElements())
                 .verifyComplete();
     }
 

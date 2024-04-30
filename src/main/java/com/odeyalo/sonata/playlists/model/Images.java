@@ -39,7 +39,11 @@ public class Images implements Iterable<Image> {
         return imageHolder.isEmpty();
     }
 
-    public boolean contains(Object o) {
+    public boolean hasElements() {
+        return !isEmpty();
+    }
+
+    public boolean contains(Image o) {
         return imageHolder.contains(o);
     }
 

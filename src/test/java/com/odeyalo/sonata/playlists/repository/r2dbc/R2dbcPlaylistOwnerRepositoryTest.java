@@ -1,8 +1,8 @@
-package com.odeyalo.sonata.playlists.repository;
+package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
-import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +17,11 @@ import static testing.faker.PlaylistEntityFaker.createWithNoId;
 @ActiveProfiles("test")
 class R2dbcPlaylistOwnerRepositoryTest {
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     R2dbcPlaylistRepositoryDelegate r2dbcPlaylistRepositoryDelegate;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     R2dbcPlaylistOwnerRepository r2DbcPlaylistOwnerRepository;
 
@@ -39,7 +41,7 @@ class R2dbcPlaylistOwnerRepositoryTest {
     void findByNotExistingPublicId_AndExpectNull() {
         PlaylistEntity found = r2dbcPlaylistRepositoryDelegate.findByPublicId("not_exist").block();
 
-        assertThat(found).isNull();;
+        assertThat(found).isNull();
     }
 
     @NotNull
