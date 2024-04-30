@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 import testing.PlaylistItemEntityFaker;
@@ -22,6 +23,7 @@ import testing.faker.PlaylistEntityFaker;
 import testing.spring.R2dbcCallbacksConfiguration;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -95,6 +97,23 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
                 .as(StepVerifier::create)
                 .expectNext(playlistItemEntity.getItem())
                 .verifyComplete();
+    }
+
+    @Test
+    void shouldFindAllItemsAssociatedWithPlaylist() {
+        final PlaylistItemEntity playlistItemEntity1 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+        final PlaylistItemEntity playlistItemEntity2 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        insertPlaylistItems(playlistItemEntity1, playlistItemEntity2);
+
+        // Do not use a StepVerifier since Flux can return items in unpredicted order
+        List<PlaylistItemEntity> foundEntities = testable.findAllByPlaylistId(PLAYLIST_ID, Pageable.unpaged()).collectList().block();
+
+        assertThat(foundEntities).contains(playlistItemEntity1, playlistItemEntity2);
     }
 
     private void insertPlaylistItems(PlaylistItemEntity... playlistItemEntities) {
