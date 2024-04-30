@@ -3,14 +3,16 @@ package com.odeyalo.sonata.playlists.repository.r2dbc;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistRepositoryDelegate;
+import com.odeyalo.sonata.playlists.support.converter.PlaylistConverter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.r2dbc.AutoConfigureDataR2dbc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
@@ -24,16 +26,24 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
-@SpringBootTest(classes = {R2dbcPlaylistRepository.class})
 @Import({ConvertersConfiguration.class, R2dbcCallbacksConfiguration.class})
-@EnableAutoConfiguration
-@AutoConfigureDataR2dbc
+@DataR2dbcTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 class R2dbcPlaylistRepositoryTest {
 
     @Autowired
     R2dbcPlaylistRepository r2dbcPlaylistRepository;
+
+    @TestConfiguration
+    static class Config {
+
+        @Bean
+        public R2dbcPlaylistRepository r2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate delegate,
+                                                               PlaylistConverter playlistConverter) {
+            return new R2dbcPlaylistRepository(delegate, playlistConverter);
+        }
+    }
 
     @AfterEach
     void tearDown() {
