@@ -13,7 +13,7 @@ public final class PlaylistItemEntityFaker {
     private final Faker faker = Faker.instance();
 
     public PlaylistItemEntityFaker(String playlistId) {
-        ItemEntity item = ItemEntityFaker.create().get();
+        ItemEntity item = ItemEntityFaker.createWithoutId().get();
         PlaylistCollaboratorEntity collaborator = PlaylistCollaboratorEntityFaker.create().get();
         Instant addedAt = faker.date().past(1, TimeUnit.HOURS).toInstant();
 
