@@ -1,5 +1,6 @@
 package testing.spring;
 
+import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.ItemAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistCollaboratorAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistImagesAssociationAfterConvertCallback;
 import com.odeyalo.sonata.playlists.repository.r2dbc.callback.read.PlaylistOwnerAssociationAfterConvertCallback;
@@ -16,7 +17,8 @@ import org.springframework.context.annotation.Import;
         PlaylistImagesAssociationAfterConvertCallback.class,
         SavePlaylistCollaboratorOnMissingBeforeConvertCallback.class,
         AssociateItemWithPlaylistItemOnMissingBeforeConvertCallback.class,
-        PlaylistCollaboratorAssociationAfterConvertCallback.class
+        PlaylistCollaboratorAssociationAfterConvertCallback.class,
+        ItemAssociationAfterConvertCallback.class
 })
 public class R2dbcCallbacksConfiguration {
 }

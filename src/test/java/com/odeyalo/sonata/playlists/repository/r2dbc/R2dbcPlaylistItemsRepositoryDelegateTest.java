@@ -82,6 +82,21 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldBeFoundWithCorrectItem() {
+        PlaylistItemEntity playlistItemEntity = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        insertPlaylistItems(playlistItemEntity);
+
+        testable.findById(playlistItemEntity.getId())
+                .map(PlaylistItemEntity::getItem)
+                .as(StepVerifier::create)
+                .expectNext(playlistItemEntity.getItem())
+                .verifyComplete();
+    }
+
     private void insertPlaylistItems(PlaylistItemEntity... playlistItemEntities) {
         testable.saveAll(Arrays.asList(playlistItemEntities))
                 .as(StepVerifier::create)
