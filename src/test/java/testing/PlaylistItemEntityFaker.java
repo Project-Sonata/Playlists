@@ -42,4 +42,10 @@ public final class PlaylistItemEntityFaker {
         builder.index(index);
         return this;
     }
+
+
+    public PlaylistItemEntityFaker withAddedAt(Instant addedAt) {
+        builder.addedAt(addedAt);
+        return this;
+    }
 }
