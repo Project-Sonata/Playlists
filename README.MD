@@ -46,7 +46,7 @@ Returns a created playlist
 Status:
 - 201 - CREATED, playlist has been created and saved.
 - 400 - BAD REQUEST, request body contains invalid data, required fields are not set, field has invalid value, etc.
-- 401 - UNAUTHORIZED, request is unauthorized and cannot be performed, you need to obtain on refresh access token
+- 401 - UNAUTHORIZED, request is unauthorized and cannot be performed, you need to obtain or refresh access token
 
 
 Body:
