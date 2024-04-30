@@ -1,12 +1,13 @@
-package com.odeyalo.sonata.playlists.repository.r2dbc;
+package com.odeyalo.sonata.playlists.repository.r2dbc.delegate;
 
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
+import com.odeyalo.sonata.playlists.repository.r2dbc.R2dbcItemRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Mono;
 
 /**
- * A simple support interface that used to work with R2DBC and used as delegate by {@link com.odeyalo.sonata.playlists.repository.R2dbcItemRepository}
+ * A simple support interface that used to work with R2DBC and used as delegate by {@link R2dbcItemRepository}
  */
 public interface R2dbcItemRepositoryDelegate extends R2dbcRepository<ItemEntity, Long> {
     /**

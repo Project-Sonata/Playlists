@@ -1,4 +1,4 @@
-package com.odeyalo.sonata.playlists.repository;
+package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;

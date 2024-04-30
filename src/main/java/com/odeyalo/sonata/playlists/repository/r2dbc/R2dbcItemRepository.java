@@ -1,7 +1,8 @@
-package com.odeyalo.sonata.playlists.repository;
+package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
-import com.odeyalo.sonata.playlists.repository.r2dbc.R2dbcItemRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.ItemRepository;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcItemRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;

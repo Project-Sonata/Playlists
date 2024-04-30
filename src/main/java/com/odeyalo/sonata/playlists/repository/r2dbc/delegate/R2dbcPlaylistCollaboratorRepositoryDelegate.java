@@ -1,4 +1,4 @@
-package com.odeyalo.sonata.playlists.repository.r2dbc;
+package com.odeyalo.sonata.playlists.repository.r2dbc.delegate;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import org.jetbrains.annotations.NotNull;

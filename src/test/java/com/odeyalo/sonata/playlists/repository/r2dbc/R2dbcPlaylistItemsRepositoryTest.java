@@ -4,9 +4,10 @@ import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.repository.ItemRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistCollaboratorRepository;
-import com.odeyalo.sonata.playlists.repository.R2dbcItemRepository;
-import com.odeyalo.sonata.playlists.repository.R2dbcPlaylistCollaboratorRepository;
-import com.odeyalo.sonata.playlists.repository.support.R2dbcPlaylistRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcItemRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistCollaboratorRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistItemsRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistRepositoryDelegate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,17 +31,19 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Just a copy-paste of R2dbcPlaylistItemsRepositoryDelegateTest, a good candidate to be removed(?)
+ */
 @DataR2dbcTest
 @ActiveProfiles("test")
 @Import(R2dbcCallbacksConfiguration.class)
-class R2dbcPlaylistItemsRepositoryDelegateTest {
+class R2dbcPlaylistItemsRepositoryTest {
 
     @Autowired
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    R2dbcPlaylistItemsRepositoryDelegate testable;
+    R2dbcPlaylistItemsRepository testable;
 
-    @Autowired
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Autowired
     R2dbcPlaylistRepositoryDelegate playlistRepository;
 
     static final String PLAYLIST_ID = "miku";
@@ -57,7 +60,7 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
     @AfterEach
     void tearDown() {
         playlistRepository.deleteAll().block();
-        testable.deleteAll().block();
+        testable.clear().block();
     }
 
     @Test
@@ -80,7 +83,7 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
 
         insertPlaylistItems(playlistItemEntity);
 
-        testable.findById(playlistItemEntity.getId())
+        testable.findAllByPlaylistId(PLAYLIST_ID, Pageable.unpaged())
                 .map(PlaylistItemEntity::getAddedBy)
                 .as(StepVerifier::create)
                 .expectNext(playlistItemEntity.getAddedBy())
@@ -95,7 +98,7 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
 
         insertPlaylistItems(playlistItemEntity);
 
-        testable.findById(playlistItemEntity.getId())
+        testable.findAllByPlaylistId(PLAYLIST_ID, Pageable.unpaged())
                 .map(PlaylistItemEntity::getItem)
                 .as(StepVerifier::create)
                 .expectNext(playlistItemEntity.getItem())
@@ -149,9 +152,13 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
                 .expectNextCount(playlistItemEntities.length)
                 .verifyComplete();
     }
-
     @TestConfiguration
     public static class Config {
+
+        @Bean
+        public R2dbcPlaylistItemsRepository r2dbcPlaylistCollaboratorRepository(R2dbcPlaylistItemsRepositoryDelegate delegate) {
+            return new R2dbcPlaylistItemsRepository(delegate);
+        }
 
         @Bean
         public PlaylistCollaboratorRepository playlistCollaboratorRepository(R2dbcPlaylistCollaboratorRepositoryDelegate delegate) {
@@ -163,4 +170,5 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
             return new R2dbcItemRepository(delegate);
         }
     }
+
 }

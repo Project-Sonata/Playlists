@@ -1,7 +1,7 @@
-package com.odeyalo.sonata.playlists.repository;
+package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
-import com.odeyalo.sonata.playlists.repository.r2dbc.R2dbcPlaylistCollaboratorRepositoryDelegate;
+import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistCollaboratorRepositoryDelegate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

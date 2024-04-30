@@ -1,4 +1,4 @@
-package com.odeyalo.sonata.playlists.repository.r2dbc;
+package com.odeyalo.sonata.playlists.repository.r2dbc.delegate;
 
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import org.junit.jupiter.api.AfterEach;
