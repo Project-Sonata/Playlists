@@ -15,13 +15,16 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 import testing.PlaylistItemEntityFaker;
 import testing.faker.PlaylistEntityFaker;
 import testing.spring.R2dbcCallbacksConfiguration;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -114,6 +117,30 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
         List<PlaylistItemEntity> foundEntities = testable.findAllByPlaylistId(PLAYLIST_ID, Pageable.unpaged()).collectList().block();
 
         assertThat(foundEntities).contains(playlistItemEntity1, playlistItemEntity2);
+    }
+
+    @Test
+    void shouldFindAllItemsAssociatedWithPlaylistAndSortItWithPageable() {
+        final PlaylistItemEntity olderItem = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .withAddedAt(Instant.now().minusSeconds(10))
+                .get();
+
+        final PlaylistItemEntity newerItem = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .withAddedAt(Instant.now().minusSeconds(5))
+                .get();
+
+        insertPlaylistItems(olderItem, newerItem);
+
+        Sort sortingStrategy = Sort.by("added_at").descending();
+
+        testable.findAllByPlaylistId(PLAYLIST_ID, PageRequest.of(0, 10, sortingStrategy))
+                .map(PlaylistItemEntity::getId)
+                .as(StepVerifier::create)
+                .expectNext(newerItem.getId())
+                .expectNext(olderItem.getId())
+                .verifyComplete();
     }
 
     private void insertPlaylistItems(PlaylistItemEntity... playlistItemEntities) {
