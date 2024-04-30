@@ -3,12 +3,14 @@ package com.odeyalo.sonata.playlists.repository;
 import com.odeyalo.sonata.playlists.entity.ItemEntity;
 import com.odeyalo.sonata.playlists.repository.r2dbc.R2dbcItemRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * A implementation of {@link ItemRepository} that stores a values in SQL table and call it using R2DBC.
  */
+@Component
 public final class R2dbcItemRepository implements ItemRepository {
     private final R2dbcItemRepositoryDelegate delegate;
 
