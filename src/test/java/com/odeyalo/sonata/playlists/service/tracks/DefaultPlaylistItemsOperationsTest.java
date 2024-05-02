@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.odeyalo.sonata.playlists.support.pagination.Pagination.defaultPagination;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultPlaylistItemsOperationsTest {
 
@@ -447,6 +448,29 @@ class DefaultPlaylistItemsOperationsTest {
                 .as(StepVerifier::create)
                 .expectError(PlaylistNotFoundException.class)
                 .verify();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAndItemPositionShouldBeIncremented() {
+        final var collaborator = collaborator();
+        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
+        final var trackPlayableItem2 = TrackPlayableItemFaker.create().get();
+        final var itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem, trackPlayableItem2)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, itemUris, collaborator)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(0) )
+                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(1) )
+                .verifyComplete();
     }
 
     static class TestableBuilder {
