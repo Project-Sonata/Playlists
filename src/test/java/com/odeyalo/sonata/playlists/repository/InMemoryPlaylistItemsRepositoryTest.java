@@ -205,6 +205,19 @@ class InMemoryPlaylistItemsRepositoryTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldReturnItemsCountForPlaylist() {
+        final PlaylistItemEntity item1 = PlaylistItemEntityFaker.create("miku").setId(null).get();
+        final PlaylistItemEntity item2 = PlaylistItemEntityFaker.create("miku").setId(null).get();
+
+        final var testable = new InMemoryPlaylistItemsRepository(List.of(item1, item2));
+
+        testable.getPlaylistSize("miku")
+                .as(StepVerifier::create)
+                .expectNext(2L)
+                .verifyComplete();
+    }
+
     @NotNull
     private static OffsetBasedPageRequest firstItemOnly() {
         return OffsetBasedPageRequest.of(offset(0), limit(1));

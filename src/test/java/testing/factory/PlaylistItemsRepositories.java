@@ -5,6 +5,7 @@ import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 
 import java.util.List;
+import java.util.Set;
 
 public final class PlaylistItemsRepositories {
 
@@ -14,5 +15,9 @@ public final class PlaylistItemsRepositories {
 
     public static PlaylistItemsRepository empty() {
         return new InMemoryPlaylistItemsRepository();
+    }
+
+    public static PlaylistItemsRepository withPlaylistIds(Set<String> playlistIds) {
+        return new InMemoryPlaylistItemsRepository(playlistIds);
     }
 }

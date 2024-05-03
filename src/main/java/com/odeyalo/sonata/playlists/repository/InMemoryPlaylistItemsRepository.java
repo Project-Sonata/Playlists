@@ -7,10 +7,7 @@ import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -30,6 +27,18 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
 
     public InMemoryPlaylistItemsRepository(List<PlaylistItemEntity> cache) {
         this.cache = toMap(cache);
+    }
+
+    /**
+     * Create a cache with EMPTY playlist items for the given playlist ids
+     * @param playlistIds - existing playlist IDS to associate with EMPTY list of playlist items
+     */
+    public InMemoryPlaylistItemsRepository(Set<String> playlistIds) {
+        this.cache = playlistIds.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        playlistId -> Lists.newArrayList())
+                );
     }
 
     @Override
@@ -63,7 +72,6 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
 
             items.add(entity);
             cache.put(playlistId, items);
-
             return entity;
         });
     }
@@ -71,7 +79,20 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
     @Override
     @NotNull
     public Mono<Void> clear() {
-        return Mono.fromRunnable(cache::clear);
+        return Mono.fromRunnable(() -> cache.forEach((key, value) -> value.clear()));
+    }
+
+    @Override
+    public @NotNull Mono<Long> getPlaylistSize(@NotNull String playlistId) {
+        return Mono.fromCallable(() -> {
+            List<PlaylistItemEntity> items = cache.get(playlistId);
+
+            if (items == null) {
+                return null;
+            }
+
+            return (long) items.size();
+        });
     }
 
     @NotNull

@@ -45,19 +45,34 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                @NotNull PlaylistCollaborator collaborator) {
 
         return isPlaylistExist(targetPlaylist)
-                .flatMapMany(it -> doAddPlaylistItems(targetPlaylist, addItemPayload, collaborator))
+                .flatMapMany(it -> doAddPlaylistItems(it, addItemPayload, collaborator))
                 .then();
     }
 
     @NotNull
-    private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
-        return Flux.fromArray(addItemPayload.getUris())
-                .flatMap(contextUriParser::parse)
-                .flatMap(contextUri -> {
-                    PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(targetPlaylist.getPlaylistId(), collaborator, contextUri);
+    private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull Playlist playlist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
+        return itemsRepository.getPlaylistSize(playlist.getId())
+                .flatMapMany(playlistSize ->
+                        Flux.fromArray(addItemPayload.getUris())
+                                .flatMap(contextUriParser::parse)
+                                .index()
+                                .flatMap(tuple -> {
+                                    final Long currentIndex = tuple.getT1();
+                                    final ContextUri contextUri = tuple.getT2();
+                                    final int position = (int) (playlistSize + currentIndex);
 
-                    return itemsRepository.save(playlistItemEntity);
-                });
+                                    return saveItem(playlist.getId(), collaborator, contextUri, position);
+                                })
+                );
+    }
+
+    @NotNull
+    private Mono<PlaylistItemEntity> saveItem(@NotNull String playlistId, @NotNull PlaylistCollaborator collaborator,
+                                              ContextUri contextUri,
+                                              int index) {
+        PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(playlistId, collaborator, contextUri);
+        playlistItemEntity.setIndex(index);
+        return itemsRepository.save(playlistItemEntity);
     }
 
     private PlaylistItemEntity createPlaylistItemEntity(@NotNull String playlistId,
@@ -113,6 +128,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                 .addedAt(playlistItemEntity.getAddedAt())
                 .addedBy(collaborator)
                 .item(item)
+                .index(playlistItemEntity.getIndex())
                 .build();
 
     }

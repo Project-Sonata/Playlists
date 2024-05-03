@@ -40,9 +40,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class R2dbcPlaylistItemsRepositoryTest {
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     R2dbcPlaylistItemsRepository testable;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     R2dbcPlaylistRepositoryDelegate playlistRepository;
 
@@ -146,12 +146,31 @@ class R2dbcPlaylistItemsRepositoryTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldReturnSizeOfSpecificPlaylist() {
+        final PlaylistItemEntity playlistItemEntity1 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+        final PlaylistItemEntity playlistItemEntity2 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        insertPlaylistItems(playlistItemEntity1, playlistItemEntity2);
+
+        testable.getPlaylistSize(PLAYLIST_ID)
+                .as(StepVerifier::create)
+                // expect only 2 items in repository as it was saved before
+                .expectNext(2L)
+                .verifyComplete();
+    }
+
     private void insertPlaylistItems(PlaylistItemEntity... playlistItemEntities) {
         testable.saveAll(Arrays.asList(playlistItemEntities))
                 .as(StepVerifier::create)
                 .expectNextCount(playlistItemEntities.length)
                 .verifyComplete();
     }
+
     @TestConfiguration
     public static class Config {
 
