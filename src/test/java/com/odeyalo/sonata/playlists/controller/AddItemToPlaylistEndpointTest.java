@@ -9,7 +9,6 @@ import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
 import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
-import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
@@ -35,11 +34,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
+import testing.factory.PlaylistItemsRepositories;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 
 import java.util.Objects;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
@@ -106,8 +107,7 @@ class AddItemToPlaylistEndpointTest {
         @Bean
         @Primary
         public PlaylistItemsRepository testPlaylistItemsRepository() {
-
-            return new InMemoryPlaylistItemsRepository();
+            return PlaylistItemsRepositories.withPlaylistIds(Set.of(EXISTING_PLAYLIST_ID));
         }
     }
 

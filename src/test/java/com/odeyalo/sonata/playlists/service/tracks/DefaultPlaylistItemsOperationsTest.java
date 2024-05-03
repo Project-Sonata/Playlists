@@ -27,6 +27,7 @@ import testing.faker.TrackPlayableItemFaker;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.odeyalo.sonata.playlists.support.pagination.Pagination.defaultPagination;
@@ -468,15 +469,51 @@ class DefaultPlaylistItemsOperationsTest {
 
         testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
                 .as(StepVerifier::create)
-                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(0) )
-                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(1) )
+                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(0))
+                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(1))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAndItemPositionShouldBeIncrementedBasedOnLastIndexValue() {
+        final var trackPlayableItem = TrackPlayableItemFaker.create()
+                .setContextUri("sonata:track:miku")
+                .get();
+
+        final var trackPlayableItem2 = TrackPlayableItemFaker.create()
+                .setContextUri("sonata:track:nakano")
+                .get();
+
+        final var itemUris = AddItemPayload.withItemUris("sonata:track:miku", "sonata:track:nakano");
+
+        final var playlistItem = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .withIndex(0)
+                .get();
+        final var playlistItem2 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .withIndex(1)
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(playlistItem, playlistItem2)
+                .withPlayableItems(trackPlayableItem, trackPlayableItem2)
+                .get();
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, itemUris, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(2))
+                .assertNext(item -> assertThat(item.getIndex()).isEqualTo(3))
                 .verifyComplete();
     }
 
     static class TestableBuilder {
         private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
         private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
-        private PlaylistItemsRepository itemsRepository = PlaylistItemsRepositories.empty();
+        private PlaylistItemsRepository itemsRepository = null;
         private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
         private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
 
@@ -486,6 +523,10 @@ class DefaultPlaylistItemsOperationsTest {
 
         public TestableBuilder withPlaylists(Playlist... playlists) {
             this.playlistLoader = PlaylistLoaders.withPlaylists(playlists);
+            if ( itemsRepository == null ) {
+                this.itemsRepository = PlaylistItemsRepositories.withPlaylistIds(Arrays.stream(playlists)
+                        .map(Playlist::getId).collect(Collectors.toSet()));
+            }
             return this;
         }
 
@@ -511,6 +552,8 @@ class DefaultPlaylistItemsOperationsTest {
         }
 
         public DefaultPlaylistItemsOperations get() {
+            itemsRepository = itemsRepository == null ? PlaylistItemsRepositories.empty() : itemsRepository;
+
             return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, contextUriParser, playlistItemEntityConverter);
         }
     }

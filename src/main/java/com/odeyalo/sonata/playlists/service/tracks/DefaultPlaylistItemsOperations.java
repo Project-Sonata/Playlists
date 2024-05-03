@@ -51,23 +51,25 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @NotNull
     private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull Playlist playlist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
-        return Flux.fromArray(addItemPayload.getUris())
-                .flatMap(contextUriParser::parse)
-                .index()
-                .flatMap(tuple -> {
-                    Long index = tuple.getT1();
-                    ContextUri contextUri = tuple.getT2();
-                    return saveItem(playlist.getId(), collaborator, contextUri, index);
-                });
+        return itemsRepository.getPlaylistSize(playlist.getId())
+                .flatMapMany(playlistSize ->
+                        Flux.fromArray(addItemPayload.getUris())
+                                .flatMap(contextUriParser::parse)
+                                .index()
+                                .flatMap(tuple -> {
+                                    Long index = tuple.getT1();
+                                    ContextUri contextUri = tuple.getT2();
+                                    return saveItem(playlist.getId(), collaborator, contextUri, (int) (playlistSize + index));
+                                })
+                );
     }
 
     @NotNull
     private Mono<PlaylistItemEntity> saveItem(@NotNull String playlistId, @NotNull PlaylistCollaborator collaborator,
                                               ContextUri contextUri,
-                                              long index) {
+                                              int index) {
         PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(playlistId, collaborator, contextUri);
-        playlistItemEntity.setIndex((int) index);
-
+        playlistItemEntity.setIndex(index);
         return itemsRepository.save(playlistItemEntity);
     }
 
