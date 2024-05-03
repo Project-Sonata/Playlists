@@ -25,4 +25,7 @@ public interface PlaylistItemsRepository {
 
     @NotNull
     Mono<Void> clear();
+
+    @NotNull
+    Mono<Long> getPlaylistSize(@NotNull String playlistId);
 }

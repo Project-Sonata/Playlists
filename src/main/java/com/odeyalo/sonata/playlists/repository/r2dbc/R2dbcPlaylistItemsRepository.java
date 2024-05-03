@@ -34,6 +34,11 @@ public final class R2dbcPlaylistItemsRepository implements PlaylistItemsReposito
         return delegate.deleteAll();
     }
 
+    @Override
+    public @NotNull Mono<Long> getPlaylistSize(@NotNull String playlistId) {
+        throw new UnsupportedOperationException("not implemented now");
+    }
+
     @NotNull
     public Flux<PlaylistItemEntity> saveAll(@NotNull List<PlaylistItemEntity> entities) {
         return delegate.saveAll(entities);
