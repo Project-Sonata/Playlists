@@ -57,9 +57,11 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                 .flatMap(contextUriParser::parse)
                                 .index()
                                 .flatMap(tuple -> {
-                                    Long index = tuple.getT1();
-                                    ContextUri contextUri = tuple.getT2();
-                                    return saveItem(playlist.getId(), collaborator, contextUri, (int) (playlistSize + index));
+                                    final Long currentIndex = tuple.getT1();
+                                    final ContextUri contextUri = tuple.getT2();
+                                    final int position = (int) (playlistSize + currentIndex);
+
+                                    return saveItem(playlist.getId(), collaborator, contextUri, position);
                                 })
                 );
     }
