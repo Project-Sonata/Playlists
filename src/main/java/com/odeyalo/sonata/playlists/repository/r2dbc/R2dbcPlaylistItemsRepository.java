@@ -36,7 +36,7 @@ public final class R2dbcPlaylistItemsRepository implements PlaylistItemsReposito
 
     @Override
     public @NotNull Mono<Long> getPlaylistSize(@NotNull String playlistId) {
-        throw new UnsupportedOperationException("not implemented now");
+        return delegate.countAllByPlaylistId(playlistId);
     }
 
     @NotNull

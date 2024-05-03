@@ -35,11 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class R2dbcPlaylistItemsRepositoryDelegateTest {
 
     @Autowired
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     R2dbcPlaylistItemsRepositoryDelegate testable;
 
     @Autowired
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     R2dbcPlaylistRepositoryDelegate playlistRepository;
 
     static final String PLAYLIST_ID = "miku";
@@ -139,6 +137,28 @@ class R2dbcPlaylistItemsRepositoryDelegateTest {
                 .as(StepVerifier::create)
                 .expectNext(newerItem.getId())
                 .expectNext(olderItem.getId())
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldCountAllItemsInSpecificPlaylist() {
+        final PlaylistItemEntity item1 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        final PlaylistItemEntity item2 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        final PlaylistItemEntity item3 = PlaylistItemEntityFaker.create(PLAYLIST_ID)
+                .setId(null)
+                .get();
+
+        insertPlaylistItems(item1, item2, item3);
+
+        testable.countAllByPlaylistId(PLAYLIST_ID)
+                .as(StepVerifier::create)
+                .expectNext(3L)
                 .verifyComplete();
     }
 
