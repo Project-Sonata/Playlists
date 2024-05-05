@@ -44,6 +44,7 @@ PlaylistItemObject:
         <strong>items</strong>
         <p>Array of ArtistObject</p>
     </summary>
+  
   - id - string, NOT NULL. Unique identifier for the artist.
   - name - string, NOT NULL. The name of the artist.
 </details>
