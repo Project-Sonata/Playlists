@@ -65,8 +65,9 @@ PlaylistItemObject:
     <li> id - string, NOT NULL. Unique identifier for the artist.</li>
     <li> name - string, NOT NULL. The name of the artist. </li>
   </ul>
-  - empty - boolean, NOT NULL. Indicates if the array of items is empty.
       </details>
+  
+  - empty - boolean, NOT NULL. Indicates if the array of items is empty.
   </details>
 
 - total_tracks - integer, NOT NULL. The total number of tracks on the album.
