@@ -1,0 +1,24 @@
+{
+  "id" : "81a6adda-f30c-433c-82a0-3f04a78d3edd",
+  "request" : {
+    "url" : "/token/info",
+    "method" : "POST",
+    "headers" : {
+      "Content-Type" : {
+        "matches" : "application/json.*"
+      }
+    },
+    "bodyPatterns" : [ {
+      "matchesJsonPath" : "$[?(@.['token'] == 'ilovemikunakano')]"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"valid\":true,\"user_id\":\"2\",\"scope\":\"user-account-modify write read\",\"iat\":941640270,\"expires_in\":946541940}",
+    "headers" : {
+      "Content-Type" : "application/json"
+    },
+    "transformers" : [ "response-template", "spring-cloud-contract" ]
+  },
+  "uuid" : "81a6adda-f30c-433c-82a0-3f04a78d3edd"
+}
