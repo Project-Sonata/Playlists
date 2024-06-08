@@ -208,6 +208,16 @@ class AddItemToPlaylistEndpointTest {
         }
 
         @Test
+        void shouldNotAddItemToPlaylist() {
+            final WebTestClient.ResponseSpec ignored = sendRequestAsOtherUser();
+
+            final PlaylistItemsDto items = fetchPlaylistItems();
+
+            assertThat(items.getItems()).isEmpty();
+
+        }
+
+        @Test
         void shouldReturnErrorDescription() {
             final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
 
