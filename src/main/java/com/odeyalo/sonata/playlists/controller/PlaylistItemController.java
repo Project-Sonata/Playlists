@@ -39,12 +39,12 @@ public final class PlaylistItemController {
     }
 
     @PostMapping(value = "/{playlistId}/items")
-    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable final String playlistId,
+    public Mono<ResponseEntity<Object>> addPlaylistItems(@PathVariable("playlistId") @NotNull final TargetPlaylist playlist,
                                                          @NotNull final AddItemPayload addItemPayload,
                                                          @NotNull final PlaylistCollaborator playlistCollaborator,
                                                          @NotNull final User user) {
 
-        return playlistItemsOperationsFacade.addItems(TargetPlaylist.just(playlistId), addItemPayload, playlistCollaborator, user)
+        return playlistItemsOperationsFacade.addItems(playlist, addItemPayload, playlistCollaborator, user)
                 .thenReturn(HttpStatuses.defaultCreatedStatus());
     }
 }
