@@ -202,9 +202,19 @@ class AddItemToPlaylistEndpointTest {
 
         @Test
         void shouldReturn403Status() {
-            WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
 
             exchange.expectStatus().isForbidden();
+        }
+
+        @Test
+        void shouldReturnErrorDescription() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            final ExceptionMessage exceptionMessage = exchange.expectBody(ExceptionMessage.class).returnResult().getResponseBody();
+
+            assertThat(exceptionMessage).isNotNull();
+            assertThat(exceptionMessage.getDescription()).isEqualTo("You don't have permission to read or change the playlist");
         }
 
         @NotNull

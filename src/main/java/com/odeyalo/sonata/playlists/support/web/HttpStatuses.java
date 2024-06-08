@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.support.web;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -46,5 +47,13 @@ public final class HttpStatuses {
 
     public static <T> ResponseEntity<T> defaultBadRequestStatus(T body) {
         return badRequest().body(body);
+    }
+
+    public static <T> ResponseEntity<T> defaultForbiddenStatus() {
+        return status(HttpStatus.FORBIDDEN).build();
+    }
+
+    public static <T> ResponseEntity<T> defaultForbiddenStatus(final T body) {
+        return status(HttpStatus.FORBIDDEN).body(body);
     }
 }
