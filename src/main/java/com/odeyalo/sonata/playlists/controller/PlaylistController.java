@@ -4,13 +4,10 @@ import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
 import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
-import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException;
+import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.User;
-import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
-import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
-import com.odeyalo.sonata.playlists.service.PlaylistOperations;
-import com.odeyalo.sonata.playlists.service.TargetPlaylist;
+import com.odeyalo.sonata.playlists.service.*;
 import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverter;
 import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpdateInfoConverter;
@@ -36,21 +33,16 @@ public class PlaylistController {
     private final PartialPlaylistDetailsUpdateInfoConverter playlistDetailsUpdateInfoConverter;
     private final ImagesDtoConverter imagesDtoConverter;
     private final CreatePlaylistInfoConverter createPlaylistInfoConverter;
+    private final PlaylistOperationsFacade playlistOperationsFacade;
 
     @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable("playlistId") @NotNull String playlistId,
+    public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable("playlistId") @NotNull TargetPlaylist playlistId,
                                                               @NotNull final User user) {
 
-        return playlistOperations.findById(playlistId)
-                .flatMap(playlist -> {
-                    if ( playlist.isReadPermissionGrantedFor(user) ) {
-                        return Mono.fromSupplier(() -> playlistDtoConverter.toPlaylistDto(playlist));
-                    }
-
-                    return Mono.error(new PlaylistOperationNotAllowedException(playlistId));
-                })
+        return playlistOperationsFacade.findById(playlistId, user)
+                .map(playlistDtoConverter::toPlaylistDto)
                 .map(HttpStatuses::defaultOkStatus)
-                .defaultIfEmpty(default204Response());
+                .onErrorResume(PlaylistNotFoundException.class, it -> Mono.just(HttpStatuses.default204Response()));
     }
 
     @GetMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
