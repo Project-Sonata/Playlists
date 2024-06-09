@@ -6,7 +6,6 @@ import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
 import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.service.tracks.AddItemPayload;
-import com.odeyalo.sonata.playlists.service.tracks.PlaylistItemsOperations;
 import com.odeyalo.sonata.playlists.service.tracks.PlaylistItemsOperationsFacade;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistItemDtoConverter;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
@@ -24,15 +23,14 @@ import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.defaultOkSta
 @RequestMapping("/playlist")
 @RequiredArgsConstructor
 public final class PlaylistItemController {
-
-    private final PlaylistItemsOperations playlistItemsOperations;
     private final PlaylistItemsOperationsFacade playlistItemsOperationsFacade;
     private final PlaylistItemDtoConverter playlistItemDtoConverter;
 
     @GetMapping(value = "/{playlistId}/items", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable String playlistId,
-                                                                     Pagination pagination) {
-        return playlistItemsOperations.loadPlaylistItems(TargetPlaylist.just(playlistId), pagination)
+    public Mono<ResponseEntity<PlaylistItemsDto>> fetchPlaylistItems(@PathVariable("playlistId") @NotNull final TargetPlaylist playlist,
+                                                                     @NotNull final Pagination pagination,
+                                                                     @NotNull final User user) {
+        return playlistItemsOperationsFacade.loadPlaylistItems(playlist, pagination, user)
                 .map(playlistItemDtoConverter::toPlaylistItemDto)
                 .collectList()
                 .map(items -> defaultOkStatus(new PlaylistItemsDto(items)));
