@@ -4,7 +4,9 @@ import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
 import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
+import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
+import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
 import com.odeyalo.sonata.playlists.service.PlaylistOperations;
@@ -15,6 +17,7 @@ import com.odeyalo.sonata.playlists.support.converter.PartialPlaylistDetailsUpda
 import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
@@ -35,10 +38,17 @@ public class PlaylistController {
     private final CreatePlaylistInfoConverter createPlaylistInfoConverter;
 
     @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable String playlistId) {
+    public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable("playlistId") @NotNull String playlistId,
+                                                              @NotNull final User user) {
 
         return playlistOperations.findById(playlistId)
-                .map(playlistDtoConverter::toPlaylistDto)
+                .flatMap(playlist -> {
+                    if ( playlist.isReadPermissionGrantedFor(user) ) {
+                        return Mono.fromSupplier(() -> playlistDtoConverter.toPlaylistDto(playlist));
+                    }
+
+                    return Mono.error(new PlaylistOperationNotAllowedException(playlistId));
+                })
                 .map(HttpStatuses::defaultOkStatus)
                 .defaultIfEmpty(default204Response());
     }
