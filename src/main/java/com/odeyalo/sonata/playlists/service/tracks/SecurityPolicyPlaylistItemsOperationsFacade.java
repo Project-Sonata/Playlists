@@ -33,7 +33,14 @@ public final class SecurityPolicyPlaylistItemsOperationsFacade implements Playli
     public Flux<PlaylistItem> loadPlaylistItems(@NotNull final TargetPlaylist targetPlaylist,
                                                 @NotNull final Pagination pagination,
                                                 @NotNull final User user) {
-        return null;
+
+        return loadPlaylist(targetPlaylist)
+                .flatMapMany(playlist -> {
+                    if ( playlist.isReadPermissionGrantedFor(user) ) {
+                        return delegate.loadPlaylistItems(targetPlaylist, pagination);
+                    }
+                    return notAllowedPlaylistOperationException(targetPlaylist);
+                });
     }
 
     @Override
@@ -60,7 +67,7 @@ public final class SecurityPolicyPlaylistItemsOperationsFacade implements Playli
     }
 
     @NotNull
-    private static Mono<Void> notAllowedPlaylistOperationException(@NotNull final TargetPlaylist playlist) {
+    private static <T> Mono<T> notAllowedPlaylistOperationException(@NotNull final TargetPlaylist playlist) {
         return Mono.defer(() -> Mono.error(
                 PlaylistOperationNotAllowedException.defaultException(playlist.getPlaylistId())
         ));

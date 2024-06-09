@@ -9,13 +9,20 @@ import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import testing.factory.PlaylistLoaders;
 import testing.faker.PlaylistFaker;
+import testing.faker.PlaylistItemFaker;
 
+import java.util.List;
+
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SecurityPolicyPlaylistItemsOperationsFacadeTest {
@@ -54,6 +61,105 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
             .displayName("Nakano")
             .type(EntityType.USER)
             .build();
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class FetchPlaylistItemsTest {
+
+        @Test
+        void shouldPassSuccessfullyIfUserWhoRequestsItemsIsPlaylistOwner() {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final var testable = new SecurityPolicyPlaylistItemsOperationsFacade(
+                    StubPlaylistOps.withNoItems(),
+                    PlaylistLoaders.withPlaylists(playlist)
+            );
+
+            testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination(), PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .verifyComplete();
+        }
+
+        @Test
+        void shouldReturnPlaylistItemsIfUserIsPlaylistOwner() {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final var testable = new SecurityPolicyPlaylistItemsOperationsFacade(
+                    StubPlaylistOps.withItems(
+                            PlaylistItemFaker.create().get(),
+                            PlaylistItemFaker.create().get()
+                    ),
+                    PlaylistLoaders.withPlaylists(playlist)
+            );
+
+            testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination(), PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    // expect 2 elements to be produced from PlaylistItemsOperations
+                    .expectNextCount(2)
+                    .verifyComplete();
+        }
+
+        @Test
+        void shouldReturnExceptionIfPlaylistDoesNotExist() {
+            final var testable = new SecurityPolicyPlaylistItemsOperationsFacade(
+                    StubPlaylistOps.withNoItems(),
+                    PlaylistLoaders.empty()
+            );
+
+            testable.loadPlaylistItems(NOT_EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination(), GUEST)
+                    .as(StepVerifier::create)
+                    .expectError(PlaylistNotFoundException.class)
+                    .verify();
+        }
+
+        @Test
+        void shouldReturnExceptionIfUserWhoFetchPlaylistItemsIsNotPlaylistOwner() {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .setPlaylistType(PRIVATE)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final var testable = new SecurityPolicyPlaylistItemsOperationsFacade(
+                    StubPlaylistOps.withNoItems(),
+                    PlaylistLoaders.withPlaylists(playlist)
+            );
+
+            testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination(), GUEST)
+                    .as(StepVerifier::create)
+                    .expectError(PlaylistOperationNotAllowedException.class)
+                    .verify();
+        }
+
+        @Test
+        void shouldReturnPlaylistItemsForAnyUserIfPlaylistIsPublic() {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .setPlaylistType(PUBLIC)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final var testable = new SecurityPolicyPlaylistItemsOperationsFacade(
+                    StubPlaylistOps.withItems(
+                            PlaylistItemFaker.create().get(),
+                            PlaylistItemFaker.create().get()
+                    ),
+                    PlaylistLoaders.withPlaylists(playlist)
+            );
+
+            testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, Pagination.defaultPagination(), GUEST)
+                    .as(StepVerifier::create)
+                    // expect 2 elements to be produced from PlaylistItemsOperations
+                    .expectNextCount(2)
+                    .verifyComplete();
+        }
+    }
 
     @Test
     void shouldPassSuccessfullyOnAddItems() {
@@ -139,6 +245,35 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
         assertThat(spyDelegate.addItemsMethodWasCalled()).isFalse();
     }
 
+    static class StubPlaylistOps implements PlaylistItemsOperations {
+        private final List<PlaylistItem> itemsToReturn;
+
+        StubPlaylistOps(final List<PlaylistItem> itemsToReturn) {
+            this.itemsToReturn = itemsToReturn;
+        }
+
+        public static StubPlaylistOps withItems(PlaylistItem... items) {
+            return new StubPlaylistOps(List.of(items));
+        }
+
+        public static PlaylistItemsOperations withNoItems() {
+            return withItems();
+        }
+
+        @Override
+        public @NotNull Flux<PlaylistItem> loadPlaylistItems(final @NotNull TargetPlaylist targetPlaylist,
+                                                             final @NotNull Pagination pagination) {
+            return Flux.fromIterable(itemsToReturn);
+        }
+
+        @Override
+        public @NotNull Mono<Void> addItems(final @NotNull TargetPlaylist targetPlaylist,
+                                            final @NotNull AddItemPayload addItemPayload,
+                                            final @NotNull PlaylistCollaborator collaborator) {
+
+            throw new UnsupportedOperationException("The StubPlaylistOps does not support operation to add item to playlist" );
+        }
+    }
 
     static class SpyPlaylistOps implements PlaylistItemsOperations {
         private boolean addItemsMethodWasCalled;
@@ -146,7 +281,7 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
         @Override
         public @NotNull Flux<PlaylistItem> loadPlaylistItems(final @NotNull TargetPlaylist targetPlaylist,
                                                              final @NotNull Pagination pagination) {
-            return null;
+            throw new UnsupportedOperationException("The SpyPlaylistOps does not support operation to fetch items" );
         }
 
         @Override
