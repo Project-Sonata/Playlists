@@ -49,6 +49,7 @@ import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpoin
 import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Limit.noLimit;
 import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Offset.defaultOffset;
 import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Offset.offset;
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
@@ -130,7 +131,11 @@ class FetchPlaylistTracksEndpointTest {
         @Bean
         @Primary
         public PlaylistRepository testPlaylistRepository() {
-            Playlist playlist = PlaylistFaker.createWithNoId().setId(EXISTING_PLAYLIST_ID).withPlaylistOwnerId(PLAYLIST_OWNER_ID).get();
+            Playlist playlist = PlaylistFaker.createWithNoId()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .setPlaylistType(PRIVATE)
+                    .get();
             return new InMemoryPlaylistRepository(playlist);
         }
 

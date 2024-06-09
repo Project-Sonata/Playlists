@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.controller;
 
+import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
@@ -10,14 +11,19 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.asserts.PlaylistDtoAssert;
 import testing.faker.PlaylistFaker;
 
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 
 @SpringBootTest
@@ -28,11 +34,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
         ids = "com.odeyalo.sonata:authorization:+")
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class FetchPlaylistEndpointTest {
-    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
-    String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    final String PLAYLIST_OWNER_ID = "1";
+    final String INVALID_TOKEN = "Bearer invalidtoken";
 
     @Autowired
     PlaylistRepository playlistRepository;
@@ -47,7 +54,7 @@ public class FetchPlaylistEndpointTest {
 
     @BeforeEach
     void prepare() {
-        Playlist playlist = PlaylistFaker.createWithNoId().get();
+        Playlist playlist = PlaylistFaker.createWithNoId().withPlaylistOwnerId(PLAYLIST_OWNER_ID).get();
 
         existingPlaylist = playlistRepository.save(playlist).block();
     }
@@ -157,6 +164,51 @@ public class FetchPlaylistEndpointTest {
             return webTestClient.get()
                     .uri("/playlist/{id}", playlistId)
                     .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
+                    .exchange();
+        }
+    }
+
+
+    @Nested
+    @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
+    @NestedTestConfiguration(OVERRIDE)
+    class NotPlaylistOwnerRequestTest {
+        final String OTHER_USER_TOKEN = "Bearer ilovemikunakano";
+        String PLAYLIST_ID;
+
+        @BeforeEach
+        void setUp() {
+            final var playlist = PlaylistFaker.createWithNoId()
+                    .setPlaylistType(PRIVATE)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            //noinspection DataFlowIssue
+            PLAYLIST_ID = playlistRepository.save(playlist).block().getId();
+        }
+
+        @Test
+        void shouldReturn403Status() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            exchange.expectStatus().isForbidden();
+        }
+
+        @Test
+        void shouldReturnErrorDescriptionInResponseBody() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            final var responseBody = exchange.expectBody(ExceptionMessage.class).returnResult().getResponseBody();
+
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getDescription()).isEqualTo("You don't have permission to read or change the playlist");
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendRequestAsOtherUser() {
+            return webTestClient.get()
+                    .uri("/playlist/{id}", PLAYLIST_ID)
+                    .header(HttpHeaders.AUTHORIZATION, OTHER_USER_TOKEN)
                     .exchange();
         }
     }
