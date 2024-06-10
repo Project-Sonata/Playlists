@@ -36,8 +36,11 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
     }
 
     @Override
-    public @NotNull Mono<Playlist> createPlaylist(@NotNull final CreatePlaylistInfo playlistInfo, @NotNull final PlaylistOwner playlistOwner, @NotNull final User user) {
-        return null;
+    @NotNull
+    public Mono<Playlist> createPlaylist(@NotNull final CreatePlaylistInfo playlistInfo,
+                                         @NotNull final PlaylistOwner playlistOwner,
+                                         @NotNull final User user) {
+        return delegate.createPlaylist(playlistInfo, playlistOwner);
     }
 
     @Override
@@ -68,16 +71,16 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
     }
 
     @NotNull
+    private Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist playlistId) {
+        return delegate.findById(playlistId.getPlaylistId())
+                .switchIfEmpty(onPlaylistNotFoundError(playlistId));
+    }
+
+    @NotNull
     private static Mono<Playlist> onPlaylistNotFoundError(@NotNull final TargetPlaylist targetPlaylist) {
         return Mono.defer(
                 () -> Mono.error(PlaylistNotFoundException.defaultException(targetPlaylist.getPlaylistId()))
         );
-    }
-
-    @NotNull
-    private Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist playlistId) {
-        return delegate.findById(playlistId.getPlaylistId())
-                .switchIfEmpty(onPlaylistNotFoundError(playlistId));
     }
 
     @NotNull

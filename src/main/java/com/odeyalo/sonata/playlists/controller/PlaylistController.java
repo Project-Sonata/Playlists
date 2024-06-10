@@ -1,13 +1,14 @@
 package com.odeyalo.sonata.playlists.controller;
 
-import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
 import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.User;
-import com.odeyalo.sonata.playlists.service.*;
-import com.odeyalo.sonata.playlists.support.converter.CreatePlaylistInfoConverter;
+import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
+import com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo;
+import com.odeyalo.sonata.playlists.service.PlaylistOperationsFacade;
+import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.converter.ImagesDtoConverter;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistDtoConverter;
 import com.odeyalo.sonata.playlists.support.web.HttpStatuses;
@@ -25,15 +26,12 @@ import static com.odeyalo.sonata.playlists.support.web.HttpStatuses.*;
 @RequestMapping("/playlist")
 @RequiredArgsConstructor
 public class PlaylistController {
-
-    private final PlaylistOperations playlistOperations;
+    private final PlaylistOperationsFacade playlistOperationsFacade;
     private final PlaylistDtoConverter playlistDtoConverter;
     private final ImagesDtoConverter imagesDtoConverter;
-    private final CreatePlaylistInfoConverter createPlaylistInfoConverter;
-    private final PlaylistOperationsFacade playlistOperationsFacade;
 
     @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable("playlistId") @NotNull TargetPlaylist playlistId,
+    public Mono<ResponseEntity<PlaylistDto>> findPlaylistById(@PathVariable @NotNull TargetPlaylist playlistId,
                                                               @NotNull final User user) {
 
         return playlistOperationsFacade.findById(playlistId, user)
@@ -43,19 +41,21 @@ public class PlaylistController {
     }
 
     @GetMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable String playlistId) {
+    public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable @NotNull final TargetPlaylist playlistId,
+                                                                   @NotNull final User user) {
 
-        return playlistOperations.findById(playlistId)
+        return playlistOperationsFacade.findById(playlistId, user)
                 .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
                 .map(HttpStatuses::defaultOkStatus)
-                .defaultIfEmpty(defaultUnprocessableEntityStatus());
+                .onErrorResume(PlaylistNotFoundException.class, it -> Mono.just(defaultUnprocessableEntityStatus()));
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<?>> createPlaylist(@RequestBody CreatePlaylistRequest body, PlaylistOwner playlistOwner) {
-        CreatePlaylistInfo playlistInfo = createPlaylistInfoConverter.toCreatePlaylistInfo(body);
+    public Mono<ResponseEntity<?>> createPlaylist(@NotNull final CreatePlaylistInfo playlistInfo,
+                                                  @NotNull final PlaylistOwner playlistOwner,
+                                                  @NotNull final User user) {
 
-        return playlistOperations.createPlaylist(playlistInfo, playlistOwner)
+        return playlistOperationsFacade.createPlaylist(playlistInfo, playlistOwner, user)
                 .map(playlistDtoConverter::toPlaylistDto)
                 .map(HttpStatuses::defaultCreatedStatus);
     }
