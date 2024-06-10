@@ -5,6 +5,7 @@ import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
+import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.service.*;
@@ -73,12 +74,22 @@ public class PlaylistController {
     }
 
     @PatchMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Object>> updatePlaylistDetails(@PathVariable String playlistId, @RequestBody PartialPlaylistDetailsUpdateRequest body) {
+    public Mono<ResponseEntity<Object>> updatePlaylistDetails(@PathVariable @NotNull final String playlistId,
+                                                              @RequestBody @NotNull final PartialPlaylistDetailsUpdateRequest body,
+                                                              @NotNull final User user) {
         PartialPlaylistDetailsUpdateInfo updateInfo = playlistDetailsUpdateInfoConverter.toPartialPlaylistDetailsUpdateInfo(body);
 
         TargetPlaylist targetPlaylist = TargetPlaylist.just(playlistId);
 
-        return playlistOperations.updatePlaylistInfo(targetPlaylist, updateInfo)
+        return playlistOperations.findById(playlistId)
+                .flatMap(playlist -> {
+                    if ( playlist.isWritePermissionGrantedFor(user) ) {
+                        return playlistOperations.updatePlaylistInfo(targetPlaylist, updateInfo);
+                    }
+                    return Mono.error(
+                            PlaylistOperationNotAllowedException.defaultException(playlistId)
+                    );
+                })
                 .map(playlist -> default204Response())
                 .defaultIfEmpty(defaultUnprocessableEntityStatus());
     }
