@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
+import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
@@ -21,8 +23,12 @@ import testing.asserts.PlaylistDtoAssert;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
 
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -39,14 +45,16 @@ public class PartialPlaylistUpdateEndpointTest {
     @Autowired
     WebTestClient webTestClient;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     SonataPlaylistHttpTestClient playlistHttpTestClient;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     QaControllerOperations qaControllerOperations;
 
-    String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
-    String VALID_USER_ID = "1";
+    final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    final String VALID_USER_ID = "1";
 
     @BeforeAll
     void setup() {
@@ -251,6 +259,70 @@ public class PartialPlaylistUpdateEndpointTest {
         }
     }
 
+
+    @Nested
+    @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
+    @NestedTestConfiguration(OVERRIDE)
+    class NotPlaylistOwnerRequestTest {
+        final String OTHER_USER_TOKEN = "Bearer ilovemikunakano";
+
+        private PlaylistDto existingPlaylist;
+
+        @BeforeEach
+        void setUp() {
+            CreatePlaylistRequest body = CreatePlaylistRequest.builder()
+                    .name("Best LO-FI 2023")
+                    .description("Compilation of best LO-FI tracks 2023")
+                    .type(PRIVATE)
+                    .build();
+            existingPlaylist = playlistHttpTestClient.createPlaylist(VALID_ACCESS_TOKEN, VALID_USER_ID, body);
+        }
+
+        @Test
+        void shouldReturn403Status() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser(
+                    PartialPlaylistDetailsUpdateRequest.nameOnly("new_name")
+            );
+
+            exchange.expectStatus().isForbidden();
+        }
+
+        @Test
+        void shouldReturnErrorDescriptionInResponseBody() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser(
+                    PartialPlaylistDetailsUpdateRequest.nameOnly("new_name")
+            );
+
+            final var responseBody = exchange.expectBody(ExceptionMessage.class).returnResult().getResponseBody();
+
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getDescription()).isEqualTo("You don't have permission to read or change the playlist");
+        }
+
+        @Test
+        void shouldNotChangePlaylistDetails() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser(
+                    PartialPlaylistDetailsUpdateRequest.nameOnly("new_name")
+            );
+
+            final var ignored = exchange.expectBody(ExceptionMessage.class).returnResult().getResponseBody();
+
+            final var playlist = fetchPlaylist(existingPlaylist.getId());
+
+            assertThat(playlist.getName()).isEqualTo("Best LO-FI 2023");
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendRequestAsOtherUser(PartialPlaylistDetailsUpdateRequest body) {
+            return webTestClient.patch()
+                    .uri("/playlist/{playlistId}", existingPlaylist.getId())
+                    .header(HttpHeaders.AUTHORIZATION, OTHER_USER_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .exchange();
+        }
+    }
+
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     class NotExistingPlaylistTests {
@@ -285,7 +357,8 @@ public class PartialPlaylistUpdateEndpointTest {
                     .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(body)
-                    .exchange();        }
+                    .exchange();
+        }
     }
 
     @NotNull

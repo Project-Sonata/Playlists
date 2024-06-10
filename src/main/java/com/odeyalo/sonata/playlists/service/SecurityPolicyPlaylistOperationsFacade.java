@@ -35,12 +35,6 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
                 });
     }
 
-    @NotNull
-    private Mono<Playlist> loadPlaylist(final @NotNull TargetPlaylist playlistId) {
-        return delegate.findById(playlistId.getPlaylistId())
-                .switchIfEmpty(onPlaylistNotFoundError(playlistId));
-    }
-
     @Override
     public @NotNull Mono<Playlist> createPlaylist(@NotNull final CreatePlaylistInfo playlistInfo, @NotNull final PlaylistOwner playlistOwner, @NotNull final User user) {
         return null;
@@ -52,8 +46,16 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
     }
 
     @Override
-    public Mono<Playlist> updatePlaylistInfo(@NotNull final TargetPlaylist targetPlaylist, @NotNull final PartialPlaylistDetailsUpdateInfo updateInfo, @NotNull final User user) {
-        return null;
+    public Mono<Playlist> updatePlaylistInfo(@NotNull final TargetPlaylist targetPlaylist,
+                                             @NotNull final PartialPlaylistDetailsUpdateInfo updateInfo,
+                                             @NotNull final User user) {
+        return loadPlaylist(targetPlaylist)
+                .flatMap(playlist -> {
+                    if ( playlist.isWritePermissionGrantedFor(user) ) {
+                        return delegate.updatePlaylistInfo(targetPlaylist, updateInfo);
+                    }
+                    return notAllowedPlaylistOperationException(targetPlaylist);
+                });
     }
 
     @NotNull
@@ -61,6 +63,12 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
         return Mono.defer(
                 () -> Mono.error(PlaylistNotFoundException.defaultException(targetPlaylist.getPlaylistId()))
         );
+    }
+
+    @NotNull
+    private Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist playlistId) {
+        return delegate.findById(playlistId.getPlaylistId())
+                .switchIfEmpty(onPlaylistNotFoundError(playlistId));
     }
 
     @NotNull
