@@ -4,7 +4,6 @@ import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
 import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.service.*;
@@ -62,22 +61,13 @@ public class PlaylistController {
     }
 
     @PostMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Object>> playlistImageUpload(@PathVariable String playlistId,
-                                                            @RequestPart("image") Mono<FilePart> file,
+    public Mono<ResponseEntity<Object>> playlistImageUpload(@PathVariable @NotNull final TargetPlaylist playlistId,
+                                                            @RequestPart("image") @NotNull final Mono<FilePart> file,
                                                             @NotNull final User user) {
 
-        return playlistOperations.findById(playlistId)
-                .flatMap(it -> {
-                    if ( it.isWritePermissionGrantedFor(user) ) {
-                        return playlistOperations.updatePlaylistCoverImage(TargetPlaylist.just(playlistId), file);
-                    }
-
-                    return Mono.error(
-                            new PlaylistOperationNotAllowedException(playlistId)
-                    );
-                })
+        return playlistOperationsFacade.updatePlaylistCoverImage(playlistId, file, user)
                 .map(playlist -> defaultAcceptedStatus())
-                .defaultIfEmpty(defaultUnprocessableEntityStatus());
+                .onErrorResume(PlaylistNotFoundException.class, err -> Mono.just(defaultUnprocessableEntityStatus()));
 
 
     }
@@ -89,6 +79,6 @@ public class PlaylistController {
 
         return playlistOperationsFacade.updatePlaylistInfo(targetPlaylist, updateInfo, user)
                 .map(playlist -> default204Response())
-                .onErrorResume(PlaylistNotFoundException.class, it -> Mono.just(defaultUnprocessableEntityStatus()));
+                .onErrorResume(PlaylistNotFoundException.class, err -> Mono.just(defaultUnprocessableEntityStatus()));
     }
 }

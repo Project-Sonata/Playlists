@@ -1,6 +1,7 @@
 package testing.faker;
 
 import com.github.javafaker.Faker;
+import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
@@ -30,9 +31,6 @@ public class PlaylistFaker {
         return new PlaylistFaker().setId(null);
     }
 
-    public Playlist get() {
-        return builder.build();
-    }
 
     public PlaylistFaker setId(String id) {
         builder.id(id);
@@ -60,8 +58,18 @@ public class PlaylistFaker {
         return this;
     }
 
+    public PlaylistFaker withNoImages() {
+        builder.images(Images.empty());
+        return this;
+    }
+
     public PlaylistFaker setPlaylistOwner(PlaylistOwner playlistOwner) {
         builder.playlistOwner(playlistOwner);
         return this;
     }
+
+    public Playlist get() {
+        return builder.build();
+    }
+
 }
