@@ -43,12 +43,13 @@ public class PlaylistController {
     }
 
     @GetMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable String playlistId) {
+    public Mono<ResponseEntity<ImagesDto>> fetchPlaylistCoverImage(@PathVariable @NotNull final TargetPlaylist playlistId,
+                                                                   @NotNull final User user) {
 
-        return playlistOperations.findById(playlistId)
+        return playlistOperationsFacade.findById(playlistId, user)
                 .map(playlist -> imagesDtoConverter.toImagesDto(playlist.getImages()))
                 .map(HttpStatuses::defaultOkStatus)
-                .defaultIfEmpty(defaultUnprocessableEntityStatus());
+                .onErrorResume(PlaylistNotFoundException.class, it -> Mono.just(defaultUnprocessableEntityStatus()));
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)

@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.CreatePlaylistRequest;
+import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,7 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
@@ -21,9 +23,13 @@ import testing.asserts.ImagesDtoAssert;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
 
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -36,7 +42,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class FetchPlaylistCoverImageEndpointTest {
 
-    public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
@@ -46,8 +51,11 @@ public class FetchPlaylistCoverImageEndpointTest {
     @Autowired
     QaControllerOperations qaControllerOperations;
 
-    String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
-    String VALID_USER_ID = "1";
+    final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    final String INVALID_TOKEN = "Bearer invalidtoken";
+
+    final String VALID_USER_ID = "1";
+    final String PLAYLIST_OWNER_ID = "1";
 
     @BeforeAll
     void setup() {
@@ -194,6 +202,46 @@ public class FetchPlaylistCoverImageEndpointTest {
         @NotNull
         private WebTestClient.ResponseSpec prepareAndSend() {
             return sendRequest("not_existing");
+        }
+    }
+
+    @Nested
+    @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
+    @NestedTestConfiguration(OVERRIDE)
+    class NotPlaylistOwnerRequestTest {
+        final String OTHER_USER_TOKEN = "Bearer ilovemikunakano";
+        String PLAYLIST_ID;
+
+        @BeforeEach
+        void setUp() {
+            final var playlist = CreatePlaylistRequest.of("LOFI", PRIVATE);
+
+            PLAYLIST_ID = playlistHttpTestClient.createPlaylist(VALID_ACCESS_TOKEN, PLAYLIST_OWNER_ID, playlist).getId();
+        }
+
+        @Test
+        void shouldReturn403Status() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            exchange.expectStatus().isForbidden();
+        }
+
+        @Test
+        void shouldReturnErrorDescriptionInResponseBody() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            final var responseBody = exchange.expectBody(ExceptionMessage.class).returnResult().getResponseBody();
+
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getDescription()).isEqualTo("You don't have permission to read or change the playlist");
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendRequestAsOtherUser() {
+            return webTestClient.get()
+                    .uri("/playlist/{id}/images", PLAYLIST_ID)
+                    .header(HttpHeaders.AUTHORIZATION, OTHER_USER_TOKEN)
+                    .exchange();
         }
     }
 
