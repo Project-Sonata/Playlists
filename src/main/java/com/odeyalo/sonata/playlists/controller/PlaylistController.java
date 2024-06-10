@@ -73,12 +73,10 @@ public class PlaylistController {
     }
 
     @PatchMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Object>> updatePlaylistDetails(@PathVariable @NotNull final String playlistId,
+    public Mono<ResponseEntity<Object>> updatePlaylistDetails(@PathVariable("playlistId") @NotNull final TargetPlaylist targetPlaylist,
                                                               @RequestBody @NotNull final PartialPlaylistDetailsUpdateRequest body,
                                                               @NotNull final User user) {
         PartialPlaylistDetailsUpdateInfo updateInfo = playlistDetailsUpdateInfoConverter.toPartialPlaylistDetailsUpdateInfo(body);
-
-        TargetPlaylist targetPlaylist = TargetPlaylist.just(playlistId);
 
         return playlistOperationsFacade.updatePlaylistInfo(targetPlaylist, updateInfo, user)
                 .map(playlist -> default204Response())
