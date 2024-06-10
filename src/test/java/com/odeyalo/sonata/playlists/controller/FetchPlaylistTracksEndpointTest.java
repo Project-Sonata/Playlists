@@ -20,6 +20,7 @@ import com.odeyalo.sonata.playlists.service.tracks.InMemoryPlayableItemLoader;
 import com.odeyalo.sonata.playlists.service.tracks.PlayableItemLoader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.PlaylistCollaboratorEntityFaker;
@@ -46,8 +49,11 @@ import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpoin
 import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Limit.noLimit;
 import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Offset.defaultOffset;
 import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpointTest.Offset.offset;
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
+import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -66,6 +72,7 @@ class FetchPlaylistTracksEndpointTest {
     static final String EXISTING_PLAYLIST_ID = "existingPlaylist";
 
     static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    static final String PLAYLIST_OWNER_ID = "1";
 
     static final String TRACK_1_ID = "1";
     static final String TRACK_2_ID = "2";
@@ -124,7 +131,11 @@ class FetchPlaylistTracksEndpointTest {
         @Bean
         @Primary
         public PlaylistRepository testPlaylistRepository() {
-            Playlist playlist = PlaylistFaker.createWithNoId().setId(EXISTING_PLAYLIST_ID).get();
+            Playlist playlist = PlaylistFaker.createWithNoId()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .setPlaylistType(PRIVATE)
+                    .get();
             return new InMemoryPlaylistRepository(playlist);
         }
 
@@ -568,6 +579,42 @@ class FetchPlaylistTracksEndpointTest {
         WebTestClient.ResponseSpec responseSpec = fetchPlaylistItems(offset(-1), noLimit());
 
         responseSpec.expectStatus().isBadRequest();
+    }
+
+
+    @Nested
+    @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
+    @NestedTestConfiguration(OVERRIDE)
+    class NotPlaylistOwnerRequestTest {
+        final String OTHER_USER_TOKEN = "Bearer ilovemikunakano";
+
+        @Test
+        void shouldReturn403Status() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            exchange.expectStatus().isForbidden();
+        }
+
+        @Test
+        void shouldReturnErrorDescriptionInResponseBody() {
+            final WebTestClient.ResponseSpec exchange = sendRequestAsOtherUser();
+
+            final var responseBody = exchange.expectBody(ExceptionMessage.class).returnResult().getResponseBody();
+
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getDescription()).isEqualTo("You don't have permission to read or change the playlist");
+        }
+
+        @NotNull
+        private WebTestClient.ResponseSpec sendRequestAsOtherUser() {
+            return webTestClient.get()
+                    .uri(builder -> builder
+                            .path("/playlist/{id}/items")
+                            .build(EXISTING_PLAYLIST_ID))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.AUTHORIZATION, OTHER_USER_TOKEN)
+                    .exchange();
+        }
     }
 
     @NotNull

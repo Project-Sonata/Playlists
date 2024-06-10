@@ -27,4 +27,11 @@ public final class GlobalExceptionHandlerController {
 
         return HttpStatuses.defaultBadRequestStatus(exceptionMessage);
     }
+
+    @ExceptionHandler(PlaylistOperationNotAllowedException.class)
+    public ResponseEntity<ExceptionMessage> handlePlaylistOperationNotAllowedException(final PlaylistOperationNotAllowedException ignored) {
+        final var exceptionMessage = ExceptionMessage.withDescription("You don't have permission to read or change the playlist");
+
+        return HttpStatuses.defaultForbiddenStatus(exceptionMessage);
+    }
 }
