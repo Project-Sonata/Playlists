@@ -41,8 +41,17 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
     }
 
     @Override
-    public Mono<Playlist> updatePlaylistCoverImage(@NotNull final TargetPlaylist targetPlaylist, @NotNull final Mono<FilePart> file, @NotNull final User user) {
-        return null;
+    public Mono<Playlist> updatePlaylistCoverImage(@NotNull final TargetPlaylist targetPlaylist,
+                                                   @NotNull final Mono<FilePart> file,
+                                                   @NotNull final User user) {
+
+        return loadPlaylist(targetPlaylist)
+                .flatMap(playlist -> {
+                    if ( playlist.isWritePermissionGrantedFor(user) ) {
+                        return delegate.updatePlaylistCoverImage(targetPlaylist, file);
+                    }
+                    return notAllowedPlaylistOperationException(targetPlaylist);
+                });
     }
 
     @Override

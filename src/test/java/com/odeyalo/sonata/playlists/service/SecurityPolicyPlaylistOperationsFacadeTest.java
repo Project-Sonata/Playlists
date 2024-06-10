@@ -7,12 +7,19 @@ import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.service.upload.MockImageUploader;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import testing.faker.PlaylistFaker;
+import testing.spring.web.FilePartStub;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -186,6 +193,82 @@ class SecurityPolicyPlaylistOperationsFacadeTest {
                     .verify();
         }
     }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class ChangePlaylistImageTest {
+
+        @Test
+        void shouldChangePlaylistImageIfUserIsPlaylistOwner() throws IOException {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .withNoImages()
+                    .get();
+
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .withPlaylists(playlist)
+                    .build();
+
+            final var file = resolveNewImageForPlaylist();
+
+            testable.updatePlaylistCoverImage(EXISTING_PLAYLIST_TARGET, Mono.just(file), PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .assertNext(it -> assertThat(it.getImages()).hasSize(1))
+                    .verifyComplete();
+        }
+
+        @Test
+        void shouldThrowExceptionIfPlaylistDoesNotExist() throws IOException {
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .build();
+
+            final var file = resolveNewImageForPlaylist();
+
+            testable.updatePlaylistCoverImage(NOT_EXISTING_PLAYLIST_TARGET, Mono.just(file), PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .expectError(PlaylistNotFoundException.class)
+                    .verify();
+        }
+
+        @Test
+        void shouldReturnExceptionIfUserIsNotPlaylistOwner() throws IOException {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .withNoImages()
+                    .get();
+
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .withPlaylists(playlist)
+                    .build();
+
+            final var file = resolveNewImageForPlaylist();
+
+            testable.updatePlaylistCoverImage(EXISTING_PLAYLIST_TARGET, Mono.just(file), GUEST)
+                    .as(StepVerifier::create)
+                    .expectError(PlaylistOperationNotAllowedException.class)
+                    .verify();
+
+            // check that the playlist has not been changed
+            testable.findById(EXISTING_PLAYLIST_TARGET, PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .assertNext(it -> assertThat(it.getImages()).isEmpty())
+                    .verifyComplete();
+        }
+
+        @NotNull
+        private FilePartStub resolveNewImageForPlaylist() throws IOException {
+            final var image = new ClassPathResource("./img/test-image.jpg");
+
+            final var bufferFactory = new DefaultDataBufferFactory();
+
+            var dataBuffer = bufferFactory.wrap(image.getContentAsByteArray());
+
+            return new FilePartStub(Flux.just(dataBuffer));
+        }
+    }
+
 
     public static class TestableBuilder {
         private final List<Playlist> playlists = new ArrayList<>();

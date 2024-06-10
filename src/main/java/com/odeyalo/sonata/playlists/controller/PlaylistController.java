@@ -61,12 +61,15 @@ public class PlaylistController {
     }
 
     @PostMapping(value = "/{playlistId}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Object>> playlistImageUpload(@PathVariable String playlistId,
-                                                            @RequestPart("image") Mono<FilePart> file) {
+    public Mono<ResponseEntity<Object>> playlistImageUpload(@PathVariable @NotNull final TargetPlaylist playlistId,
+                                                            @RequestPart("image") @NotNull final Mono<FilePart> file,
+                                                            @NotNull final User user) {
 
-        return playlistOperations.updatePlaylistCoverImage(TargetPlaylist.just(playlistId), file)
+        return playlistOperationsFacade.updatePlaylistCoverImage(playlistId, file, user)
                 .map(playlist -> defaultAcceptedStatus())
-                .defaultIfEmpty(defaultUnprocessableEntityStatus());
+                .onErrorResume(PlaylistNotFoundException.class, err -> Mono.just(defaultUnprocessableEntityStatus()));
+
+
     }
 
     @PatchMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -76,6 +79,6 @@ public class PlaylistController {
 
         return playlistOperationsFacade.updatePlaylistInfo(targetPlaylist, updateInfo, user)
                 .map(playlist -> default204Response())
-                .onErrorResume(PlaylistNotFoundException.class, it -> Mono.just(defaultUnprocessableEntityStatus()));
+                .onErrorResume(PlaylistNotFoundException.class, err -> Mono.just(defaultUnprocessableEntityStatus()));
     }
 }
