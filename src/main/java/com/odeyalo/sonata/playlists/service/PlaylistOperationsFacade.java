@@ -49,6 +49,8 @@ public interface PlaylistOperationsFacade {
      * @param updateInfo - info that used to update playlist
      * @param user - current user
      * @return - updated playlist
+     * @throws com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException - if playlist with given ID does not exist
+     * @throws com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException - if given operation is not allowed for the given user
      */
     Mono<Playlist> updatePlaylistInfo(@NotNull TargetPlaylist targetPlaylist,
                                       @NotNull PartialPlaylistDetailsUpdateInfo updateInfo,

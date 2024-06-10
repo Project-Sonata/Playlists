@@ -18,6 +18,8 @@ import java.util.List;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
+import static com.odeyalo.sonata.playlists.service.PartialPlaylistDetailsUpdateInfo.withNameOnly;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class SecurityPolicyPlaylistOperationsFacadeTest {
     static final String EXISTING_PLAYLIST_ID = "miku888";
@@ -108,6 +110,79 @@ class SecurityPolicyPlaylistOperationsFacadeTest {
             testable.findById(EXISTING_PLAYLIST_TARGET, GUEST)
                     .as(StepVerifier::create)
                     .expectError(PlaylistOperationNotAllowedException.class)
+                    .verify();
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class ChangePlaylistDetailsTest {
+
+        @Test
+        void shouldChangePlaylistDetailsIfUserIsPlaylistOwner() {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .withPlaylists(playlist)
+                    .build();
+
+            testable.updatePlaylistInfo(EXISTING_PLAYLIST_TARGET, withNameOnly("new_name"), PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .assertNext(it -> assertThat(it.getName()).isEqualTo("new_name"))
+                    .verifyComplete();
+        }
+
+        @Test
+        void shouldSaveChangedPlaylistDetailsIfUserIsPlaylistOwner() {
+            // given
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .withPlaylists(playlist)
+                    .build();
+            // when
+            testable.updatePlaylistInfo(EXISTING_PLAYLIST_TARGET, withNameOnly("new_name"), PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .expectNextCount(1)
+                    .verifyComplete();
+            // then
+            testable.findById(EXISTING_PLAYLIST_TARGET, PLAYLIST_OWNER)
+                    .as(StepVerifier::create)
+                    .assertNext(it -> assertThat(it.getName()).isEqualTo("new_name"))
+                    .verifyComplete();
+        }
+
+        @Test
+        void shouldThrowExceptionIfUserIsNotPlaylistOwner() {
+            final var playlist = PlaylistFaker.create()
+                    .setId(EXISTING_PLAYLIST_ID)
+                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
+                    .get();
+
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .withPlaylists(playlist)
+                    .build();
+
+            testable.updatePlaylistInfo(EXISTING_PLAYLIST_TARGET, withNameOnly("new_name"), GUEST)
+                    .as(StepVerifier::create)
+                    .expectError(PlaylistOperationNotAllowedException.class)
+                    .verify();
+        }
+
+        @Test
+        void shouldThrowExceptionIfPlaylistDoesNotExist() {
+            final SecurityPolicyPlaylistOperationsFacade testable = TestableBuilder.instance()
+                    .build();
+
+            testable.updatePlaylistInfo(NOT_EXISTING_PLAYLIST_TARGET, withNameOnly("new_name"), GUEST)
+                    .as(StepVerifier::create)
+                    .expectError(PlaylistNotFoundException.class)
                     .verify();
         }
     }

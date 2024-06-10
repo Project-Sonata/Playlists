@@ -5,7 +5,6 @@ import com.odeyalo.sonata.playlists.dto.ImagesDto;
 import com.odeyalo.sonata.playlists.dto.PartialPlaylistDetailsUpdateRequest;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.model.User;
 import com.odeyalo.sonata.playlists.service.*;
@@ -81,16 +80,8 @@ public class PlaylistController {
 
         TargetPlaylist targetPlaylist = TargetPlaylist.just(playlistId);
 
-        return playlistOperations.findById(playlistId)
-                .flatMap(playlist -> {
-                    if ( playlist.isWritePermissionGrantedFor(user) ) {
-                        return playlistOperations.updatePlaylistInfo(targetPlaylist, updateInfo);
-                    }
-                    return Mono.error(
-                            PlaylistOperationNotAllowedException.defaultException(playlistId)
-                    );
-                })
+        return playlistOperationsFacade.updatePlaylistInfo(targetPlaylist, updateInfo, user)
                 .map(playlist -> default204Response())
-                .defaultIfEmpty(defaultUnprocessableEntityStatus());
+                .onErrorResume(PlaylistNotFoundException.class, it -> Mono.just(defaultUnprocessableEntityStatus()));
     }
 }
