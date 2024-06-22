@@ -1,6 +1,5 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
-import com.odeyalo.sonata.common.context.HardcodedContextUriParser;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.*;
@@ -515,7 +514,7 @@ class DefaultPlaylistItemsOperationsTest {
         private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
         private PlaylistItemsRepository itemsRepository = null;
         private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
-        private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser(new HardcodedContextUriParser());
+        private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser();
 
         public static TestableBuilder builder() {
             return new TestableBuilder();
