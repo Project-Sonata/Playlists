@@ -119,6 +119,15 @@ public class FetchPlaylistEndpointTest {
         }
 
         @Test
+        void shouldReturnPlaylistContextUri() {
+            WebTestClient.ResponseSpec responseSpec = prepareAndSend();
+
+            PlaylistDto body = responseSpec.expectBody(PlaylistDto.class).returnResult().getResponseBody();
+
+            PlaylistDtoAssert.forPlaylist(body).contextUri().isEqualTo("sonata:playlist:" + existingPlaylist.getId());
+        }
+
+        @Test
         void shouldReturnPlaylistType() {
             WebTestClient.ResponseSpec responseSpec = prepareAndSend();
 

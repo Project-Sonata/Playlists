@@ -21,6 +21,8 @@ public class PlaylistDto {
     String name;
     @JsonProperty("description")
     String description;
+    @JsonProperty("context_uri")
+    String contextUri;
     @JsonProperty("playlist_type")
     PlaylistType playlistType;
     @JsonProperty("type")
