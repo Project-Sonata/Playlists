@@ -11,12 +11,14 @@ public class PlaylistEntityFaker {
     private final Faker faker = Faker.instance();
 
     public PlaylistEntityFaker() {
+        String publicId = RandomStringUtils.randomAlphanumeric(22);
         builder
                 .id(faker.random().nextLong())
                 .playlistName(faker.music().instrument())
                 .playlistDescription(faker.weather().description())
                 .playlistType(faker.options().option(PlaylistType.class))
-                .publicId(RandomStringUtils.randomAlphanumeric(22))
+                .publicId(publicId)
+                .contextUri("sonata:playlist:" + publicId)
                 .playlistOwner(PlaylistOwnerEntityFaker.create().get())
                 .build();
     }
@@ -41,6 +43,7 @@ public class PlaylistEntityFaker {
 
     public PlaylistEntityFaker setPublicId(String publicId) {
         builder.publicId(publicId);
+        builder.contextUri("sonata:playlist:" + publicId);
         return this;
     }
 
