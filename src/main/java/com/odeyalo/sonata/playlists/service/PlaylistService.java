@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
  * Middleware between {@link PlaylistRepository} but works with a {@link Playlist} instead of {@link com.odeyalo.sonata.playlists.entity.PlaylistEntity}
  */
 @Service
-public final class PlaylistService {
+public final class PlaylistService implements PlaylistLoader {
     private final PlaylistRepository playlistRepository;
 
     public PlaylistService(final PlaylistRepository playlistRepository) {
@@ -26,5 +26,11 @@ public final class PlaylistService {
     @NotNull
     public Mono<Playlist> loadPlaylist(@NotNull final String id) {
         return playlistRepository.findById(id);
+    }
+
+    @Override
+    @NotNull
+    public Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
+        return loadPlaylist(targetPlaylist.getPlaylistId());
     }
 }
