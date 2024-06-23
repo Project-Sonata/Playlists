@@ -14,6 +14,7 @@ import org.mapstruct.MappingTarget;
 public interface PlaylistDtoConverter {
 
     @Mapping(target = "owner", source = "playlistOwner")
+    @Mapping(target = "contextUri", ignore = true)
     PlaylistDto toPlaylistDto(Playlist playlist);
 
     @AfterMapping

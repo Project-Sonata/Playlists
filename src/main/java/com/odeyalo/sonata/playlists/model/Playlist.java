@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.model;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -19,7 +20,7 @@ public class Playlist {
     String id;
     String name;
     String description;
-    String contextUri;
+    ContextUri contextUri;
     @Builder.Default
     PlaylistType playlistType = PlaylistType.PRIVATE;
     @Builder.Default
