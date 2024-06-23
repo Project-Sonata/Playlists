@@ -64,7 +64,7 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
 
         if ( id == null ) {
             id = RandomStringUtils.randomAlphanumeric(15);
-            playlist = Playlist.from(playlist).id(id).build();
+            playlist = Playlist.from(playlist).id(id).contextUri("sonata:playlist:" + id).build();
         }
 
         return playlist;

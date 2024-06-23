@@ -19,6 +19,7 @@ public class Playlist {
     String id;
     String name;
     String description;
+    String contextUri;
     @Builder.Default
     PlaylistType playlistType = PlaylistType.PRIVATE;
     @Builder.Default
