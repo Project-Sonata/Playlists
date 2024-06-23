@@ -1,7 +1,5 @@
 package com.odeyalo.sonata.playlists.config;
 
-import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
-import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.PlaylistService;
@@ -22,10 +20,4 @@ public class PlaylistItemsConfiguration {
     public PlaylistLoader playlistLoader(PlaylistRepository playlistRepository) {
         return new PlaylistService(playlistRepository);
     }
-
-    @Bean
-    public PlaylistItemsRepository playlistItemsRepository() {
-        return new InMemoryPlaylistItemsRepository();
-    }
-
 }
