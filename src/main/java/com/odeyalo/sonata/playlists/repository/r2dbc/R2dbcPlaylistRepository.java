@@ -71,6 +71,7 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
 
         PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
         entity.setId(parent.getId());
+        entity.setContextUri("sonata:playlist:" + entity.getPublicId());
 
         return playlistRepositoryDelegate.save(entity);
     }
@@ -80,6 +81,8 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
         String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
         PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
         entity.setPublicId(playlistId);
+        entity.setContextUri("sonata:playlist:" + playlistId);
+
         return entity;
     }
 }
