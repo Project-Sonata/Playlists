@@ -5,8 +5,6 @@ import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedExcepti
 import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.User;
-import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
-import com.odeyalo.sonata.playlists.service.upload.MockImageUploader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,6 +14,7 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import testing.factory.PlaylistOperationsTestableFactory;
 import testing.faker.PlaylistFaker;
 import testing.spring.web.FilePartStub;
 
@@ -284,16 +283,9 @@ class SecurityPolicyPlaylistOperationsFacadeTest {
 
         public SecurityPolicyPlaylistOperationsFacade build() {
             return new SecurityPolicyPlaylistOperationsFacade(
-                    TestingPlaylistOperations.withPlaylists(playlists)
+                    PlaylistOperationsTestableFactory.withPlaylists(playlists)
             );
         }
     }
 
-    public static class TestingPlaylistOperations {
-
-        public static PlaylistOperations withPlaylists(List<Playlist> playlists) {
-            final InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository(playlists);
-            return new DefaultPlaylistOperations(repository, new MockImageUploader());
-        }
-    }
 }
