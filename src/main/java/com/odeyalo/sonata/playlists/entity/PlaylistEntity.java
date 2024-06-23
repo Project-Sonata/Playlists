@@ -25,6 +25,8 @@ public class PlaylistEntity implements Persistable<Long> {
     String publicId;
     String playlistName;
     String playlistDescription;
+    @Column("context_uri")
+    String contextUri;
     PlaylistType playlistType = PlaylistType.PRIVATE;
     @Column("owner_id")
     Long playlistOwnerId;
