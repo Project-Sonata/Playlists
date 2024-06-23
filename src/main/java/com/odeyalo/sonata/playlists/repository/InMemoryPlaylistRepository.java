@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.repository;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import org.apache.commons.lang.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +65,7 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
 
         if ( id == null ) {
             id = RandomStringUtils.randomAlphanumeric(15);
-            playlist = Playlist.from(playlist).id(id).build();
+            playlist = Playlist.from(playlist).id(id).contextUri(ContextUri.forPlaylist(id)).build();
         }
 
         return playlist;

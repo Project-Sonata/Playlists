@@ -86,6 +86,16 @@ class R2dbcPlaylistRepositoryTest {
     }
 
     @Test
+    void shouldGenerateContextUriForPlaylist() {
+        Playlist playlist = PlaylistFaker.createWithNoId().get();
+
+        r2dbcPlaylistRepository.save(playlist)
+                .as(StepVerifier::create)
+                .assertNext(it -> assertThat(it.getContextUri().asString()).isEqualTo("sonata:playlist:" + it.getId()))
+                .verifyComplete();
+    }
+
+    @Test
     void shouldSaveThePlaylistNameAsProvided() {
         Playlist saved = createAndSavePlaylist();
 
