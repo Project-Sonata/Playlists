@@ -40,6 +40,12 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @Override
     @NotNull
+    public Mono<PlaylistEntity> save(@NotNull final PlaylistEntity playlist) {
+        return playlistRepositoryDelegate.save(playlist);
+    }
+
+    @Override
+    @NotNull
     public Mono<Playlist> findById(String id) {
         return playlistRepositoryDelegate.findByPublicId(id)
                 .map(playlistConverter::toPlaylist);

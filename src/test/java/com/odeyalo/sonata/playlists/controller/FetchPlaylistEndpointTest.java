@@ -181,7 +181,6 @@ public class FetchPlaylistEndpointTest {
         }
     }
 
-
     @Nested
     @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
     @NestedTestConfiguration(OVERRIDE)
@@ -197,7 +196,7 @@ public class FetchPlaylistEndpointTest {
                     .get();
 
             //noinspection DataFlowIssue
-            PLAYLIST_ID = playlistRepository.save(playlist).block().getId();
+            PLAYLIST_ID = playlistService.save(playlist).block().getId();
         }
 
         @Test

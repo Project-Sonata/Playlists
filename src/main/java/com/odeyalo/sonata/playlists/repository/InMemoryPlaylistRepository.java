@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class InMemoryPlaylistRepository implements PlaylistRepository {
     private final Map<String, Playlist> playlists;
-    private Map<String, PlaylistEntity> playlistsEntities;
+    private final Map<String, PlaylistEntity> playlistsEntities;
     private final PlaylistConverter playlistConverter;
 
     public InMemoryPlaylistRepository() {
@@ -73,7 +74,7 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
     @NotNull
     public Mono<PlaylistEntity> save(@NotNull final PlaylistEntity playlist) {
         return Mono.fromCallable(() -> {
-            if (playlist.getId() == null) {
+            if ( playlist.getId() == null ) {
                 playlist.setId(new Random().nextLong(1, 100_000));
             }
             playlistsEntities.put(playlist.getPublicId(), playlist);
@@ -91,7 +92,10 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
     @Override
     @NotNull
     public Mono<Void> clear() {
-        return Mono.fromRunnable(playlists::clear);
+        return Mono.fromRunnable(() -> {
+            playlists.clear();
+            playlistsEntities.clear();
+        });
     }
 
 
@@ -110,5 +114,13 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
         }
 
         return playlist;
+    }
+
+    public Mono<PlaylistEntity> findById(final Long id) {
+        return Mono.justOrEmpty(
+                playlistsEntities.values().stream()
+                        .filter(it -> Objects.requireNonNull(it.getId()).equals(id))
+                        .findFirst()
+        );
     }
 }
