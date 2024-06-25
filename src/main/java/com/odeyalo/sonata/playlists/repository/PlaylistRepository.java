@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.repository;
 
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
@@ -15,6 +16,9 @@ public interface PlaylistRepository {
      */
     @NotNull
     Mono<Playlist> save(Playlist playlist);
+
+    @NotNull
+    Mono<PlaylistEntity> save(@NotNull PlaylistEntity playlist);
 
     /**
      * Search for the playlist by its id and returns id

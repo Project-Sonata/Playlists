@@ -4,6 +4,7 @@ import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
+import com.odeyalo.sonata.playlists.service.PlaylistService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class FetchPlaylistEndpointTest {
     @Autowired
     PlaylistRepository playlistRepository;
 
+    @Autowired
+    PlaylistService playlistService;
+
     Playlist existingPlaylist;
 
 
@@ -56,7 +60,7 @@ public class FetchPlaylistEndpointTest {
     void prepare() {
         Playlist playlist = PlaylistFaker.createWithNoId().withPlaylistOwnerId(PLAYLIST_OWNER_ID).get();
 
-        existingPlaylist = playlistRepository.save(playlist).block();
+        existingPlaylist = playlistService.save(playlist).block();
     }
 
     @AfterEach

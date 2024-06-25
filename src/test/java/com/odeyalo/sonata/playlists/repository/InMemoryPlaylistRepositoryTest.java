@@ -1,7 +1,10 @@
 package com.odeyalo.sonata.playlists.repository;
 
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import testing.faker.PlaylistEntityFaker;
 import testing.faker.PlaylistFaker;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,11 +15,11 @@ class InMemoryPlaylistRepositoryTest {
     void save() {
         // given
         InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-        Playlist playlist = PlaylistFaker.create().get();
+        @NotNull PlaylistEntity playlist = PlaylistEntityFaker.create().get();
         // when
-        Playlist saved = repository.save(playlist).block();
+        PlaylistEntity saved = repository.save(playlist).block();
         // then
-        assertThat(playlist).isEqualTo(saved);
+        assertThat(saved).isEqualTo(playlist);
     }
 
     @Test

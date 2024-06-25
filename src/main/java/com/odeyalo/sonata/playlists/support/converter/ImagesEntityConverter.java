@@ -4,16 +4,30 @@ import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.ImagesEntity;
 import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-@Mapper(uses = ImageEntityConverter.class, componentModel = "spring")
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+
+@Mapper(componentModel = SPRING,
+        uses = {
+                ImageEntityConverter.class
+        }, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public abstract class ImagesEntityConverter {
 
     @Autowired
     ImageEntityConverter imageEntityConverter;
+
+    public ImagesEntityConverter() {
+    }
+
+    // for tests
+    public ImagesEntityConverter(final ImageEntityConverter imageEntityConverter) {
+        this.imageEntityConverter = imageEntityConverter;
+    }
 
     public ImagesEntity toImagesEntity(Images images) {
         List<ImageEntity> imageEntities = images.stream().map(imageEntityConverter::toImageEntity).toList();
@@ -33,4 +47,7 @@ public abstract class ImagesEntityConverter {
         return images.stream().map(imageEntityConverter::toImageEntity).toList();
     }
 
+    public void setImageConverter(final ImageEntityConverter imageEntityConverter) {
+        this.imageEntityConverter = imageEntityConverter;
+    }
 }
