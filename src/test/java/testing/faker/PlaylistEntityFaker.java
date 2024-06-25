@@ -63,4 +63,9 @@ public class PlaylistEntityFaker {
         builder.playlistType(playlistType);
         return this;
     }
+
+    public PlaylistEntityFaker setContextUri(final String contextUri) {
+        builder.contextUri(contextUri);
+        return this;
+    }
 }

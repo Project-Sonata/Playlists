@@ -91,4 +91,9 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
 
         return entity;
     }
+
+    @NotNull
+    public Mono<PlaylistEntity> findByPublicId(@NotNull final String publicId) {
+        return playlistRepositoryDelegate.findByPublicId(publicId);
+    }
 }
