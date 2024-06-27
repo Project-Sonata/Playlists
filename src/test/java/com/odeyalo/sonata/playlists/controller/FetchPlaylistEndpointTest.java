@@ -2,8 +2,11 @@ package com.odeyalo.sonata.playlists.controller;
 
 import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
+import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
+import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import com.odeyalo.sonata.playlists.service.PlaylistService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
@@ -17,10 +20,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.asserts.PlaylistDtoAssert;
-import testing.faker.PlaylistFaker;
 import testing.spring.AutoConfigureSonataStubs;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
+import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -56,9 +59,17 @@ public class FetchPlaylistEndpointTest {
 
     @BeforeEach
     void prepare() {
-        Playlist playlist = PlaylistFaker.createWithNoId().withPlaylistOwnerId(PLAYLIST_OWNER_ID).get();
 
-        existingPlaylist = playlistService.save(playlist).block();
+        final CreatePlaylistInfo playlistInfo = CreatePlaylistInfo.builder()
+                .name("odeyaloo")
+                .description("cool description!")
+                .playlistType(PUBLIC)
+                .build();
+
+        existingPlaylist = playlistService.create(
+                playlistInfo,
+                PlaylistOwner.of(PLAYLIST_OWNER_ID, "odeyalkoo", EntityType.USER)
+        ).block();
     }
 
     @AfterEach
@@ -165,15 +176,14 @@ public class FetchPlaylistEndpointTest {
 
         @Test
         void shouldReturn401() {
-            WebTestClient.ResponseSpec responseSpec = sendUnauthorizedRequest("not_existing");
+            WebTestClient.ResponseSpec responseSpec = sendUnauthorizedRequest();
 
             responseSpec.expectStatus().isUnauthorized();
         }
 
-        @NotNull
-        private WebTestClient.ResponseSpec sendUnauthorizedRequest(String playlistId) {
+        private WebTestClient.@NotNull ResponseSpec sendUnauthorizedRequest() {
             return webTestClient.get()
-                    .uri("/playlist/{id}", playlistId)
+                    .uri("/playlist/{id}", "not_existing")
                     .header(HttpHeaders.AUTHORIZATION, INVALID_TOKEN)
                     .exchange();
         }
@@ -188,13 +198,18 @@ public class FetchPlaylistEndpointTest {
 
         @BeforeEach
         void setUp() {
-            final var playlist = PlaylistFaker.createWithNoId()
-                    .setPlaylistType(PRIVATE)
-                    .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
-                    .get();
+
+            final CreatePlaylistInfo playlistInfo = CreatePlaylistInfo.builder()
+                    .name("odeyaloo")
+                    .description("cool description!")
+                    .playlistType(PRIVATE)
+                    .build();
 
             //noinspection DataFlowIssue
-            PLAYLIST_ID = playlistService.save(playlist).block().getId();
+            PLAYLIST_ID = playlistService.create(
+                    playlistInfo,
+                    PlaylistOwner.of(PLAYLIST_OWNER_ID, "odeyalkoo", EntityType.USER)
+            ).block().getId();
         }
 
         @Test
