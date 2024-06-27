@@ -11,9 +11,8 @@ import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.model.track.Artist;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
-import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
-import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
+import com.odeyalo.sonata.playlists.service.PlaylistService;
 import com.odeyalo.sonata.playlists.service.tracks.InMemoryPlayableItemLoader;
 import com.odeyalo.sonata.playlists.service.tracks.PlayableItemLoader;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +35,7 @@ import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.PlaylistCollaboratorEntityFaker;
+import testing.factory.PlaylistServices;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
 import testing.spring.AutoConfigureSonataStubs;
@@ -120,13 +120,13 @@ class FetchPlaylistTracksEndpointTest {
 
         @Bean
         @Primary
-        public PlaylistRepository testPlaylistRepository() {
-            Playlist playlist = PlaylistFaker.createWithNoId()
+        public PlaylistService testPlaylistService() {
+            final Playlist playlist = PlaylistFaker.createWithNoId()
                     .setId(EXISTING_PLAYLIST_ID)
                     .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
                     .setPlaylistType(PRIVATE)
                     .get();
-            return new InMemoryPlaylistRepository(playlist);
+            return PlaylistServices.withPlaylists(playlist);
         }
 
         @Bean

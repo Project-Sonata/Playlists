@@ -15,18 +15,7 @@ public interface PlaylistRepository {
      * @return saved playlist
      */
     @NotNull
-    Mono<Playlist> save(Playlist playlist);
-
-    @NotNull
     Mono<PlaylistEntity> save(@NotNull PlaylistEntity playlist);
-
-    /**
-     * Search for the playlist by its id and returns id
-     * @param id - id to use for search
-     * @return - found Playlist or empty mono
-     */
-    @NotNull
-    Mono<Playlist> findById(String id);
 
     /**
      * Search for the playlist by its public id and returns the playlist
@@ -34,7 +23,7 @@ public interface PlaylistRepository {
      * @return - found {@link Playlist} or empty {@link Mono}
      */
     @NotNull
-    Mono<PlaylistEntity> findByPublicId(String id);
+    Mono<PlaylistEntity> findByPublicId(@NotNull String id);
 
     /**
      * Clear the repository. Commonly used in tests

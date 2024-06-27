@@ -4,7 +4,6 @@ import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.ImagesEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistRepositoryDelegate;
-import com.odeyalo.sonata.playlists.support.converter.PlaylistConverter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -40,9 +39,8 @@ class R2dbcPlaylistRepositoryTest {
     static class Config {
 
         @Bean
-        public R2dbcPlaylistRepository r2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate delegate,
-                                                               PlaylistConverter playlistConverter) {
-            return new R2dbcPlaylistRepository(delegate, playlistConverter);
+        public R2dbcPlaylistRepository r2dbcPlaylistRepository(R2dbcPlaylistRepositoryDelegate delegate) {
+            return new R2dbcPlaylistRepository(delegate);
         }
     }
 

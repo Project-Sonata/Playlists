@@ -26,12 +26,14 @@ class InMemoryPlaylistRepositoryTest {
     void shouldSaveAndThenShouldBeFound() {
         // given
         final InMemoryPlaylistRepository testable = new InMemoryPlaylistRepository();
-        final PlaylistEntity playlist = PlaylistEntityFaker.create().get();
+        final PlaylistEntity playlist = PlaylistEntityFaker.create()
+                .setPublicId("miku")
+                .get();
 
         final PlaylistEntity saved = testable.save(playlist).block();
 
         // when
-        testable.findById(playlist.getId())
+        testable.findByPublicId("miku")
                 .as(StepVerifier::create)
                 // then
                 .assertNext(found -> assertThat(found).isEqualTo(saved))
@@ -55,13 +57,15 @@ class InMemoryPlaylistRepositoryTest {
     void playlistsShouldBeDeleted() {
         // given
         final InMemoryPlaylistRepository testable = new InMemoryPlaylistRepository();
-        final PlaylistEntity playlist1 = testable.save(PlaylistEntityFaker.create().get()).block();
-        final PlaylistEntity playlist2 = testable.save(PlaylistEntityFaker.create().get()).block();
+
+        testable.save(PlaylistEntityFaker.create().setPublicId("miku1").get()).block();
+        testable.save(PlaylistEntityFaker.create().setPublicId("miku2").get()).block();
+
         // when
         testable.clear().block();
         // then
-        final PlaylistEntity found1 = testable.findById(playlist1.getId()).block();
-        final PlaylistEntity found2 = testable.findById(playlist2.getId()).block();
+        final PlaylistEntity found1 = testable.findByPublicId("miku1").block();
+        final PlaylistEntity found2 = testable.findByPublicId("miku2").block();
 
         assertThat(found1).isNull();
         assertThat(found2).isNull();
