@@ -35,8 +35,7 @@ public final class DefaultPlaylistOperations implements PlaylistOperations {
     @Override
     @NotNull
     public Mono<Playlist> createPlaylist(CreatePlaylistInfo playlistInfo, PlaylistOwner playlistOwner) {
-        final Playlist playlist = toPlaylist(playlistInfo, playlistOwner);
-        return playlistService.save(playlist);
+        return playlistService.create(playlistInfo, playlistOwner);
     }
 
     @Override
@@ -54,7 +53,7 @@ public final class DefaultPlaylistOperations implements PlaylistOperations {
 
         return playlistService.loadPlaylist(targetPlaylist)
                 .map(playlist -> partialPlaylistUpdate(updateInfo, playlist))
-                .flatMap(playlistService::save);
+                .flatMap(playlistService::update);
     }
 
     @NotNull
@@ -63,7 +62,7 @@ public final class DefaultPlaylistOperations implements PlaylistOperations {
         Image image = tuple.getT2();
 
         Playlist updatedPlaylist = Playlist.from(playlist).images(Images.single(image)).build();
-        return playlistService.save(updatedPlaylist);
+        return playlistService.update(updatedPlaylist);
     }
 
     private static Playlist partialPlaylistUpdate(PartialPlaylistDetailsUpdateInfo updateInfo, Playlist playlist) {
@@ -81,14 +80,5 @@ public final class DefaultPlaylistOperations implements PlaylistOperations {
             builder.playlistType(updateInfo.getPlaylistType());
         }
         return builder.build();
-    }
-
-    private static Playlist toPlaylist(CreatePlaylistInfo playlistInfo, PlaylistOwner playlistOwner) {
-        return Playlist.builder()
-                .name(playlistInfo.getName())
-                .description(playlistInfo.getDescription())
-                .playlistType(playlistInfo.getPlaylistType())
-                .playlistOwner(playlistOwner)
-                .build();
     }
 }
