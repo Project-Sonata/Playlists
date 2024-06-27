@@ -13,9 +13,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
@@ -25,9 +23,7 @@ import testing.spring.AutoConfigureSonataStubs;
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 
 @SpringBootTest
@@ -190,8 +186,6 @@ public class FetchPlaylistEndpointTest {
     }
 
     @Nested
-    @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
-    @NestedTestConfiguration(OVERRIDE)
     class NotPlaylistOwnerRequestTest {
         final String OTHER_USER_TOKEN = "Bearer ilovemikunakano";
         String PLAYLIST_ID;
