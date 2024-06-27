@@ -25,16 +25,6 @@ public final class DefaultPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
-    public Mono<Playlist> save(@NotNull final Playlist playlist) {
-        if ( playlist.getId() == null ) {
-            return savePlaylist(playlist);
-        }
-
-        return updatePlaylist(playlist);
-    }
-
-    @Override
-    @NotNull
     public Mono<Playlist> create(@NotNull final CreatePlaylistInfo playlistInfo,
                                  @NotNull final PlaylistOwner owner) {
 
@@ -61,14 +51,6 @@ public final class DefaultPlaylistService implements PlaylistService {
     @NotNull
     public Mono<Playlist> update(@NotNull final Playlist playlist) {
         return updatePlaylist(playlist);
-    }
-
-    @NotNull
-    private Mono<Playlist> savePlaylist(Playlist playlist) {
-        PlaylistEntity toSave = createPlaylistEntity(playlist);
-
-        return playlistRepository.save(toSave)
-                .map(playlistConverter::toPlaylist);
     }
 
     @NotNull
@@ -101,13 +83,4 @@ public final class DefaultPlaylistService implements PlaylistService {
         return playlistRepository.save(entity);
     }
 
-    @NotNull
-    private PlaylistEntity createPlaylistEntity(Playlist playlist) {
-        String playlistId = playlist.getId() != null ? playlist.getId() : RandomStringUtils.randomAlphanumeric(22);
-        PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
-        entity.setPublicId(playlistId);
-        entity.setContextUri("sonata:playlist:" + playlistId);
-
-        return entity;
-    }
 }

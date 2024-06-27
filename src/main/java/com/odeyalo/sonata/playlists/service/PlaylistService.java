@@ -12,9 +12,6 @@ import reactor.core.publisher.Mono;
  */
 public interface PlaylistService extends PlaylistLoader {
 
-    @NotNull
-    Mono<Playlist> save(@NotNull Playlist playlist);
-
     /**
      * Create a playlist based on the provided info
      * @param playlistInfo - a basic info about playlist that should be created
