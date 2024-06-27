@@ -12,26 +12,23 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
+import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient
 @AutoConfigureSonataPlaylistHttpClient
-@AutoConfigureStubRunner(stubsMode = REMOTE,
-        repositoryRoot = "${spring.contracts.repository.root}",
-        ids = "com.odeyalo.sonata:authorization:+")
+@AutoConfigureSonataStubs
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class CreatePlaylistEndpointTest {
 

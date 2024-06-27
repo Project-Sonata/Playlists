@@ -35,6 +35,7 @@ import reactor.core.publisher.Hooks;
 import testing.factory.PlaylistItemsRepositories;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
+import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 
 import java.util.Objects;
@@ -42,15 +43,12 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient
-@AutoConfigureStubRunner(stubsMode = REMOTE,
-        repositoryRoot = "${spring.contracts.repository.root}",
-        ids = "com.odeyalo.sonata:authorization:+")
+@AutoConfigureSonataStubs
 @AutoConfigureQaEnvironment
 @ActiveProfiles("test")
 @Import(Config.class)

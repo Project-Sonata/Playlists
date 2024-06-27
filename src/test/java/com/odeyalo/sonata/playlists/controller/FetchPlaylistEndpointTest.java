@@ -18,11 +18,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.asserts.PlaylistDtoAssert;
 import testing.faker.PlaylistFaker;
+import testing.spring.AutoConfigureSonataStubs;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
@@ -30,9 +30,7 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient
-@AutoConfigureStubRunner(stubsMode = REMOTE,
-        repositoryRoot = "${spring.contracts.repository.root}",
-        ids = "com.odeyalo.sonata:authorization:+")
+@AutoConfigureSonataStubs
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class FetchPlaylistEndpointTest {
     @Autowired
