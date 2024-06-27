@@ -63,7 +63,7 @@ class DefaultPlaylistServiceTest {
         //noinspection DataFlowIssue
         final Playlist updatedPlaylist = Playlist.from(savedPlaylist).name("new name!").build();
         // when
-        testable.save(updatedPlaylist)
+        testable.update(updatedPlaylist)
                 .as(StepVerifier::create)
                 // then
                 .assertNext(it -> assertThat(it.getName()).isEqualTo("new name!"))

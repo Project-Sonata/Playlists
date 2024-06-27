@@ -28,10 +28,12 @@ public final class DefaultPlaylistService implements PlaylistService {
         }
 
         return updatePlaylist(playlist);
+}
 
-//        PlaylistEntity playlistEntity = playlistConverter.toPlaylistEntity(playlist);
-//        return playlistRepository.save(playlistEntity)
-//                .map(playlistConverter::toPlaylist);
+    @Override
+    @NotNull
+    public Mono<Playlist> update(@NotNull final Playlist playlist) {
+        return updatePlaylist(playlist);
     }
 
     @NotNull

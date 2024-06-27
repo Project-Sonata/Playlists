@@ -29,17 +29,26 @@ public final class InMemoryPlaylistService implements PlaylistService {
     }
 
     @Override
-    public @NotNull Mono<Playlist> loadPlaylist(final @NotNull TargetPlaylist targetPlaylist) {
+    @NotNull
+    public Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
         return loadPlaylist(targetPlaylist.getPlaylistId());
     }
 
     @Override
-    public @NotNull Mono<Playlist> save(@NotNull final Playlist playlist) {
+    @NotNull
+    public Mono<Playlist> save(@NotNull final Playlist playlist) {
         return Mono.fromCallable(() -> doSave(playlist));
     }
 
     @Override
-    public @NotNull Mono<Playlist> loadPlaylist(@NotNull final String id) {
+    @NotNull
+    public Mono<Playlist> update(@NotNull final Playlist playlist) {
+        return Mono.fromCallable(() -> doSave(playlist));
+    }
+
+    @Override
+    @NotNull
+    public Mono<Playlist> loadPlaylist(@NotNull final String id) {
         return Mono.justOrEmpty(
                 playlists.get(id)
         );

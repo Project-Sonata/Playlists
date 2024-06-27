@@ -14,6 +14,14 @@ public interface PlaylistService extends PlaylistLoader {
     @NotNull
     Mono<Playlist> save(@NotNull Playlist playlist);
 
+    /**
+     * Update existing playlist with new values
+     * @param playlist - existing playlist with new values
+     * @return - a {@link Mono} with {@link Playlist}
+     */
+    @NotNull
+    Mono<Playlist> update(@NotNull Playlist playlist);
+
     @NotNull
     Mono<Playlist> loadPlaylist(@NotNull String id);
 }
