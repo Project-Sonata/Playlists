@@ -12,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -22,13 +21,13 @@ import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
+import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
@@ -37,9 +36,7 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 @AutoConfigureWebTestClient
 @AutoConfigureSonataPlaylistHttpClient
 @AutoConfigureQaEnvironment
-@AutoConfigureStubRunner(stubsMode = REMOTE,
-        repositoryRoot = "${spring.contracts.repository.root}",
-        ids = "com.odeyalo.sonata:authorization:+")
+@AutoConfigureSonataStubs
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class PlaylistImageUploadEndpointTest {
     public static final String INVALID_TOKEN = "Bearer invalidtoken";

@@ -11,11 +11,8 @@ import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.model.track.Artist;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistItemsRepository;
-import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
-import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
-import com.odeyalo.sonata.playlists.service.PlaylistLoader;
-import com.odeyalo.sonata.playlists.service.RepositoryDelegatePlaylistLoader;
+import com.odeyalo.sonata.playlists.service.PlaylistService;
 import com.odeyalo.sonata.playlists.service.tracks.InMemoryPlayableItemLoader;
 import com.odeyalo.sonata.playlists.service.tracks.PlayableItemLoader;
 import org.jetbrains.annotations.NotNull;
@@ -38,8 +35,10 @@ import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.PlaylistCollaboratorEntityFaker;
+import testing.factory.PlaylistServices;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
+import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 
 import java.time.Instant;
@@ -52,15 +51,12 @@ import static com.odeyalo.sonata.playlists.controller.FetchPlaylistTracksEndpoin
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient
-@AutoConfigureStubRunner(stubsMode = REMOTE,
-        repositoryRoot = "${spring.contracts.repository.root}",
-        ids = "com.odeyalo.sonata:authorization:+")
+@AutoConfigureSonataStubs
 @AutoConfigureQaEnvironment
 @ActiveProfiles("test")
 @Import(TestConfig.class)
@@ -124,19 +120,13 @@ class FetchPlaylistTracksEndpointTest {
 
         @Bean
         @Primary
-        public PlaylistLoader testPlaylistLoader(PlaylistRepository playlistRepository) {
-            return new RepositoryDelegatePlaylistLoader(playlistRepository);
-        }
-
-        @Bean
-        @Primary
-        public PlaylistRepository testPlaylistRepository() {
-            Playlist playlist = PlaylistFaker.createWithNoId()
+        public PlaylistService testPlaylistService() {
+            final Playlist playlist = PlaylistFaker.createWithNoId()
                     .setId(EXISTING_PLAYLIST_ID)
                     .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
                     .setPlaylistType(PRIVATE)
                     .get();
-            return new InMemoryPlaylistRepository(playlist);
+            return PlaylistServices.withPlaylists(playlist);
         }
 
         @Bean

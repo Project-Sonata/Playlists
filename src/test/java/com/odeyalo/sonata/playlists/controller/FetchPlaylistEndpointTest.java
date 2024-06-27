@@ -4,6 +4,7 @@ import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PlaylistDto;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
+import com.odeyalo.sonata.playlists.service.PlaylistService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.asserts.PlaylistDtoAssert;
 import testing.faker.PlaylistFaker;
+import testing.spring.AutoConfigureSonataStubs;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
@@ -29,9 +30,7 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient
-@AutoConfigureStubRunner(stubsMode = REMOTE,
-        repositoryRoot = "${spring.contracts.repository.root}",
-        ids = "com.odeyalo.sonata:authorization:+")
+@AutoConfigureSonataStubs
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class FetchPlaylistEndpointTest {
     @Autowired
@@ -43,6 +42,9 @@ public class FetchPlaylistEndpointTest {
 
     @Autowired
     PlaylistRepository playlistRepository;
+
+    @Autowired
+    PlaylistService playlistService;
 
     Playlist existingPlaylist;
 
@@ -56,7 +58,7 @@ public class FetchPlaylistEndpointTest {
     void prepare() {
         Playlist playlist = PlaylistFaker.createWithNoId().withPlaylistOwnerId(PLAYLIST_OWNER_ID).get();
 
-        existingPlaylist = playlistRepository.save(playlist).block();
+        existingPlaylist = playlistService.save(playlist).block();
     }
 
     @AfterEach
@@ -177,7 +179,6 @@ public class FetchPlaylistEndpointTest {
         }
     }
 
-
     @Nested
     @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
     @NestedTestConfiguration(OVERRIDE)
@@ -193,7 +194,7 @@ public class FetchPlaylistEndpointTest {
                     .get();
 
             //noinspection DataFlowIssue
-            PLAYLIST_ID = playlistRepository.save(playlist).block().getId();
+            PLAYLIST_ID = playlistService.save(playlist).block().getId();
         }
 
         @Test

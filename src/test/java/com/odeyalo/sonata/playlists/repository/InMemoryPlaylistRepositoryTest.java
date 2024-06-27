@@ -1,83 +1,71 @@
 package com.odeyalo.sonata.playlists.repository;
 
-import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import org.junit.jupiter.api.Test;
-import testing.faker.PlaylistFaker;
+import reactor.test.StepVerifier;
+import testing.faker.PlaylistEntityFaker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class InMemoryPlaylistRepositoryTest {
 
     @Test
-    void save() {
+    void shouldReturnTheSamePlaylistAsWasSaved() {
         // given
-        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-        Playlist playlist = PlaylistFaker.create().get();
+        final InMemoryPlaylistRepository testable = new InMemoryPlaylistRepository();
+        final PlaylistEntity playlist = PlaylistEntityFaker.create().get();
         // when
-        Playlist saved = repository.save(playlist).block();
-        // then
-        assertThat(playlist).isEqualTo(saved);
+        testable.save(playlist)
+                .as(StepVerifier::create)
+                // then
+                .expectNext(playlist)
+                .verifyComplete();
     }
 
     @Test
     void shouldSaveAndThenShouldBeFound() {
         // given
-        Playlist playlist = PlaylistFaker.create().get();
-        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
+        final InMemoryPlaylistRepository testable = new InMemoryPlaylistRepository();
+        final PlaylistEntity playlist = PlaylistEntityFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final PlaylistEntity saved = testable.save(playlist).block();
+
         // when
-        repository.save(playlist).block();
-        // then
-        Playlist found = repository.findById(playlist.getId()).block();
-
-        assertThat(playlist).isEqualTo(found);
+        testable.findByPublicId("miku")
+                .as(StepVerifier::create)
+                // then
+                .assertNext(found -> assertThat(found).isEqualTo(saved))
+                .verifyComplete();
     }
 
     @Test
-    void shouldAutoGenerateIdForEntity() {
-        Playlist playlist = PlaylistFaker.create().setId(null).get();
-        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-
-        Playlist saved = repository.save(playlist).block();
-
-        assertThat(saved).isNotNull();
-        assertThat(saved.getId()).isNotNull();
-    }
-
-    @Test
-    void shouldAutoGenerateIdForEntity_andThenEntityCanBeFoundWithIt() {
-        Playlist playlist = PlaylistFaker.create().setId(null).get();
-        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-
-        Playlist saved = repository.save(playlist).block();
-
-        assertThat(saved).isNotNull();
-
-        Playlist found = repository.findById(saved.getId()).block();
-
-        assertThat(saved).isEqualTo(found);
-    }
-
-    @Test
-    void findByNotExistingId_andExpectNull() {
+    void shouldAutoGenerateInternalIdForPlaylist() {
         // given
-        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
+        final PlaylistEntity playlist = PlaylistEntityFaker.createWithNoId().get();
+        final InMemoryPlaylistRepository testable = new InMemoryPlaylistRepository();
         // when
-        Playlist actual = repository.findById("not_existing").block();
-        // then
-        assertThat(actual).isNull();
+        testable.save(playlist)
+                .as(StepVerifier::create)
+                // then
+                .assertNext(it -> assertThat(it.getId()).isNotNull())
+                .verifyComplete();
     }
 
     @Test
-    void clear_andExpectRepositoryToBeCleared() {
+    void playlistsShouldBeDeleted() {
         // given
-        InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-        Playlist playlist1 = repository.save(PlaylistFaker.create().get()).block();
-        Playlist playlist2 = repository.save(PlaylistFaker.create().get()).block();
+        final InMemoryPlaylistRepository testable = new InMemoryPlaylistRepository();
+
+        testable.save(PlaylistEntityFaker.create().setPublicId("miku1").get()).block();
+        testable.save(PlaylistEntityFaker.create().setPublicId("miku2").get()).block();
+
         // when
-        repository.clear().block();
+        testable.clear().block();
         // then
-        Playlist found1 = repository.findById(playlist1.getId()).block();
-        Playlist found2 = repository.findById(playlist2.getId()).block();
+        final PlaylistEntity found1 = testable.findByPublicId("miku1").block();
+        final PlaylistEntity found2 = testable.findByPublicId("miku2").block();
 
         assertThat(found1).isNull();
         assertThat(found2).isNull();

@@ -4,7 +4,6 @@ import com.odeyalo.sonata.playlists.model.Image;
 import com.odeyalo.sonata.playlists.model.Images;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
-import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.service.upload.ImageUploader;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,42 +13,48 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 /**
- * Default PlaylistOperations implementation that just save playlist in repository
+ * Default {@link PlaylistOperations} implementation that just save playlist in repository
  */
 @Service
-public class DefaultPlaylistOperations implements PlaylistOperations {
-    private final PlaylistRepository playlistRepository;
+public final class DefaultPlaylistOperations implements PlaylistOperations {
+    private final PlaylistService playlistService;
     private final ImageUploader imageUploader;
 
     @Autowired
-    public DefaultPlaylistOperations(PlaylistRepository playlistRepository, ImageUploader imageUploader) {
-        this.playlistRepository = playlistRepository;
+    public DefaultPlaylistOperations(final PlaylistService playlistService, final ImageUploader imageUploader) {
+        this.playlistService = playlistService;
         this.imageUploader = imageUploader;
     }
 
     @Override
-    public Mono<Playlist> findById(String playlistId) {
-        return playlistRepository.findById(playlistId);
+    @NotNull
+    public Mono<Playlist> findById(@NotNull String playlistId) {
+        return playlistService.loadPlaylist(playlistId);
     }
 
     @Override
+    @NotNull
     public Mono<Playlist> createPlaylist(CreatePlaylistInfo playlistInfo, PlaylistOwner playlistOwner) {
-        Playlist playlist = toPlaylist(playlistInfo, playlistOwner);
-        return playlistRepository.save(playlist);
+        final Playlist playlist = toPlaylist(playlistInfo, playlistOwner);
+        return playlistService.save(playlist);
     }
 
     @Override
-    public Mono<Playlist> updatePlaylistCoverImage(TargetPlaylist targetPlaylist, Mono<FilePart> file) {
-        return playlistRepository.findById(targetPlaylist.getPlaylistId())
+    public Mono<Playlist> updatePlaylistCoverImage(@NotNull final TargetPlaylist targetPlaylist,
+                                                   @NotNull final Mono<FilePart> file) {
+
+        return playlistService.loadPlaylist(targetPlaylist)
                 .zipWith(imageUploader.uploadImage(file))
                 .flatMap(this::uploadImageAndSavePlaylist);
     }
 
     @Override
-    public Mono<Playlist> updatePlaylistInfo(TargetPlaylist targetPlaylist, PartialPlaylistDetailsUpdateInfo updateInfo) {
-        return playlistRepository.findById(targetPlaylist.getPlaylistId())
+    public Mono<Playlist> updatePlaylistInfo(@NotNull final TargetPlaylist targetPlaylist,
+                                             @NotNull final PartialPlaylistDetailsUpdateInfo updateInfo) {
+
+        return playlistService.loadPlaylist(targetPlaylist)
                 .map(playlist -> partialPlaylistUpdate(updateInfo, playlist))
-                .flatMap(playlistRepository::save);
+                .flatMap(playlistService::save);
     }
 
     @NotNull
@@ -58,21 +63,21 @@ public class DefaultPlaylistOperations implements PlaylistOperations {
         Image image = tuple.getT2();
 
         Playlist updatedPlaylist = Playlist.from(playlist).images(Images.single(image)).build();
-        return playlistRepository.save(updatedPlaylist);
+        return playlistService.save(updatedPlaylist);
     }
 
     private static Playlist partialPlaylistUpdate(PartialPlaylistDetailsUpdateInfo updateInfo, Playlist playlist) {
         Playlist.PlaylistBuilder builder = Playlist.from(playlist);
 
-        if (updateInfo.getName() != null) {
+        if ( updateInfo.getName() != null ) {
             builder.name(updateInfo.getName());
         }
 
-        if (updateInfo.getDescription() != null) {
+        if ( updateInfo.getDescription() != null ) {
             builder.description(updateInfo.getDescription());
         }
 
-        if (updateInfo.getPlaylistType() != null) {
+        if ( updateInfo.getPlaylistType() != null ) {
             builder.playlistType(updateInfo.getPlaylistType());
         }
         return builder.build();

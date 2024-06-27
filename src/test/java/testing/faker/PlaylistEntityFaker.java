@@ -2,7 +2,6 @@ package testing.faker;
 
 import com.github.javafaker.Faker;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
-import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -31,6 +30,9 @@ public class PlaylistEntityFaker {
         return create().setId(null);
     }
 
+    public PlaylistEntity get() {
+        return builder.build();
+    }
 
     public PlaylistEntity asR2dbcEntity() {
         return builder.build();
@@ -59,6 +61,11 @@ public class PlaylistEntityFaker {
 
     public PlaylistEntityFaker setPlaylistType(PlaylistType playlistType) {
         builder.playlistType(playlistType);
+        return this;
+    }
+
+    public PlaylistEntityFaker setContextUri(final String contextUri) {
+        builder.contextUri(contextUri);
         return this;
     }
 }

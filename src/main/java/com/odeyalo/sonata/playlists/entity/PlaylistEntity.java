@@ -3,6 +3,7 @@ package com.odeyalo.sonata.playlists.entity;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
@@ -15,7 +16,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "playlists")
 public class PlaylistEntity implements Persistable<Long> {
@@ -35,6 +36,11 @@ public class PlaylistEntity implements Persistable<Long> {
     List<ImageEntity> images = new ArrayList<>();
     @Transient
     PlaylistOwnerEntity playlistOwner;
+
+    @NotNull
+    public static PlaylistEntityBuilder from(@NotNull final PlaylistEntity copyFrom) {
+        return copyFrom.toBuilder();
+    }
 
     @Override
     public boolean isNew() {
