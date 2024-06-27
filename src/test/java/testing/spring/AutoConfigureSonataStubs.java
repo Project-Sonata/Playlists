@@ -7,11 +7,11 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
+import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.REMOTE;
 
 @Retention(RUNTIME)
 @Target(TYPE)
-@AutoConfigureStubRunner(stubsMode = CLASSPATH,
+@AutoConfigureStubRunner(stubsMode = REMOTE,
         repositoryRoot = "${spring.contracts.repository.root}",
         ids = "com.odeyalo.sonata:authorization:+")
 public @interface AutoConfigureSonataStubs {}
