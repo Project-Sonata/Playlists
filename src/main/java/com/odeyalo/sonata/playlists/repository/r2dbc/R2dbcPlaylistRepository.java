@@ -51,6 +51,11 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
                 .map(playlistConverter::toPlaylist);
     }
 
+    @NotNull
+    public Mono<PlaylistEntity> findByPublicId(@NotNull final String publicId) {
+        return playlistRepositoryDelegate.findByPublicId(publicId);
+    }
+
     @Override
     @NotNull
     public Mono<Void> clear() {
@@ -90,10 +95,5 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
         entity.setContextUri("sonata:playlist:" + playlistId);
 
         return entity;
-    }
-
-    @NotNull
-    public Mono<PlaylistEntity> findByPublicId(@NotNull final String publicId) {
-        return playlistRepositoryDelegate.findByPublicId(publicId);
     }
 }

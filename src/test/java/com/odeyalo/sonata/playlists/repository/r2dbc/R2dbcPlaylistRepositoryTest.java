@@ -117,9 +117,9 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.save(playlist).block();
 
-        r2dbcPlaylistRepository.findById("miku")
+        r2dbcPlaylistRepository.findByPublicId("miku")
                 .as(StepVerifier::create)
-                .assertNext(it -> assertThat(it.getName()).isEqualTo("Lo-Fi"))
+                .assertNext(it -> assertThat(it.getPlaylistName()).isEqualTo("Lo-Fi"))
                 .verifyComplete();
     }
 
@@ -132,7 +132,7 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.save(playlist).block();
 
-        r2dbcPlaylistRepository.findById("miku")
+        r2dbcPlaylistRepository.findByPublicId("miku")
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getPlaylistType()).isEqualTo(PUBLIC))
                 .verifyComplete();
@@ -199,9 +199,9 @@ class R2dbcPlaylistRepositoryTest {
         insertPlaylist(newPlaylist);
 
         // then
-        r2dbcPlaylistRepository.findById("miku")
+        r2dbcPlaylistRepository.findByPublicId("miku")
                 .as(StepVerifier::create)
-                .assertNext(it -> assertThat(it.getDescription()).isEqualTo("There is my new description!"))
+                .assertNext(it -> assertThat(it.getPlaylistDescription()).isEqualTo("There is my new description!"))
                 .verifyComplete();
     }
 

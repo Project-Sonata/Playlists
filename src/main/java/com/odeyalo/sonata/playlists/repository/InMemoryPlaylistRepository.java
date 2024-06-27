@@ -90,6 +90,15 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
     }
 
     @Override
+    public @NotNull Mono<PlaylistEntity> findByPublicId(final String id) {
+        return Mono.justOrEmpty(
+                playlistsEntities.values().stream()
+                        .filter(it -> Objects.equals(it.getPublicId(), id))
+                        .findFirst()
+        );
+    }
+
+    @Override
     @NotNull
     public Mono<Void> clear() {
         return Mono.fromRunnable(() -> {
