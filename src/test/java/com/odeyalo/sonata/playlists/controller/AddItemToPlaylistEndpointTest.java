@@ -12,8 +12,6 @@ import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
-import com.odeyalo.sonata.playlists.service.PlaylistLoader;
-import com.odeyalo.sonata.playlists.service.PlaylistService;
 import com.odeyalo.sonata.playlists.service.tracks.InMemoryPlayableItemLoader;
 import com.odeyalo.sonata.playlists.service.tracks.PlayableItemLoader;
 import org.jetbrains.annotations.NotNull;
@@ -87,12 +85,6 @@ class AddItemToPlaylistEndpointTest {
         public PlayableItemLoader testPlayableItemLoader() {
             TrackPlayableItem playableItem = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).setContextUri(TRACK_1_CONTEXT_URI).get();
             return new InMemoryPlayableItemLoader(playableItem);
-        }
-
-        @Bean
-        @Primary
-        public PlaylistLoader testPlaylistLoader(PlaylistRepository playlistRepository) {
-            return new PlaylistService(playlistRepository);
         }
 
         @Bean

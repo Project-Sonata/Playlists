@@ -8,12 +8,12 @@ import testing.faker.PlaylistFaker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PlaylistServiceTest {
+class DefaultPlaylistServiceTest {
 
     @Test
     void shouldSavePlaylist() {
         // given
-        final PlaylistService testable = new PlaylistService(new InMemoryPlaylistRepository());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository());
         final Playlist playlist = PlaylistFaker.create().get();
         // when
         testable.save(playlist)
@@ -27,7 +27,7 @@ class PlaylistServiceTest {
     void savedPlaylistShouldBeFound() {
         // given
         final Playlist playlist = PlaylistFaker.create().get();
-        final PlaylistService testable = new PlaylistService(new InMemoryPlaylistRepository());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository());
         // when
         final Playlist saved = testable.save(playlist).block();
         // then
@@ -39,7 +39,7 @@ class PlaylistServiceTest {
     @Test
     void shouldReturnNothingIfPlaylistDoesNotExistByProvidedId() {
         // given
-        final PlaylistService testable = new PlaylistService(new InMemoryPlaylistRepository());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository());
         // when
         testable.loadPlaylist("not_existing")
                 .as(StepVerifier::create)
