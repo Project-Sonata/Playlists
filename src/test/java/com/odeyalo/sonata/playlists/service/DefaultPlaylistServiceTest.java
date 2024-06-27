@@ -1,27 +1,32 @@
 package com.odeyalo.sonata.playlists.service;
 
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.support.converter.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.faker.PlaylistFaker;
+import testing.faker.PlaylistOwnerFaker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultPlaylistServiceTest {
 
     @Test
-    void shouldSavePlaylistIfPlaylistHasNoId() {
+    void shouldReturnPlaylistNameSameToProvided() {
         // given
         final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
-        final Playlist playlist = PlaylistFaker.createWithNoId().get();
+
+        final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
+        final PlaylistOwner owner = PlaylistOwnerFaker.create().get();
+
         // when
-        testable.save(playlist)
+        testable.create(createPlaylistInfo, owner)
                 .as(StepVerifier::create)
                 // then
-                .assertNext(it -> assertThat(it).usingRecursiveComparison().ignoringFields("id", "contextUri").isEqualTo(playlist))
+                .assertNext(it -> assertThat(it.getName()).isEqualTo("Lo-Fi"))
                 .verifyComplete();
     }
 
@@ -29,9 +34,12 @@ class DefaultPlaylistServiceTest {
     void shouldGenerateIdForNewPlaylist() {
         // given
         final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
-        final Playlist playlist = PlaylistFaker.createWithNoId().get();
+
+        final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
+        final PlaylistOwner owner = PlaylistOwnerFaker.create().get();
+
         // when
-        testable.save(playlist)
+        testable.create(createPlaylistInfo, owner)
                 .as(StepVerifier::create)
                 // then
                 .assertNext(it -> assertThat(it.getId()).isNotNull())
@@ -42,9 +50,12 @@ class DefaultPlaylistServiceTest {
     void shouldGenerateContextUriForNewPlaylist() {
         // given
         final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
-        final Playlist playlist = PlaylistFaker.createWithNoId().get();
+
+        final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
+        final PlaylistOwner owner = PlaylistOwnerFaker.create().get();
+
         // when
-        testable.save(playlist)
+        testable.create(createPlaylistInfo, owner)
                 .as(StepVerifier::create)
                 // then
                 .assertNext(it -> assertThat(it.getContextUri().asString()).isEqualTo("sonata:playlist:" + it.getId()))

@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.service;
 
 import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import org.apache.commons.lang.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
@@ -42,6 +43,16 @@ public final class InMemoryPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
+    public Mono<Playlist> create(@NotNull final CreatePlaylistInfo playlistInfo,
+                                 @NotNull final PlaylistOwner owner) {
+
+        final Playlist playlist = toPlaylist(playlistInfo, owner);
+
+        return Mono.fromCallable(() -> doSave(playlist));
+    }
+
+    @Override
+    @NotNull
     public Mono<Playlist> update(@NotNull final Playlist playlist) {
         return Mono.fromCallable(() -> doSave(playlist));
     }
@@ -69,5 +80,15 @@ public final class InMemoryPlaylistService implements PlaylistService {
         }
 
         return playlist;
+    }
+
+
+    private static Playlist toPlaylist(CreatePlaylistInfo playlistInfo, PlaylistOwner playlistOwner) {
+        return Playlist.builder()
+                .name(playlistInfo.getName())
+                .description(playlistInfo.getDescription())
+                .playlistType(playlistInfo.getPlaylistType())
+                .playlistOwner(playlistOwner)
+                .build();
     }
 }
