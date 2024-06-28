@@ -57,7 +57,7 @@ class DefaultPlaylistServiceTest {
         testable.create(createPlaylistInfo, PLAYLIST_OWNER)
                 .as(StepVerifier::create)
                 // then
-                .assertNext(it -> assertThat(it.getContextUri().asString()).isEqualTo("sonata:playlist:" + it.getId()))
+                .assertNext(it -> assertThat(it.getContextUri().asString()).isEqualTo("sonata:playlist:" + it.getId().value()))
                 .verifyComplete();
     }
 
@@ -87,7 +87,7 @@ class DefaultPlaylistServiceTest {
 
         // then
         //noinspection DataFlowIssue
-        final Playlist found = testable.loadPlaylist(saved.getId()).block();
+        final Playlist found = testable.loadPlaylist(saved.getId().value()).block();
 
         assertThat(saved).isEqualTo(found);
     }

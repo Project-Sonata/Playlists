@@ -51,7 +51,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @NotNull
     private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull Playlist playlist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
-        return itemsRepository.getPlaylistSize(playlist.getId())
+        return itemsRepository.getPlaylistSize(playlist.getId().value())
                 .flatMapMany(playlistSize ->
                         Flux.fromArray(addItemPayload.getUris())
                                 .flatMap(contextUriParser::parse)
@@ -61,7 +61,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                     final ContextUri contextUri = tuple.getT2();
                                     final int position = (int) (playlistSize + currentIndex);
 
-                                    return saveItem(playlist.getId(), collaborator, contextUri, position);
+                                    return saveItem(playlist.getId().value(), collaborator, contextUri, position);
                                 })
                 );
     }

@@ -21,7 +21,7 @@ public final class DefaultPlaylistEntityFactory implements PlaylistEntityFactory
         final PlaylistEntityBuilder builder = PlaylistEntity.builder();
 
         return builder
-                .publicId(playlist.getId())
+                .publicId(playlist.getId().value())
                 .playlistName(playlist.getName())
                 .playlistDescription(playlist.getDescription())
                 .playlistType(playlist.getPlaylistType())

@@ -97,7 +97,7 @@ public class FetchPlaylistEndpointTest {
 
             PlaylistDto body = responseSpec.expectBody(PlaylistDto.class).returnResult().getResponseBody();
 
-            PlaylistDtoAssert.forPlaylist(body).id().isEqualTo(existingPlaylist.getId());
+            PlaylistDtoAssert.forPlaylist(body).id().isEqualTo(existingPlaylist.getId().value());
         }
 
         @Test
@@ -133,7 +133,7 @@ public class FetchPlaylistEndpointTest {
 
             PlaylistDto body = responseSpec.expectBody(PlaylistDto.class).returnResult().getResponseBody();
 
-            PlaylistDtoAssert.forPlaylist(body).contextUri().isEqualTo("sonata:playlist:" + existingPlaylist.getId());
+            PlaylistDtoAssert.forPlaylist(body).contextUri().isEqualTo("sonata:playlist:" + existingPlaylist.getId().value());
         }
 
         @Test
@@ -146,7 +146,7 @@ public class FetchPlaylistEndpointTest {
         }
 
         private WebTestClient.ResponseSpec prepareAndSend() {
-            return sendRequest(existingPlaylist.getId());
+            return sendRequest(existingPlaylist.getId().value());
         }
     }
 
@@ -203,7 +203,7 @@ public class FetchPlaylistEndpointTest {
             PLAYLIST_ID = playlistService.create(
                     playlistInfo,
                     PlaylistOwner.of(PLAYLIST_OWNER_ID, "odeyalkoo", EntityType.USER)
-            ).block().getId();
+            ).block().getId().value();
         }
 
         @Test

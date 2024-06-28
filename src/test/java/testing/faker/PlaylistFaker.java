@@ -1,11 +1,7 @@
 package testing.faker;
 
 import com.github.javafaker.Faker;
-import com.odeyalo.sonata.playlists.model.Images;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistOwner;
-import com.odeyalo.sonata.playlists.model.PlaylistType;
-import org.apache.commons.lang3.RandomStringUtils;
+import com.odeyalo.sonata.playlists.model.*;
 
 /**
  * Create a faked {@link Playlist} that can be used in tests
@@ -13,13 +9,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 public class PlaylistFaker {
     private final Playlist.PlaylistBuilder builder = Playlist.builder();
 
-    private Faker faker = Faker.instance();
+    private final Faker faker = Faker.instance();
 
     public PlaylistFaker() {
+        final PlaylistId playlistId = PlaylistId.random();
+
         builder
-                .id(RandomStringUtils.randomAlphanumeric(16))
+                .id(playlistId)
                 .name(faker.name().title())
                 .description(faker.weather().description())
+                .contextUri(playlistId.asContextUri())
                 .playlistType(faker.options().option(PlaylistType.class))
                 .playlistOwner(PlaylistOwnerFaker.create().get());
     }
@@ -29,7 +28,7 @@ public class PlaylistFaker {
     }
 
     public PlaylistFaker setId(String id) {
-        builder.id(id);
+        builder.id(PlaylistId.of(id));
         return this;
     }
 

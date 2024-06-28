@@ -524,7 +524,8 @@ class DefaultPlaylistItemsOperationsTest {
             this.playlistLoader = PlaylistLoaders.withPlaylists(playlists);
             if ( itemsRepository == null ) {
                 this.itemsRepository = PlaylistItemsRepositories.withPlaylistIds(Arrays.stream(playlists)
-                        .map(Playlist::getId).collect(Collectors.toSet()));
+                        .map(playlist -> playlist.getId().value())
+                        .collect(Collectors.toSet()));
             }
             return this;
         }

@@ -5,7 +5,6 @@ import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -21,7 +20,7 @@ import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
 @Builder(toBuilder = true)
 public class Playlist {
     @NotNull
-    String id;
+    PlaylistId id;
     String name;
     String description;
     ContextUri contextUri;
@@ -59,14 +58,15 @@ public class Playlist {
         @NotNull
         public Playlist create(@NotNull final CreatePlaylistInfo playlistInfo,
                                @NotNull final PlaylistOwner owner) {
-            final String id = RandomStringUtils.randomAlphanumeric(22);
+
+            final PlaylistId id = PlaylistId.random();
 
             return Playlist.builder()
                     .id(id)
                     .name(playlistInfo.getName())
                     .description(playlistInfo.getDescription())
                     .playlistType(playlistInfo.getPlaylistType())
-                    .contextUri(ContextUri.forPlaylist(id))
+                    .contextUri(id.asContextUri())
                     .playlistOwner(owner)
                     .build();
         }
