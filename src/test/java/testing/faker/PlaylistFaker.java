@@ -16,7 +16,8 @@ public class PlaylistFaker {
     private Faker faker = Faker.instance();
 
     public PlaylistFaker() {
-        builder.id(RandomStringUtils.randomAlphanumeric(16))
+        builder
+                .id(RandomStringUtils.randomAlphanumeric(16))
                 .name(faker.name().title())
                 .description(faker.weather().description())
                 .playlistType(faker.options().option(PlaylistType.class))
@@ -26,11 +27,6 @@ public class PlaylistFaker {
     public static PlaylistFaker create() {
         return new PlaylistFaker();
     }
-
-    public static PlaylistFaker createWithNoId() {
-        return new PlaylistFaker().setId(null);
-    }
-
 
     public PlaylistFaker setId(String id) {
         builder.id(id);

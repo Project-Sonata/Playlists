@@ -20,6 +20,7 @@ import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
 @AllArgsConstructor(staticName = "of")
 @Builder(toBuilder = true)
 public class Playlist {
+    @NotNull
     String id;
     String name;
     String description;

@@ -90,7 +90,7 @@ class AddItemToPlaylistEndpointTest {
         @Bean
         @Primary
         public PlaylistService testPlaylistService() {
-            final Playlist playlist = PlaylistFaker.createWithNoId().setId(EXISTING_PLAYLIST_ID).withPlaylistOwnerId(USER_ID).get();
+            final Playlist playlist = PlaylistFaker.create().setId(EXISTING_PLAYLIST_ID).withPlaylistOwnerId(USER_ID).get();
             return PlaylistServices.withPlaylists(playlist);
         }
 

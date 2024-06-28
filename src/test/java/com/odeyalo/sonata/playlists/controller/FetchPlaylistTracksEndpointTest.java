@@ -121,7 +121,7 @@ class FetchPlaylistTracksEndpointTest {
         @Bean
         @Primary
         public PlaylistService testPlaylistService() {
-            final Playlist playlist = PlaylistFaker.createWithNoId()
+            final Playlist playlist = PlaylistFaker.create()
                     .setId(EXISTING_PLAYLIST_ID)
                     .withPlaylistOwnerId(PLAYLIST_OWNER_ID)
                     .setPlaylistType(PRIVATE)
