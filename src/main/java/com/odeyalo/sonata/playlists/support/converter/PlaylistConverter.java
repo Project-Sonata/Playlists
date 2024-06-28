@@ -25,6 +25,6 @@ public interface PlaylistConverter {
     @Mapping(target = "playlistName", source = "name")
     @Mapping(target = "playlistDescription", source = "description")
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "contextUri", ignore = true)
+    @Mapping(target = "contextUri", expression = "java( playlist.getContextUri().asString() )")
     PlaylistEntity toPlaylistEntity(Playlist playlist);
 }

@@ -1,9 +1,12 @@
 package com.odeyalo.sonata.playlists.model;
 
 import com.odeyalo.sonata.common.context.ContextUri;
+import com.odeyalo.sonata.playlists.service.CreatePlaylistInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -15,7 +18,7 @@ import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
  */
 @Value
 @AllArgsConstructor(staticName = "of")
-@Builder
+@Builder(toBuilder = true)
 public class Playlist {
     String id;
     String name;
@@ -29,24 +32,18 @@ public class Playlist {
     @Builder.Default
     EntityType type = PLAYLIST;
 
-    public static PlaylistBuilder from(Playlist playlist) {
-        return builder()
-                .id(playlist.getId())
-                .name(playlist.getName())
-                .description(playlist.getDescription())
-                .playlistType(playlist.getPlaylistType())
-                .images(playlist.getImages())
-                .playlistOwner(playlist.getPlaylistOwner())
-                .type(playlist.getType());
+    @NotNull
+    public static PlaylistBuilder from(@NotNull final Playlist playlist) {
+        return playlist.toBuilder();
     }
 
-    public boolean isWritePermissionGrantedFor(final User authorizedUser) {
+    public boolean isWritePermissionGrantedFor(@NotNull final User authorizedUser) {
         return Objects.equals(
                 playlistOwner.getId(), authorizedUser.getId()
         );
     }
 
-    public boolean isReadPermissionGrantedFor(final User authorizedUser) {
+    public boolean isReadPermissionGrantedFor(@NotNull final User authorizedUser) {
         return isPublicPlaylist() || Objects.equals(
                 playlistOwner.getId(), authorizedUser.getId()
         );
@@ -54,5 +51,23 @@ public class Playlist {
 
     private boolean isPublicPlaylist() {
         return playlistType == PUBLIC;
+    }
+
+    public static class Factory {
+
+        @NotNull
+        public Playlist create(@NotNull final CreatePlaylistInfo playlistInfo,
+                               @NotNull final PlaylistOwner owner) {
+            final String id = RandomStringUtils.randomAlphanumeric(22);
+
+            return Playlist.builder()
+                    .id(id)
+                    .name(playlistInfo.getName())
+                    .description(playlistInfo.getDescription())
+                    .playlistType(playlistInfo.getPlaylistType())
+                    .contextUri(ContextUri.forPlaylist(id))
+                    .playlistOwner(owner)
+                    .build();
+        }
     }
 }

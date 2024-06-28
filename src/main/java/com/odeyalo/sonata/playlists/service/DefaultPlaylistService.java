@@ -1,13 +1,10 @@
 package com.odeyalo.sonata.playlists.service;
 
-import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
-import com.odeyalo.sonata.playlists.entity.PlaylistOwnerEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistConverter;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -16,11 +13,14 @@ import reactor.core.publisher.Mono;
 public final class DefaultPlaylistService implements PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final PlaylistConverter playlistConverter;
+    private final Playlist.Factory playlistFactory;
 
     public DefaultPlaylistService(final PlaylistRepository playlistRepository,
-                                  final PlaylistConverter playlistConverter) {
+                                  final PlaylistConverter playlistConverter,
+                                  final Playlist.Factory playlistFactory) {
         this.playlistRepository = playlistRepository;
         this.playlistConverter = playlistConverter;
+        this.playlistFactory = playlistFactory;
     }
 
     @Override
@@ -28,22 +28,11 @@ public final class DefaultPlaylistService implements PlaylistService {
     public Mono<Playlist> create(@NotNull final CreatePlaylistInfo playlistInfo,
                                  @NotNull final PlaylistOwner owner) {
 
-        final String id = RandomStringUtils.randomAlphanumeric(22);
+        final Playlist playlist = playlistFactory.create(playlistInfo, owner);
 
-        final PlaylistEntity entity = PlaylistEntity.builder()
-                .publicId(id)
-                .playlistName(playlistInfo.getName())
-                .playlistDescription(playlistInfo.getDescription())
-                .playlistType(playlistInfo.getPlaylistType())
-                .contextUri(ContextUri.forPlaylist(id).asString())
-                .playlistOwner(PlaylistOwnerEntity.builder()
-                        .publicId(owner.getId())
-                        .displayName(owner.getDisplayName())
-                        .entityType(owner.getEntityType())
-                        .build())
-                .build();
+        final PlaylistEntity playlistEntity = playlistConverter.toPlaylistEntity(playlist);
 
-        return playlistRepository.save(entity)
+        return playlistRepository.save(playlistEntity)
                 .map(playlistConverter::toPlaylist);
     }
 

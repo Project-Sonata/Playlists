@@ -19,7 +19,7 @@ public class PlaylistOperationsTestableFactory {
 
     public static DefaultPlaylistOperations create() {
         final InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-        return new DefaultPlaylistOperations(new DefaultPlaylistService(repository, createPlaylistConverter()), new MockImageUploader());
+        return new DefaultPlaylistOperations(new DefaultPlaylistService(repository, createPlaylistConverter(), new Playlist.Factory()), new MockImageUploader());
     }
 
     @NotNull

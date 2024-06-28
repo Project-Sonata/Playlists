@@ -18,7 +18,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldReturnPlaylistNameSameToProvided() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
 
         final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
 
@@ -33,7 +33,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldGenerateIdForNewPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
 
         final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
 
@@ -48,7 +48,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldGenerateContextUriForNewPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
 
         final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
 
@@ -63,7 +63,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldUpdateExistingPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
 
         final Playlist savedPlaylist = testable.create(CreatePlaylistInfo.withName("old name :("), PLAYLIST_OWNER).block();
 
@@ -80,7 +80,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldReturnExistingPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
         // when
         final Playlist saved = testable.create(CreatePlaylistInfo.withName("old name :("), PLAYLIST_OWNER).block();
 
@@ -94,7 +94,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldReturnNothingIfPlaylistDoesNotExistByProvidedId() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
         // when
         testable.loadPlaylist("not_existing")
                 .as(StepVerifier::create)
