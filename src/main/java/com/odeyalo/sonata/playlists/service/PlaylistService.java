@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.service;
 
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
@@ -11,9 +12,32 @@ import reactor.core.publisher.Mono;
  */
 public interface PlaylistService extends PlaylistLoader {
 
+    /**
+     * Create a playlist based on the provided info
+     * @param playlistInfo - a basic info about playlist that should be created
+     * @param owner - a owner of this playlist
+     * @return - a {@link Mono} with created {@link Playlist}
+     */
     @NotNull
-    Mono<Playlist> save(@NotNull Playlist playlist);
+    Mono<Playlist> create(@NotNull CreatePlaylistInfo playlistInfo,
+                          @NotNull PlaylistOwner owner);
+
+    /**
+     * Update existing playlist with new values
+     *
+     * @param playlist - existing playlist with new values
+     * @return - a {@link Mono} with {@link Playlist}
+     */
+    @NotNull
+    Mono<Playlist> update(@NotNull Playlist playlist);
 
     @NotNull
     Mono<Playlist> loadPlaylist(@NotNull String id);
+
+    @Override
+    @NotNull
+    default Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
+        return loadPlaylist(targetPlaylist.getPlaylistId());
+    }
+
 }

@@ -3,7 +3,6 @@ package com.odeyalo.sonata.playlists.service;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NonNull;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,12 +15,15 @@ import org.jetbrains.annotations.Nullable;
 @Builder
 public class CreatePlaylistInfo {
     @NotNull
-    @NonNull
     String name;
     @Nullable
     String description;
     @NotNull
-    @NonNull
     @Builder.Default
     PlaylistType playlistType = PlaylistType.PRIVATE;
+
+    @NotNull
+    public static CreatePlaylistInfo withName(@NotNull final String name) {
+        return builder().name(name).build();
+    }
 }

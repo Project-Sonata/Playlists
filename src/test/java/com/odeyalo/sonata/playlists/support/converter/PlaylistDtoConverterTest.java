@@ -27,7 +27,7 @@ class PlaylistDtoConverterTest {
 
         PlaylistDto playlistDto = playlistDtoConverter.toPlaylistDto(playlist);
 
-        forPlaylist(playlistDto).id().isEqualTo(playlist.getId());
+        forPlaylist(playlistDto).id().isEqualTo(playlist.getId().value());
         forPlaylist(playlistDto).name().isEqualTo(playlist.getName());
         forPlaylist(playlistDto).description().isEqualTo(playlist.getDescription());
         forPlaylist(playlistDto).playlistType().isEqualTo(playlist.getPlaylistType());

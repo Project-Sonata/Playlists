@@ -1,5 +1,6 @@
 package testing.factory;
 
+import com.odeyalo.sonata.playlists.config.factory.FactoryConfiguration;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.service.DefaultPlaylistOperations;
@@ -19,7 +20,7 @@ public class PlaylistOperationsTestableFactory {
 
     public static DefaultPlaylistOperations create() {
         final InMemoryPlaylistRepository repository = new InMemoryPlaylistRepository();
-        return new DefaultPlaylistOperations(new DefaultPlaylistService(repository, createPlaylistConverter()), new MockImageUploader());
+        return new DefaultPlaylistOperations(new DefaultPlaylistService(repository, createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory()), new MockImageUploader());
     }
 
     @NotNull

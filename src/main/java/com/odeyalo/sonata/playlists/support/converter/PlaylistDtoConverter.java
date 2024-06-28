@@ -14,7 +14,8 @@ import org.mapstruct.Mapping;
 }, componentModel = "spring")
 public interface PlaylistDtoConverter {
 
+    @Mapping(target = "id", expression = "java( playlist.getId().value() )")
     @Mapping(target = "owner", source = "playlistOwner")
-    @Mapping(target = "contextUri", expression = "java( \"sonata:playlist:\" + playlist.getId() )")
+    @Mapping(target = "contextUri", expression = "java( playlist.getContextUri().asString() )")
     PlaylistDto toPlaylistDto(Playlist playlist);
 }

@@ -3,28 +3,25 @@ package com.odeyalo.sonata.playlists.support.converter;
 import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+
+@Mapper(componentModel = SPRING, uses = {
         ImagesEntityConverter.class,
         PlaylistOwnerConverter.class
 }, imports = {
-        ContextUri.class
+        ContextUri.class,
+        PlaylistId.class
 }, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface PlaylistConverter {
 
-    @Mapping(target = "id", source = "publicId")
+    @Mapping(target = "id", expression = "java( PlaylistId.of( source.getPublicId() ) )")
     @Mapping(target = "name", source = "playlistName")
     @Mapping(target = "description", source = "playlistDescription")
-    @Mapping(target = "contextUri", expression = "java( ContextUri.fromString( playlistEntity.getContextUri() ) )")
-    Playlist toPlaylist(PlaylistEntity playlistEntity);
-
-    @Mapping(target = "publicId", source = "id")
-    @Mapping(target = "playlistName", source = "name")
-    @Mapping(target = "playlistDescription", source = "description")
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "contextUri", ignore = true)
-    PlaylistEntity toPlaylistEntity(Playlist playlist);
+    @Mapping(target = "contextUri", expression = "java( ContextUri.fromString( source.getContextUri() ) )")
+    Playlist toPlaylist(PlaylistEntity source);
 }
