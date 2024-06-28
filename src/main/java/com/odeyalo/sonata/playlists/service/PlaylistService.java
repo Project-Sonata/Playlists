@@ -33,4 +33,11 @@ public interface PlaylistService extends PlaylistLoader {
 
     @NotNull
     Mono<Playlist> loadPlaylist(@NotNull String id);
+
+    @Override
+    @NotNull
+    default Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
+        return loadPlaylist(targetPlaylist.getPlaylistId());
+    }
+
 }

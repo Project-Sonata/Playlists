@@ -22,6 +22,7 @@ import java.util.List;
 public class PlaylistEntity implements Persistable<Long> {
     @Id
     @Column("playlist_id")
+    @With
     Long id;
     String publicId;
     String playlistName;

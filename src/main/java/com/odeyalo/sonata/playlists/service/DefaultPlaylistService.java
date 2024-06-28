@@ -49,7 +49,7 @@ public final class DefaultPlaylistService implements PlaylistService {
     @NotNull
     private Mono<Playlist> updatePlaylist(Playlist playlist) {
         return playlistRepository.findByPublicId(playlist.getId())
-                .flatMap(parent -> updatePlaylistEntity(playlist, parent))
+                .flatMap(originalPlaylist -> updatePlaylistEntity(originalPlaylist, playlist))
                 .map(playlistConverter::toPlaylist);
     }
 
@@ -60,21 +60,14 @@ public final class DefaultPlaylistService implements PlaylistService {
                 .map(playlistConverter::toPlaylist);
     }
 
-    @Override
     @NotNull
-    public Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
-        return loadPlaylist(targetPlaylist.getPlaylistId());
+    private Mono<PlaylistEntity> updatePlaylistEntity(@NotNull final PlaylistEntity originalPlaylist,
+                                                      @NotNull final Playlist playlist) {
+
+        final PlaylistEntity updatedPlaylist = playlistEntityFactory.create(playlist);
+
+        return playlistRepository.save(
+                updatedPlaylist.withId(originalPlaylist.getId())
+        );
     }
-
-    @NotNull
-    private Mono<PlaylistEntity> updatePlaylistEntity(@NotNull final Playlist playlist,
-                                                      @NotNull final PlaylistEntity parent) {
-
-        PlaylistEntity entity = playlistEntityFactory.create(playlist);
-        entity.setId(parent.getId());
-        entity.setContextUri("sonata:playlist:" + entity.getPublicId());
-
-        return playlistRepository.save(entity);
-    }
-
 }
