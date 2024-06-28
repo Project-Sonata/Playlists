@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.service;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
+import com.odeyalo.sonata.playlists.entity.factory.PlaylistEntityFactory;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
@@ -14,13 +15,16 @@ public final class DefaultPlaylistService implements PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final PlaylistConverter playlistConverter;
     private final Playlist.Factory playlistFactory;
+    private final PlaylistEntityFactory playlistEntityFactory;
 
     public DefaultPlaylistService(final PlaylistRepository playlistRepository,
                                   final PlaylistConverter playlistConverter,
-                                  final Playlist.Factory playlistFactory) {
+                                  final Playlist.Factory playlistFactory,
+                                  final PlaylistEntityFactory playlistEntityFactory) {
         this.playlistRepository = playlistRepository;
         this.playlistConverter = playlistConverter;
         this.playlistFactory = playlistFactory;
+        this.playlistEntityFactory = playlistEntityFactory;
     }
 
     @Override
@@ -30,10 +34,10 @@ public final class DefaultPlaylistService implements PlaylistService {
 
         final Playlist playlist = playlistFactory.create(playlistInfo, owner);
 
-        final PlaylistEntity playlistEntity = playlistConverter.toPlaylistEntity(playlist);
+        final PlaylistEntity playlistEntity = playlistEntityFactory.create(playlist);
 
         return playlistRepository.save(playlistEntity)
-                .map(playlistConverter::toPlaylist);
+                .map(it -> playlist);
     }
 
     @Override
@@ -63,9 +67,10 @@ public final class DefaultPlaylistService implements PlaylistService {
     }
 
     @NotNull
-    private Mono<PlaylistEntity> updatePlaylistEntity(Playlist playlist, PlaylistEntity parent) {
+    private Mono<PlaylistEntity> updatePlaylistEntity(@NotNull final Playlist playlist,
+                                                      @NotNull final PlaylistEntity parent) {
 
-        PlaylistEntity entity = playlistConverter.toPlaylistEntity(playlist);
+        PlaylistEntity entity = playlistEntityFactory.create(playlist);
         entity.setId(parent.getId());
         entity.setContextUri("sonata:playlist:" + entity.getPublicId());
 

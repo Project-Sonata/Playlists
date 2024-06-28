@@ -7,7 +7,9 @@ import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+
+@Mapper(componentModel = SPRING, uses = {
         ImagesEntityConverter.class,
         PlaylistOwnerConverter.class
 }, imports = {
@@ -20,11 +22,4 @@ public interface PlaylistConverter {
     @Mapping(target = "description", source = "playlistDescription")
     @Mapping(target = "contextUri", expression = "java( ContextUri.fromString( playlistEntity.getContextUri() ) )")
     Playlist toPlaylist(PlaylistEntity playlistEntity);
-
-    @Mapping(target = "publicId", source = "id")
-    @Mapping(target = "playlistName", source = "name")
-    @Mapping(target = "playlistDescription", source = "description")
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "contextUri", expression = "java( playlist.getContextUri().asString() )")
-    PlaylistEntity toPlaylistEntity(Playlist playlist);
 }

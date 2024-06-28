@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.service;
 
+import com.odeyalo.sonata.playlists.config.factory.FactoryConfiguration;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
@@ -18,7 +19,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldReturnPlaylistNameSameToProvided() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
 
         final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
 
@@ -33,7 +34,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldGenerateIdForNewPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
 
         final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
 
@@ -48,7 +49,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldGenerateContextUriForNewPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
 
         final CreatePlaylistInfo createPlaylistInfo = CreatePlaylistInfo.withName("Lo-Fi");
 
@@ -63,7 +64,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldUpdateExistingPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
 
         final Playlist savedPlaylist = testable.create(CreatePlaylistInfo.withName("old name :("), PLAYLIST_OWNER).block();
 
@@ -80,7 +81,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldReturnExistingPlaylist() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
         // when
         final Playlist saved = testable.create(CreatePlaylistInfo.withName("old name :("), PLAYLIST_OWNER).block();
 
@@ -94,7 +95,7 @@ class DefaultPlaylistServiceTest {
     @Test
     void shouldReturnNothingIfPlaylistDoesNotExistByProvidedId() {
         // given
-        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory());
+        final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
         // when
         testable.loadPlaylist("not_existing")
                 .as(StepVerifier::create)
