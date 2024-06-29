@@ -3,6 +3,7 @@ package com.odeyalo.sonata.playlists.service;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.factory.PlaylistEntityFactory;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistConverter;
@@ -48,7 +49,7 @@ public final class DefaultPlaylistService implements PlaylistService {
 
     @NotNull
     private Mono<Playlist> updatePlaylist(Playlist playlist) {
-        return playlistRepository.findByPublicId(playlist.getId().value())
+        return playlistRepository.findByPublicId(playlist.getId())
                 .flatMap(originalPlaylist -> updatePlaylistEntity(originalPlaylist, playlist))
                 .map(playlistConverter::toPlaylist);
     }
@@ -56,7 +57,7 @@ public final class DefaultPlaylistService implements PlaylistService {
     @Override
     @NotNull
     public Mono<Playlist> loadPlaylist(@NotNull final String id) {
-        return playlistRepository.findByPublicId(id)
+        return playlistRepository.findByPublicId(PlaylistId.of(id))
                 .map(playlistConverter::toPlaylist);
     }
 

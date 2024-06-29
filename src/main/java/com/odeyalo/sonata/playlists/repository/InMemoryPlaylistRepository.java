@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
@@ -34,10 +35,10 @@ public class InMemoryPlaylistRepository implements PlaylistRepository {
 
     @Override
     @NotNull
-    public Mono<PlaylistEntity> findByPublicId(@NotNull final String id) {
+    public Mono<PlaylistEntity> findByPublicId(@NotNull final PlaylistId id) {
         return Mono.justOrEmpty(
                 playlistsEntities.values().stream()
-                        .filter(it -> Objects.equals(it.getPublicId(), id))
+                        .filter(it -> Objects.equals(it.getPublicId(), id.value()))
                         .findFirst()
         );
     }

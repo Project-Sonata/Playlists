@@ -3,6 +3,7 @@ package com.odeyalo.sonata.playlists.repository.r2dbc;
 import com.odeyalo.sonata.playlists.entity.ImageEntity;
 import com.odeyalo.sonata.playlists.entity.ImagesEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -69,7 +70,7 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.save(updated).block();
 
-        r2dbcPlaylistRepository.findByPublicId("miku")
+        r2dbcPlaylistRepository.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getImages()).hasSize(1))
                 .verifyComplete();
@@ -115,7 +116,7 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.save(playlist).block();
 
-        r2dbcPlaylistRepository.findByPublicId("miku")
+        r2dbcPlaylistRepository.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getPlaylistName()).isEqualTo("Lo-Fi"))
                 .verifyComplete();
@@ -130,7 +131,7 @@ class R2dbcPlaylistRepositoryTest {
 
         r2dbcPlaylistRepository.save(playlist).block();
 
-        r2dbcPlaylistRepository.findByPublicId("miku")
+        r2dbcPlaylistRepository.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getPlaylistType()).isEqualTo(PUBLIC))
                 .verifyComplete();
@@ -197,7 +198,7 @@ class R2dbcPlaylistRepositoryTest {
         insertPlaylist(newPlaylist);
 
         // then
-        r2dbcPlaylistRepository.findByPublicId("miku")
+        r2dbcPlaylistRepository.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getPlaylistDescription()).isEqualTo("There is my new description!"))
                 .verifyComplete();
@@ -212,7 +213,7 @@ class R2dbcPlaylistRepositoryTest {
 
         final PlaylistEntity saved = insertPlaylist(playlist);
         // when
-        r2dbcPlaylistRepository.findByPublicId("miku")
+        r2dbcPlaylistRepository.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 // then
                 .expectNext(saved)
@@ -230,7 +231,7 @@ class R2dbcPlaylistRepositoryTest {
         // when
         r2dbcPlaylistRepository.clear().block();
         // then
-        r2dbcPlaylistRepository.findByPublicId("miku")
+        r2dbcPlaylistRepository.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 .verifyComplete();
     }

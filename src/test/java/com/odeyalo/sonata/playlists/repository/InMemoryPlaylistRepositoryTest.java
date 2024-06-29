@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import testing.faker.PlaylistEntityFaker;
@@ -33,7 +34,7 @@ class InMemoryPlaylistRepositoryTest {
         final PlaylistEntity saved = testable.save(playlist).block();
 
         // when
-        testable.findByPublicId("miku")
+        testable.findByPublicId(PlaylistId.of("miku"))
                 .as(StepVerifier::create)
                 // then
                 .assertNext(found -> assertThat(found).isEqualTo(saved))
@@ -64,8 +65,8 @@ class InMemoryPlaylistRepositoryTest {
         // when
         testable.clear().block();
         // then
-        final PlaylistEntity found1 = testable.findByPublicId("miku1").block();
-        final PlaylistEntity found2 = testable.findByPublicId("miku2").block();
+        final PlaylistEntity found1 = testable.findByPublicId(PlaylistId.of("miku1")).block();
+        final PlaylistEntity found2 = testable.findByPublicId(PlaylistId.of("miku2")).block();
 
         assertThat(found1).isNull();
         assertThat(found2).isNull();
