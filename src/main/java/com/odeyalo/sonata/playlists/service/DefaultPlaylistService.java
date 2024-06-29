@@ -48,7 +48,7 @@ public final class DefaultPlaylistService implements PlaylistService {
     }
 
     @NotNull
-    private Mono<Playlist> updatePlaylist(Playlist playlist) {
+    private Mono<Playlist> updatePlaylist(@NotNull final Playlist playlist) {
         return playlistRepository.findByPublicId(playlist.getId())
                 .flatMap(originalPlaylist -> updatePlaylistEntity(originalPlaylist, playlist))
                 .map(playlistConverter::toPlaylist);
@@ -56,8 +56,8 @@ public final class DefaultPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
-    public Mono<Playlist> loadPlaylist(@NotNull final String id) {
-        return playlistRepository.findByPublicId(PlaylistId.of(id))
+    public Mono<Playlist> loadPlaylist(@NotNull final PlaylistId id) {
+        return playlistRepository.findByPublicId(id)
                 .map(playlistConverter::toPlaylist);
     }
 

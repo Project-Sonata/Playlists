@@ -30,12 +30,6 @@ public final class InMemoryPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
-    public Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
-        return loadPlaylist(targetPlaylist.getPlaylistId());
-    }
-
-    @Override
-    @NotNull
     public Mono<Playlist> create(@NotNull final CreatePlaylistInfo playlistInfo,
                                  @NotNull final PlaylistOwner owner) {
 
@@ -52,9 +46,9 @@ public final class InMemoryPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
-    public Mono<Playlist> loadPlaylist(@NotNull final String id) {
+    public Mono<Playlist> loadPlaylist(@NotNull final PlaylistId id) {
         return Mono.justOrEmpty(
-                playlists.get(PlaylistId.of(id))
+                playlists.get(id)
         );
     }
 

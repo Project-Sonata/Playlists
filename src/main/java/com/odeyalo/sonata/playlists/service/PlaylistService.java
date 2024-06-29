@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.service;
 
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import org.jetbrains.annotations.NotNull;
@@ -32,12 +33,12 @@ public interface PlaylistService extends PlaylistLoader {
     Mono<Playlist> update(@NotNull Playlist playlist);
 
     @NotNull
-    Mono<Playlist> loadPlaylist(@NotNull String id);
+    Mono<Playlist> loadPlaylist(@NotNull PlaylistId id);
 
     @Override
     @NotNull
     default Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
-        return loadPlaylist(targetPlaylist.getPlaylistId());
+        final PlaylistId playlistId = PlaylistId.of(targetPlaylist.getPlaylistId());
+        return loadPlaylist(playlistId);
     }
-
 }

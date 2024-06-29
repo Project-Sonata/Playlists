@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.service;
 
 import com.odeyalo.sonata.playlists.config.factory.FactoryConfiguration;
 import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.model.PlaylistOwner;
 import com.odeyalo.sonata.playlists.repository.InMemoryPlaylistRepository;
 import com.odeyalo.sonata.playlists.support.converter.*;
@@ -87,7 +88,7 @@ class DefaultPlaylistServiceTest {
 
         // then
         //noinspection DataFlowIssue
-        final Playlist found = testable.loadPlaylist(saved.getId().value()).block();
+        final Playlist found = testable.loadPlaylist(saved.getId()).block();
 
         assertThat(saved).isEqualTo(found);
     }
@@ -97,7 +98,7 @@ class DefaultPlaylistServiceTest {
         // given
         final DefaultPlaylistService testable = new DefaultPlaylistService(new InMemoryPlaylistRepository(), createPlaylistConverter(), new Playlist.Factory(), new FactoryConfiguration().playlistEntityFactory());
         // when
-        testable.loadPlaylist("not_existing")
+        testable.loadPlaylist(PlaylistId.of("not_existing"))
                 .as(StepVerifier::create)
                 .verifyComplete();
     }
