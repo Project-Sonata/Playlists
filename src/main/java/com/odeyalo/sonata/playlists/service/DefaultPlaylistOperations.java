@@ -25,8 +25,8 @@ public final class DefaultPlaylistOperations implements PlaylistOperations {
 
     @Override
     @NotNull
-    public Mono<Playlist> findById(@NotNull String playlistId) {
-        return playlistService.loadPlaylist(PlaylistId.of(playlistId));
+    public Mono<Playlist> findById(@NotNull TargetPlaylist playlistId) {
+        return playlistService.loadPlaylist(playlistId);
     }
 
     @Override

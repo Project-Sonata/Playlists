@@ -72,7 +72,7 @@ public final class SecurityPolicyPlaylistOperationsFacade implements PlaylistOpe
 
     @NotNull
     private Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist playlistId) {
-        return delegate.findById(playlistId.getPlaylistId())
+        return delegate.findById(playlistId)
                 .switchIfEmpty(onPlaylistNotFoundError(playlistId));
     }
 
