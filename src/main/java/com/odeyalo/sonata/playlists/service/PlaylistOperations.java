@@ -14,7 +14,7 @@ public interface PlaylistOperations {
      * @param id - entity id
      * @return - found playlist or empty mono
      */
-    Mono<Playlist> findById(String id);
+    Mono<Playlist> findById(TargetPlaylist id);
 
     /**
      * Create the playlist with the given playlist owner

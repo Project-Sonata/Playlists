@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -21,16 +22,20 @@ import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
 public class Playlist {
     @NotNull
     PlaylistId id;
+    @NotNull
     String name;
+    @Nullable
     String description;
+    @NotNull
     ContextUri contextUri;
+    @NotNull
+    PlaylistOwner playlistOwner;
+    @NotNull
     @Builder.Default
     PlaylistType playlistType = PlaylistType.PRIVATE;
+    @NotNull
     @Builder.Default
     Images images = Images.empty();
-    PlaylistOwner playlistOwner;
-    @Builder.Default
-    EntityType type = PLAYLIST;
 
     @NotNull
     public static PlaylistBuilder from(@NotNull final Playlist playlist) {
@@ -49,8 +54,13 @@ public class Playlist {
         );
     }
 
-    private boolean isPublicPlaylist() {
+    public boolean isPublicPlaylist() {
         return playlistType == PUBLIC;
+    }
+
+    @NotNull
+    public EntityType getType() {
+        return PLAYLIST;
     }
 
     public static class Factory {

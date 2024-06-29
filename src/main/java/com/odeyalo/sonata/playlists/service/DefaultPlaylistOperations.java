@@ -1,9 +1,6 @@
 package com.odeyalo.sonata.playlists.service;
 
-import com.odeyalo.sonata.playlists.model.Image;
-import com.odeyalo.sonata.playlists.model.Images;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistOwner;
+import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.service.upload.ImageUploader;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +25,7 @@ public final class DefaultPlaylistOperations implements PlaylistOperations {
 
     @Override
     @NotNull
-    public Mono<Playlist> findById(@NotNull String playlistId) {
+    public Mono<Playlist> findById(@NotNull TargetPlaylist playlistId) {
         return playlistService.loadPlaylist(playlistId);
     }
 

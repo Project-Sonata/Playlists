@@ -28,10 +28,10 @@ class DefaultPlaylistOperationsTest {
         final var playlistInfo = CreatePlaylistInfo.builder().name("My name").build();
         final var owner = PlaylistOwner.builder().id("123").displayName("odeyalo").build();
 
-        Playlist createdPlaylist = testable.createPlaylist(playlistInfo, owner).block();
+        final Playlist createdPlaylist = testable.createPlaylist(playlistInfo, owner).block();
 
         //noinspection DataFlowIssue
-        testable.findById(createdPlaylist.getId().value())
+        testable.findById(TargetPlaylist.just(createdPlaylist.getId().value()))
                 .as(StepVerifier::create)
                 .assertNext(it -> assertThat(it.getContextUri().asString()).isEqualTo("sonata:playlist:" + it.getId().value()))
                 .verifyComplete();

@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +30,8 @@ public final class R2dbcPlaylistRepository implements PlaylistRepository {
 
     @Override
     @NotNull
-    public Mono<PlaylistEntity> findByPublicId(@NotNull final String publicId) {
-        return playlistRepositoryDelegate.findByPublicId(publicId);
+    public Mono<PlaylistEntity> findByPublicId(@NotNull final PlaylistId id) {
+        return playlistRepositoryDelegate.findByPublicId(id.value());
     }
 
     @Override
