@@ -1,0 +1,9 @@
+FROM gradle:8.3.0-jdk17 AS build
+
+COPY . /sonata/playlists
+
+WORKDIR /sonata/playlists
+
+CMD ["gradle", "test"]
+
+

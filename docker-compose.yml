@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  sonata-playlists:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: sonata-playlists-microservice-image
+    depends_on:
+      db:
+        condition: service_healthy
+
+    env_file:
+      - test.env
+    environment:
+      # Used to download required dependencies from Suite module
+      # TODO: CHANGE IT TO ENV VARIABLE ${ACCESS_TOKEN}
+      GITHUB_USERNAME: justJavaProgrammer
+      GITHUB_ACCESS_TOKEN: token
+  db:
+    image: 'postgres:15.2'
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
