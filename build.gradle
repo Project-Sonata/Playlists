@@ -26,8 +26,8 @@ repositories {
         name = "GitHub-Packages"
         url = "https://maven.pkg.github.com/Project-Sonata/Suite"
         credentials {
-            username = "justJavaProgrammer"
-            password = "password"
+            username = System.getenv("GITHUB_USERNAME")
+            password = System.getenv("GITHUB_ACCESS_TOKEN")
         }
     }
 }
@@ -35,7 +35,7 @@ repositories {
 ext {
     set('springCloudVersion', "2022.0.4")
     set("javaFakerVersion", "1.0.2")
-    set("suiteSecurityVersion", "1.0.1")
+    set("suiteSecurityVersion", "1.0.3")
     set("mapstructVersion", "1.5.5.Final")
 }
 
@@ -76,6 +76,7 @@ tasks.named('test', Test) {
 
     testLogging {
         exceptionFormat "full"
+        showStandardStreams true
     }
 }
 
