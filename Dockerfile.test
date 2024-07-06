@@ -6,5 +6,6 @@ WORKDIR /sonata/playlists
 
 ENV JAVA_DEBUG_PORT=*:5005
 
+CMD ["printenv"]
 CMD ["gradle", "test"]
 
