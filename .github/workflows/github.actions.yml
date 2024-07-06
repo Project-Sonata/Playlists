@@ -1,4 +1,5 @@
 name: sonata-playlists
+
 on:
   push:
     branches:
@@ -6,14 +7,11 @@ on:
   pull_request:
     branches:
       - master
-      - feature/ci-pipeline
 env:
   GH_USERNAME: ${{ secrets.GH_USERNAME }}
   GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
 jobs:
-
-
   test:
     runs-on: ubuntu-latest
     steps:
