@@ -15,7 +15,7 @@ services:
       - test.env
     environment:
       # Used to download required dependencies from Suite module
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_USERNAME: ${GH_USERNAME}
       GITHUB_ACCESS_TOKEN: ${ACCESS_TOKEN}
 
   db:
