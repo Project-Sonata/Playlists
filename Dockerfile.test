@@ -4,6 +4,7 @@ COPY . /sonata/playlists
 
 WORKDIR /sonata/playlists
 
-CMD ["gradle", "test"]
+ENV JAVA_DEBUG_PORT=*:5005
 
+CMD ["gradle", "test"]
 
