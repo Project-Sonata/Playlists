@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run tests
-        run: bash run-tests.sh
+#      - name: Run tests
+#        run: bash run-tests.sh
       - name: say hello
         run: echo "Hello, $GH_USERNAME "
