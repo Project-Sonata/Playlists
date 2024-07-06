@@ -16,7 +16,7 @@ services:
     environment:
       # Used to download required dependencies from Suite module
       GITHUB_USERNAME: ${GH_USERNAME}
-      GITHUB_ACCESS_TOKEN: ${ACCESS_TOKEN}
+      GITHUB_ACCESS_TOKEN: ${GH_ACCESS_TOKEN}
 
   db:
     image: 'postgres:15.2'
