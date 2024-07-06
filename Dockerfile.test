@@ -1,0 +1,10 @@
+FROM gradle:8.3.0-jdk17 AS build
+
+COPY . /sonata/playlists
+
+WORKDIR /sonata/playlists
+
+ENV JAVA_DEBUG_PORT=*:5005
+
+CMD ["gradle", "test"]
+

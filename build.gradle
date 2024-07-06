@@ -21,12 +21,21 @@ configurations {
 repositories {
     mavenCentral()
     mavenLocal()
+
+    maven {
+        name = "GitHub-Packages"
+        url = "https://maven.pkg.github.com/Project-Sonata/Suite"
+        credentials {
+            username = System.getenv("GITHUB_USERNAME")
+            password = System.getenv("GITHUB_ACCESS_TOKEN")
+        }
+    }
 }
 
 ext {
     set('springCloudVersion', "2022.0.4")
     set("javaFakerVersion", "1.0.2")
-    set("suiteSecurityVersion", "1.0.1")
+    set("suiteSecurityVersion", "1.0.3")
     set("mapstructVersion", "1.5.5.Final")
 }
 
@@ -35,7 +44,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.jetbrains:annotations:23.0.0'
-    implementation'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core'
     implementation 'com.odeyalo.sonata:suite:1.0.0'
     implementation "com.odeyalo.sonata.suite:security:${suiteSecurityVersion}"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
@@ -62,12 +71,13 @@ dependencyManagement {
     }
 }
 
-tasks.named('contractTest') {
+tasks.named('test', Test) {
     useJUnitPlatform()
-}
 
-tasks.named('test') {
-    useJUnitPlatform()
+    testLogging {
+        exceptionFormat "full"
+        showStandardStreams true
+    }
 }
 
 contracts {
