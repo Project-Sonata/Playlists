@@ -8,8 +8,8 @@ on:
       - master
       - feature/ci-pipeline
 env:
-  USER_NAME: ${{ secrets.USER_NAME }}
-  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
+  GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
 jobs:
 
