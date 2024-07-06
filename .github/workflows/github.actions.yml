@@ -1,0 +1,20 @@
+name: sonata-playlists
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - feature/ci-pipeline
+env:
+  USER_NAME: ${{ secrets.USER_NAME }}
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: bash run-tests.sh
