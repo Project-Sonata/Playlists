@@ -63,17 +63,27 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                     final ContextUri contextUri = tuple.getT2();
                                     // we are appending items to the end
                                     if ( addItemPayload.getPosition().isEndOfPlaylist(playlistSize) ) {
-                                        final int position = (int) (playlistSize + currentIndex);
-                                        logger.info("Saving the  track: {} at {} position", contextUri, position);
-                                        return saveItem(playlist.getId().value(), collaborator, contextUri, position);
+                                        return appendItemToTheEnd(playlist, collaborator, playlistSize, currentIndex, contextUri);
                                     }
 
-                                    final int position = addItemPayload.getPosition().value();
-
-                                    return itemsRepository.incrementNextItemsPositionFrom(playlist.getId(), position)
-                                            .then(saveItem(playlist.getId().value(), collaborator, contextUri, position));
+                                    return insertItemAtSpecificPosition(playlist, addItemPayload, collaborator, contextUri);
                                 })
                 );
+    }
+
+    @NotNull
+    private Mono<PlaylistItemEntity> insertItemAtSpecificPosition(final @NotNull Playlist playlist, final @NotNull AddItemPayload addItemPayload, final @NotNull PlaylistCollaborator collaborator, final ContextUri contextUri) {
+        final int position = addItemPayload.getPosition().value();
+
+        return itemsRepository.incrementNextItemsPositionFrom(playlist.getId(), position)
+                .then(saveItem(playlist.getId().value(), collaborator, contextUri, position));
+    }
+
+    @NotNull
+    private Mono<PlaylistItemEntity> appendItemToTheEnd(final @NotNull Playlist playlist, final @NotNull PlaylistCollaborator collaborator, final Long playlistSize, final Long currentIndex, final ContextUri contextUri) {
+        final int position = (int) (playlistSize + currentIndex);
+        logger.info("Saving the  track: {} at {} position", contextUri, position);
+        return saveItem(playlist.getId().value(), collaborator, contextUri, position);
     }
 
     @NotNull
