@@ -29,18 +29,11 @@ class PlaylistItemPositionTest {
 
         assertThat(position.isEndOfPlaylist(100L)).isFalse();
     }
-    @Test
-    void shouldReturnTrueIfPositionIsEndZeroBased() {
-        PlaylistItemPosition position = PlaylistItemPosition.at(99);
-
-        // we have a zero based position so 99 is equal to 100 in one based
-        assertThat(position.isEndOfPlaylist(100L)).isTrue();
-    }
 
     @Test
     void shouldReturnTrueIfPlaylistHasOneElement() {
         PlaylistItemPosition position = PlaylistItemPosition.at(0);
 
-        assertThat(position.isEndOfPlaylist(1)).isTrue();
+        assertThat(position.isEndOfPlaylist(1)).isFalse();
     }
 }

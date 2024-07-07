@@ -47,7 +47,6 @@ public final class R2dbcPlaylistItemsRepository implements PlaylistItemsReposito
 
     @Override
     public @NotNull Mono<Void> incrementNextItemsPositionFrom(@NotNull final PlaylistId id, final int position) {
-        // TODO IMPLEMENT IT
-        return Mono.empty();
+        return delegate.incrementNextPlaylistItems(id.value(), position);
     }
 }
