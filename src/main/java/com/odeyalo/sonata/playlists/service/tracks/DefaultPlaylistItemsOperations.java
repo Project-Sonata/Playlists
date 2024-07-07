@@ -50,7 +50,9 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     }
 
     @NotNull
-    private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull Playlist playlist, @NotNull AddItemPayload addItemPayload, @NotNull PlaylistCollaborator collaborator) {
+    private Flux<PlaylistItemEntity> doAddPlaylistItems(@NotNull final Playlist playlist,
+                                                        @NotNull final AddItemPayload addItemPayload,
+                                                        @NotNull final PlaylistCollaborator collaborator) {
         return itemsRepository.getPlaylistSize(playlist.getId().value())
                 .flatMapMany(playlistSize ->
                         Flux.fromArray(addItemPayload.getUris())
@@ -66,7 +68,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                         return saveItem(playlist.getId().value(), collaborator, contextUri, position);
                                     }
 
-                                    int position = addItemPayload.getPosition().value();
+                                    final int position = addItemPayload.getPosition().value();
 
                                     return itemsRepository.incrementNextItemsPositionFrom(playlist.getId(), position)
                                             .then(saveItem(playlist.getId().value(), collaborator, contextUri, position));
