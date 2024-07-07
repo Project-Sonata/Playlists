@@ -319,7 +319,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(3), "sonata:track:miku");
+        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(4), "sonata:track:miku");
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
