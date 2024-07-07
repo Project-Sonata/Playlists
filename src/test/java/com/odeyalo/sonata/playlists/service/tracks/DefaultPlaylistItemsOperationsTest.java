@@ -282,6 +282,29 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     @Test
+    void shouldAddItemToTheEndOfThePlaylistIfPositionWasNotSupplied() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("miku"))
+                .verifyComplete();
+    }
+
+    @Test
     void shouldAddItemToPlaylistWithPlayableItemType() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
