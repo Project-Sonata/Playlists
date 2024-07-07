@@ -44,4 +44,13 @@ public class AddItemPayload {
                 .uris(uris)
                 .build();
     }
+
+    @NotNull
+    public static AddItemPayload atPosition(@NotNull final PlaylistItemPosition position,
+                                            @NotNull final String[] itemUris) {
+        return builder()
+                .position(position)
+                .uris(itemUris)
+                .build();
+    }
 }

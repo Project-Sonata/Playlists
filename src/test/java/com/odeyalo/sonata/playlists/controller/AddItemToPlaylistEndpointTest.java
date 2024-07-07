@@ -58,6 +58,9 @@ class AddItemToPlaylistEndpointTest {
     static final String TRACK_1_ID = "OJd0n1Z4gFc";
     static final String TRACK_1_CONTEXT_URI = "sonata:track:OJd0n1Z4gFc";
 
+    static final String TRACK_2_ID = "track2";
+    static final String TRACK_2_CONTEXT_URI = "sonata:track:track2";
+
     static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
     static final String USER_ID = "1";
     static final String USER_CONTEXT_URI = "sonata:user:1";
@@ -84,7 +87,8 @@ class AddItemToPlaylistEndpointTest {
         @Primary
         public PlayableItemLoader testPlayableItemLoader() {
             TrackPlayableItem playableItem = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).setContextUri(TRACK_1_CONTEXT_URI).get();
-            return new InMemoryPlayableItemLoader(playableItem);
+            TrackPlayableItem playableItem2 = TrackPlayableItemFaker.create().setPublicId(TRACK_2_ID).setContextUri(TRACK_2_CONTEXT_URI).get();
+            return new InMemoryPlayableItemLoader(playableItem, playableItem2);
         }
 
         @Bean
@@ -117,6 +121,35 @@ class AddItemToPlaylistEndpointTest {
         assertThat(items.getItems()).hasSize(1);
         assertThat(items.getItems()).first()
                 .matches(it -> Objects.equals(it.getItem().getId(), TRACK_1_ID));
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAtSpecificPosition() {
+        // add item to playlist
+        addItemToPlaylist();
+
+        // add item at first position
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist(0);
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(it -> it.getItem().getId())
+                .containsExactly(TRACK_2_ID, TRACK_1_ID);
+    }
+
+    @Test
+    void shouldReturnBadRequestIfPositionQueryParameterIsInvalid() {
+        WebTestClient.ResponseSpec responseSpec = webTestClient.post()
+                .uri(builder -> builder.path("/playlist/{playlistId}/items")
+                        .queryParam("uris", TRACK_2_CONTEXT_URI)
+                        .queryParam("position", "malformed")
+                        .build(AddItemToPlaylistEndpointTest.EXISTING_PLAYLIST_ID))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
+                .exchange();
+
+        responseSpec.expectStatus().isBadRequest();
     }
 
     @Test
@@ -227,8 +260,8 @@ class AddItemToPlaylistEndpointTest {
                     .header(HttpHeaders.AUTHORIZATION, OTHER_USER_TOKEN)
                     .exchange();
         }
-    }
 
+    }
     @NotNull
     private WebTestClient.ResponseSpec addItemToPlaylist() {
         return addItemToPlaylist(EXISTING_PLAYLIST_ID);
@@ -247,6 +280,18 @@ class AddItemToPlaylistEndpointTest {
                 .expectBody(PlaylistItemsDto.class)
                 .returnResult()
                 .getResponseBody();
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec addItemToPlaylist(final int position) {
+        return webTestClient.post()
+                .uri(builder -> builder.path("/playlist/{playlistId}/items")
+                        .queryParam("uris", TRACK_2_CONTEXT_URI)
+                        .queryParam("position", position)
+                        .build(AddItemToPlaylistEndpointTest.EXISTING_PLAYLIST_ID))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
+                .exchange();
     }
 
     @NotNull
