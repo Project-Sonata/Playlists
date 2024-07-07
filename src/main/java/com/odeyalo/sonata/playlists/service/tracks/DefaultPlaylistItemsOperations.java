@@ -34,7 +34,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     @Override
     @NotNull
     public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull Pagination pagination) {
-        return isPlaylistExist(targetPlaylist)
+        return loadPlaylist(targetPlaylist)
                 .flatMapMany(playlist -> getPlaylistItems(targetPlaylist, pagination))
                 .flatMap(this::loadPlaylistItem);
     }
@@ -44,7 +44,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                @NotNull AddItemPayload addItemPayload,
                                @NotNull PlaylistCollaborator collaborator) {
 
-        return isPlaylistExist(targetPlaylist)
+        return loadPlaylist(targetPlaylist)
                 .flatMapMany(it -> doAddPlaylistItems(it, addItemPayload, collaborator))
                 .then();
     }
@@ -104,7 +104,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
 
     @NotNull
-    private Mono<Playlist> isPlaylistExist(@NotNull TargetPlaylist targetPlaylist) {
+    private Mono<Playlist> loadPlaylist(@NotNull TargetPlaylist targetPlaylist) {
         return playlistLoader.loadPlaylist(targetPlaylist)
                 .switchIfEmpty(
                         onPlaylistNotFoundError(targetPlaylist)
