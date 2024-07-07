@@ -6,6 +6,7 @@ import static java.lang.Integer.MAX_VALUE;
 
 /**
  * Represent a zero-based position of the item in the playlist
+ *
  * @param value - a zero-based position
  */
 public record PlaylistItemPosition(int value) {
@@ -21,5 +22,11 @@ public record PlaylistItemPosition(int value) {
 
     public static PlaylistItemPosition atEnd() {
         return AT_END;
+    }
+
+    public boolean isEndOfPlaylist(final long playlistSize) {
+        // to avoid out of range corner cases we do like this,
+        // instead of value + 1 >= playlistSize
+        return value >= playlistSize - 1;
     }
 }

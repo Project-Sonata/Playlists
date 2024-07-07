@@ -4,10 +4,7 @@ import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.model.PlayableItem;
-import com.odeyalo.sonata.playlists.model.Playlist;
-import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
-import com.odeyalo.sonata.playlists.model.PlaylistItem;
+import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
@@ -63,8 +60,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                     final Long currentIndex = tuple.getT1();
                                     final ContextUri contextUri = tuple.getT2();
                                     // we are appending items to the end
-                                    // minus one in playlist size because we have a zero-based position
-                                    if ( addItemPayload.getPosition().value() >= playlistSize - 1 ) {
+                                    if ( addItemPayload.getPosition().isEndOfPlaylist(playlistSize) ) {
                                         final int position = (int) (playlistSize + currentIndex);
                                         logger.info("Saving the  track: {} at {} position", contextUri, position);
                                         return saveItem(playlist.getId().value(), collaborator, contextUri, position);
