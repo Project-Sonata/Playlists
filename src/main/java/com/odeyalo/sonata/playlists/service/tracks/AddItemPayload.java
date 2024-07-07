@@ -1,13 +1,18 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.playlists.model.PlaylistItemPosition;
 import lombok.Builder;
 import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 
 @Value
 @Builder
 public class AddItemPayload {
+    @NotNull
     String[] uris;
-    int position;
+    @NotNull
+    @Builder.Default
+    PlaylistItemPosition position = PlaylistItemPosition.atEnd();
 
     public static AddItemPayload withItemUri(String playableItemContextUri) {
         String[] uris = {playableItemContextUri};
@@ -16,12 +21,14 @@ public class AddItemPayload {
                 .uris(uris)
                 .build();
     }
-    public static AddItemPayload atPosition(int pos, String playableItemContextUri) {
+
+    public static AddItemPayload atPosition(@NotNull PlaylistItemPosition position,
+                                            @NotNull String playableItemContextUri) {
         String[] uris = {playableItemContextUri};
 
         return AddItemPayload.builder()
                 .uris(uris)
-                .position(pos)
+                .position(position)
                 .build();
     }
 
@@ -33,6 +40,8 @@ public class AddItemPayload {
             uris[i] = uri;
         }
 
-        return new AddItemPayload(uris, Integer.MAX_VALUE);
+        return AddItemPayload.builder()
+                .uris(uris)
+                .build();
     }
 }

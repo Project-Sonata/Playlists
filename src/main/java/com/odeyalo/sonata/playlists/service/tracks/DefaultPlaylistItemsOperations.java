@@ -64,13 +64,13 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                     final ContextUri contextUri = tuple.getT2();
                                     // we are appending items to the end
                                     // minus one in playlist size because we have a zero-based position
-                                    if ( addItemPayload.getPosition() >= playlistSize - 1 ) {
+                                    if ( addItemPayload.getPosition().value() >= playlistSize - 1 ) {
                                         final int position = (int) (playlistSize + currentIndex);
                                         logger.info("Saving the  track: {} at {} position", contextUri, position);
                                         return saveItem(playlist.getId().value(), collaborator, contextUri, position);
                                     }
 
-                                    int position = addItemPayload.getPosition();
+                                    int position = addItemPayload.getPosition().value();
 
                                     return itemsRepository.incrementNextItemsPositionFrom(playlist.getId(), position)
                                             .then(saveItem(playlist.getId().value(), collaborator, contextUri, position));
