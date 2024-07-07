@@ -17,6 +17,8 @@ import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -30,6 +32,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     private final PlaylistItemsRepository itemsRepository;
     private final ReactiveContextUriParser contextUriParser;
     private final PlaylistItemEntityConverter playlistItemEntityConverter;
+    private final Logger logger = LoggerFactory.getLogger(DefaultPlaylistItemsOperations.class);
 
     @Override
     @NotNull
@@ -60,15 +63,16 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                     final Long currentIndex = tuple.getT1();
                                     final ContextUri contextUri = tuple.getT2();
                                     final int position = (int) (playlistSize + currentIndex);
-
+                                    logger.info("Saving the  track: {} at {} position", contextUri, position);
                                     return saveItem(playlist.getId().value(), collaborator, contextUri, position);
                                 })
                 );
     }
 
     @NotNull
-    private Mono<PlaylistItemEntity> saveItem(@NotNull String playlistId, @NotNull PlaylistCollaborator collaborator,
-                                              ContextUri contextUri,
+    private Mono<PlaylistItemEntity> saveItem(@NotNull String playlistId,
+                                              @NotNull PlaylistCollaborator collaborator,
+                                              @NotNull ContextUri contextUri,
                                               int index) {
         PlaylistItemEntity playlistItemEntity = createPlaylistItemEntity(playlistId, collaborator, contextUri);
         playlistItemEntity.setIndex(index);
