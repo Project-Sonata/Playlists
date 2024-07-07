@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.entity;
 
 import lombok.*;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +17,7 @@ import java.time.Instant;
  */
 @Data
 @AllArgsConstructor(staticName = "of")
+@Accessors(chain = true)
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)

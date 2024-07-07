@@ -2,6 +2,8 @@ package com.odeyalo.sonata.playlists.repository;
 
 import com.google.common.collect.Lists;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
+import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
@@ -31,6 +33,7 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
 
     /**
      * Create a cache with EMPTY playlist items for the given playlist ids
+     *
      * @param playlistIds - existing playlist IDS to associate with EMPTY list of playlist items
      */
     public InMemoryPlaylistItemsRepository(Set<String> playlistIds) {
@@ -63,14 +66,16 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
         return Mono.fromCallable(() -> {
             String playlistId = entity.getPlaylistId();
 
-            if (entity.getId() == null) {
+            if ( entity.getId() == null ) {
                 long id = idGenerator.incrementAndGet();
                 entity.setId(id);
             }
 
             List<PlaylistItemEntity> items = cache.getOrDefault(playlistId, Lists.newArrayList());
 
+            items.removeIf(it -> Objects.equals(it.getId(), entity.getId()));
             items.add(entity);
+
             cache.put(playlistId, items);
             return entity;
         });
@@ -83,16 +88,28 @@ public final class InMemoryPlaylistItemsRepository implements PlaylistItemsRepos
     }
 
     @Override
-    public @NotNull Mono<Long> getPlaylistSize(@NotNull String playlistId) {
+    @NotNull
+    public Mono<Long> getPlaylistSize(@NotNull String playlistId) {
         return Mono.fromCallable(() -> {
             List<PlaylistItemEntity> items = cache.get(playlistId);
 
-            if (items == null) {
+            if ( items == null ) {
                 return null;
             }
 
             return (long) items.size();
         });
+    }
+
+    @Override
+    @NotNull
+    public Mono<Void> incrementNextItemsPositionFrom(@NotNull final PlaylistId id,
+                                                     final int position) {
+        // we have a List that returns a mutable objects, we can simply change it without saving
+        // since we are using a Map there is no problem
+        return findAllByPlaylistId(id.value(), OffsetBasedPageRequest.withOffset(position))
+                .map(item -> item.setIndex(item.getIndex() + 1))
+                .then();
     }
 
     @NotNull

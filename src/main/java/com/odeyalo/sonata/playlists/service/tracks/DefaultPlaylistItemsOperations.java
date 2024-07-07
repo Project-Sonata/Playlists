@@ -62,9 +62,18 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                 .flatMap(tuple -> {
                                     final Long currentIndex = tuple.getT1();
                                     final ContextUri contextUri = tuple.getT2();
-                                    final int position = (int) (playlistSize + currentIndex);
-                                    logger.info("Saving the  track: {} at {} position", contextUri, position);
-                                    return saveItem(playlist.getId().value(), collaborator, contextUri, position);
+                                    // we are appending items to the end
+                                    // minus one in playlist size because we have a zero-based position
+                                    if ( addItemPayload.getPosition() >= playlistSize - 1 ) {
+                                        final int position = (int) (playlistSize + currentIndex);
+                                        logger.info("Saving the  track: {} at {} position", contextUri, position);
+                                        return saveItem(playlist.getId().value(), collaborator, contextUri, position);
+                                    }
+
+                                    int position = addItemPayload.getPosition();
+
+                                    return itemsRepository.incrementNextItemsPositionFrom(playlist.getId(), position)
+                                            .then(saveItem(playlist.getId().value(), collaborator, contextUri, position));
                                 })
                 );
     }

@@ -333,6 +333,38 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     @Test
+    void shouldAddItemToPlaylistAtSpecificPositionAndMoveNextElementsAhead() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1.setIndex(0), TRACK_2.setIndex(1), TRACK_3.setIndex(2), TRACK_4.setIndex(3))
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.atPosition(2, "sonata:track:miku");
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                // assert that the previous elements haven't changed
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_1.getItem().getPublicId()))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_2.getItem().getPublicId()))
+                // assert that position was set correctly
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("miku"))
+                // assert that the next elements have been moved ahead
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_3.getItem().getPublicId()))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_4.getItem().getPublicId()))
+                .verifyComplete();
+    }
+
+    @Test
     void shouldAddItemToPlaylistWithPlayableItemType() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 

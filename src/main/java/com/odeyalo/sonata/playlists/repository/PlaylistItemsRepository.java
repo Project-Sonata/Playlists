@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
@@ -28,4 +29,14 @@ public interface PlaylistItemsRepository {
 
     @NotNull
     Mono<Long> getPlaylistSize(@NotNull String playlistId);
+
+    /**
+     * Increment the next playlist items index by one.
+     * This method exists for performance reasons, to invoke a single UPDATE(for sql) instead of N+1 problem
+     * @param id - the playlist ID to update
+     * @param position - a position(exclusive) to increment items from
+     * @return - a empty {@link Mono} on successful completion
+     */
+    @NotNull
+    Mono<Void> incrementNextItemsPositionFrom(@NotNull PlaylistId id, int position);
 }
