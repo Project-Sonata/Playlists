@@ -25,8 +25,6 @@ public record PlaylistItemPosition(int value) {
     }
 
     public boolean isEndOfPlaylist(final long playlistSize) {
-        // to avoid out of range corner cases we do like this,
-        // instead of value + 1 >= playlistSize
         return value >= playlistSize;
     }
 }
