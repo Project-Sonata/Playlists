@@ -31,7 +31,7 @@ class PlaylistItemPositionTest {
     }
 
     @Test
-    void shouldReturnTrueIfPlaylistHasOneElement() {
+    void shouldReturnFalseIfPositionIsZeroAndPlaylistHasOneElement() {
         PlaylistItemPosition position = PlaylistItemPosition.at(0);
 
         assertThat(position.isEndOfPlaylist(1)).isFalse();
