@@ -24,7 +24,9 @@ import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -282,6 +284,87 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     @Test
+    void shouldAddItemToTheEndOfThePlaylistIfPositionWasNotSupplied() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("miku"))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToTheEndOfThePlaylistIfPositionIsEqualToSizeOfThePlaylist() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(4), "sonata:track:miku");
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .skip(4)
+                .as(StepVerifier::create)
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("miku"))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAtSpecificPositionAndMoveNextElementsAhead() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1.setIndex(0), TRACK_2.setIndex(1), TRACK_3.setIndex(2), TRACK_4.setIndex(3))
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItems(trackPlayableItem)
+                .get();
+
+        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(2), "sonata:track:miku");
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                // assert that the previous elements haven't changed
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_1.getItem().getPublicId()))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_2.getItem().getPublicId()))
+                // assert that position was set correctly
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("miku"))
+                // assert that the next elements have been moved ahead
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_3.getItem().getPublicId()))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_4.getItem().getPublicId()))
+                .verifyComplete();
+    }
+
+    @Test
     void shouldAddItemToPlaylistWithPlayableItemType() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
@@ -511,10 +594,10 @@ class DefaultPlaylistItemsOperationsTest {
 
     static class TestableBuilder {
         private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
-        private PlayableItemLoader playableItemLoader = PlayableItemLoaders.empty();
         private PlaylistItemsRepository itemsRepository = null;
         private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
         private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser();
+        private final List<PlayableItem> playableItems = new ArrayList<>();
 
         public static TestableBuilder builder() {
             return new TestableBuilder();
@@ -531,7 +614,7 @@ class DefaultPlaylistItemsOperationsTest {
         }
 
         public TestableBuilder withPlayableItems(PlayableItem... items) {
-            this.playableItemLoader = PlayableItemLoaders.withItems(items);
+            this.playableItems.addAll(List.of(items));
             return this;
         }
 
@@ -547,14 +630,14 @@ class DefaultPlaylistItemsOperationsTest {
 
         public TestableBuilder withPlayableItemsFrom(PlaylistItemEntity... items) {
             Stream<PlayableItem> playableItems = Arrays.stream(items).map(DefaultPlaylistItemsOperationsTest::playableItemFrom);
-            this.playableItemLoader = PlayableItemLoaders.withItems(playableItems);
+            this.playableItems.addAll(playableItems.toList());
             return this;
         }
 
         public DefaultPlaylistItemsOperations get() {
             itemsRepository = itemsRepository == null ? PlaylistItemsRepositories.empty() : itemsRepository;
 
-            return new DefaultPlaylistItemsOperations(playlistLoader, playableItemLoader, itemsRepository, contextUriParser, playlistItemEntityConverter);
+            return new DefaultPlaylistItemsOperations(playlistLoader, PlayableItemLoaders.withItems(playableItems), itemsRepository, contextUriParser, playlistItemEntityConverter);
         }
     }
 

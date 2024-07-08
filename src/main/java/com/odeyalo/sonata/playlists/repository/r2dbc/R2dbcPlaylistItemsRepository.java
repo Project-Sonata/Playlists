@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcPlaylistItemsRepositoryDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -42,5 +43,10 @@ public final class R2dbcPlaylistItemsRepository implements PlaylistItemsReposito
     @NotNull
     public Flux<PlaylistItemEntity> saveAll(@NotNull List<PlaylistItemEntity> entities) {
         return delegate.saveAll(entities);
+    }
+
+    @Override
+    public @NotNull Mono<Void> incrementNextItemsPositionFrom(@NotNull final PlaylistId id, final int position) {
+        return delegate.incrementNextPlaylistItems(id.value(), position);
     }
 }

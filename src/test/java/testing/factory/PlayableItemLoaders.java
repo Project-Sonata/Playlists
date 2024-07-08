@@ -22,7 +22,7 @@ public final class PlayableItemLoaders {
         return withItems(items);
     }
 
-    private static PlayableItemLoader withItems(List<PlayableItem> items) {
+    public static PlayableItemLoader withItems(List<PlayableItem> items) {
         return new InMemoryPlayableItemLoader(items);
     }
 }

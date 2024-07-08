@@ -3,6 +3,7 @@ package com.odeyalo.sonata.playlists.repository.r2dbc.delegate;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,5 +30,14 @@ public interface R2dbcPlaylistItemsRepositoryDelegate extends R2dbcRepository<Pl
      */
     @NotNull
     Mono<Long> countAllByPlaylistId(@NotNull String playlistId);
+
+    /**
+     * Increment the next playlist items index by one
+     * @param playlistId - a playlist ID to update items from
+     * @param start - a start position, inclusive
+     * @return - empty {@link Mono} on completion
+     */
+    @Query("UPDATE playlist_items SET index = index + 1 WHERE index >= :start AND playlist_id= :playlistId")
+    Mono<Void> incrementNextPlaylistItems(@NotNull String playlistId, int start);
 
 }

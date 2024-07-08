@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.repository.r2dbc;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.model.PlaylistId;
 import com.odeyalo.sonata.playlists.repository.ItemRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistCollaboratorRepository;
 import com.odeyalo.sonata.playlists.repository.r2dbc.delegate.R2dbcItemRepositoryDelegate;
@@ -162,6 +163,28 @@ class R2dbcPlaylistItemsRepositoryTest {
                 // expect only 2 items in repository as it was saved before
                 .expectNext(2L)
                 .verifyComplete();
+    }
+
+    @Test
+    void shouldIncrementNextItemsByOne() {
+        final PlaylistItemEntity item1 = PlaylistItemEntityFaker.create(PLAYLIST_ID).setId(null).withIndex(0).get();
+        final PlaylistItemEntity item2 = PlaylistItemEntityFaker.create(PLAYLIST_ID).setId(null).withIndex(1).get();
+        final PlaylistItemEntity item3 = PlaylistItemEntityFaker.create(PLAYLIST_ID).setId(null).withIndex(2).get();
+        final PlaylistItemEntity item4 = PlaylistItemEntityFaker.create(PLAYLIST_ID).setId(null).withIndex(3).get();
+
+        insertPlaylistItems(item1, item2, item3, item4);
+
+        testable.incrementNextItemsPositionFrom(PlaylistId.of(PLAYLIST_ID), 2)
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.findAllByPlaylistId(PLAYLIST_ID, Pageable.unpaged())
+                .as(StepVerifier::create)
+                .expectNext(item1, item2)
+                .assertNext(it -> assertThat(it.getIndex()).isEqualTo(3))
+                .assertNext(it -> assertThat(it.getIndex()).isEqualTo(4))
+                .verifyComplete();
+
     }
 
     private void insertPlaylistItems(PlaylistItemEntity... playlistItemEntities) {
