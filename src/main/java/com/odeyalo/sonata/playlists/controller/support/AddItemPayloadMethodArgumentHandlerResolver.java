@@ -1,6 +1,7 @@
 package com.odeyalo.sonata.playlists.controller.support;
 
 import com.odeyalo.sonata.playlists.exception.InvalidPlaylistItemPositionException;
+import com.odeyalo.sonata.playlists.exception.MissingRequestParameterException;
 import com.odeyalo.sonata.playlists.model.PlaylistItemPosition;
 import com.odeyalo.sonata.playlists.service.tracks.AddItemPayload;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -31,7 +32,13 @@ public final class AddItemPayloadMethodArgumentHandlerResolver implements Handle
                                         @NotNull ServerWebExchange exchange) {
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
 
-        String[] itemUris = queryParams.get("uris").toArray(new String[0]);
+        String rawContextUris = queryParams.getFirst("uris");
+
+        if ( rawContextUris == null ) {
+            return Mono.error(new MissingRequestParameterException("Missing required request parameter: 'uris'"));
+        }
+
+        String[] itemUris = rawContextUris.split(",");
 
         String position = queryParams.getFirst("position");
 

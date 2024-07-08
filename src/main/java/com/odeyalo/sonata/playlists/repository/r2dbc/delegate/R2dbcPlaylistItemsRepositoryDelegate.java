@@ -34,10 +34,10 @@ public interface R2dbcPlaylistItemsRepositoryDelegate extends R2dbcRepository<Pl
     /**
      * Increment the next playlist items index by one
      * @param playlistId - a playlist ID to update items from
-     * @param start - a start position, exclusive
+     * @param start - a start position, inclusive
      * @return - empty {@link Mono} on completion
      */
-    @Query("UPDATE playlist_items SET index = index + 1 WHERE index > :start AND playlist_id= :playlistId")
+    @Query("UPDATE playlist_items SET index = index + 1 WHERE index >= :start AND playlist_id= :playlistId")
     Mono<Void> incrementNextPlaylistItems(@NotNull String playlistId, int start);
 
 }

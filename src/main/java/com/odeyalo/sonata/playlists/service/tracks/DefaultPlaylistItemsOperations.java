@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -115,7 +116,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     private Flux<PlaylistItemEntity> getPlaylistItems(@NotNull TargetPlaylist targetPlaylist,
                                                       @NotNull Pagination pagination) {
         return itemsRepository.findAllByPlaylistId(targetPlaylist.getPlaylistId(),
-                OffsetBasedPageRequest.of(pagination.getOffset(), pagination.getLimit())
+                new OffsetBasedPageRequest(pagination.getOffset(), pagination.getLimit(), Sort.by("index"))
         );
     }
 

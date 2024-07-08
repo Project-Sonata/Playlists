@@ -174,7 +174,7 @@ class R2dbcPlaylistItemsRepositoryTest {
 
         insertPlaylistItems(item1, item2, item3, item4);
 
-        testable.incrementNextItemsPositionFrom(PlaylistId.of(PLAYLIST_ID), 1)
+        testable.incrementNextItemsPositionFrom(PlaylistId.of(PLAYLIST_ID), 2)
                 .as(StepVerifier::create)
                 .verifyComplete();
 

@@ -34,7 +34,7 @@ public interface PlaylistItemsRepository {
      * Increment the next playlist items index by one.
      * This method exists for performance reasons, to invoke a single UPDATE(for sql) instead of N+1 problem
      * @param id - the playlist ID to update
-     * @param position - a position(exclusive) to increment items from
+     * @param position - a position(inclusive) to increment items from
      * @return - a empty {@link Mono} on successful completion
      */
     @NotNull

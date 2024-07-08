@@ -37,6 +37,15 @@ public final class GlobalExceptionHandlerController {
         return HttpStatuses.defaultBadRequestStatus(exceptionMessage);
     }
 
+    @ExceptionHandler(MissingRequestParameterException.class)
+    public ResponseEntity<ExceptionMessage> handlePlaylistNotFoundException(MissingRequestParameterException ex) {
+        ExceptionMessage exceptionMessage = ExceptionMessage.withDescription(
+                ex.getMessage()
+        );
+
+        return HttpStatuses.defaultBadRequestStatus(exceptionMessage);
+    }
+
     @ExceptionHandler(PlaylistOperationNotAllowedException.class)
     public ResponseEntity<ExceptionMessage> handlePlaylistOperationNotAllowedException(final PlaylistOperationNotAllowedException ignored) {
         final var exceptionMessage = ExceptionMessage.withDescription("You don't have permission to read or change the playlist");

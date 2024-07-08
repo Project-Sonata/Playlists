@@ -43,6 +43,11 @@ public class PlaylistEntityFaker {
         return this;
     }
 
+    public PlaylistEntityFaker setOwnerId(String ownerId) {
+        builder.playlistOwner(PlaylistOwnerEntityFaker.create().publicId(ownerId).get());
+        return this;
+    }
+
     public PlaylistEntityFaker setPublicId(String publicId) {
         builder.publicId(publicId);
         builder.contextUri("sonata:playlist:" + publicId);

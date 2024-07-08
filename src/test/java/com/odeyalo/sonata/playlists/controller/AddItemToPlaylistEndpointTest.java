@@ -6,14 +6,15 @@ import com.odeyalo.sonata.playlists.controller.AddItemToPlaylistEndpointTest.Con
 import com.odeyalo.sonata.playlists.dto.ExceptionMessage;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemDto;
 import com.odeyalo.sonata.playlists.dto.PlaylistItemsDto;
+import com.odeyalo.sonata.playlists.entity.PlaylistEntity;
 import com.odeyalo.sonata.playlists.model.EntityType;
-import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.TrackPlayableItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
-import com.odeyalo.sonata.playlists.service.PlaylistService;
+import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.service.tracks.InMemoryPlayableItemLoader;
 import com.odeyalo.sonata.playlists.service.tracks.PlayableItemLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -29,16 +30,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
-import testing.factory.PlaylistItemsRepositories;
-import testing.factory.PlaylistServices;
-import testing.faker.PlaylistFaker;
+import testing.faker.PlaylistEntityFaker;
 import testing.faker.TrackPlayableItemFaker;
 import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
@@ -61,6 +61,12 @@ class AddItemToPlaylistEndpointTest {
     static final String TRACK_2_ID = "track2";
     static final String TRACK_2_CONTEXT_URI = "sonata:track:track2";
 
+    static final String TRACK_3_ID = "track3";
+    static final String TRACK_3_CONTEXT_URI = "sonata:track:track3";
+
+    static final String TRACK_4_ID = "track4";
+    static final String TRACK_4_CONTEXT_URI = "sonata:track:track4";
+
     static final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
     static final String USER_ID = "1";
     static final String USER_CONTEXT_URI = "sonata:user:1";
@@ -70,38 +76,41 @@ class AddItemToPlaylistEndpointTest {
 
     @Autowired
     PlaylistItemsRepository playlistItemsRepository;
+    @Autowired
+    PlaylistRepository playlistRepository;
 
     @BeforeAll
     void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
+    @BeforeEach
+    void setUp() {
+        final PlaylistEntity playlist = PlaylistEntityFaker.createWithNoId()
+                .setPublicId(EXISTING_PLAYLIST_ID)
+                .setOwnerId(USER_ID).get();
+
+        playlistRepository.save(playlist).block();
+    }
+
     @AfterEach
     void tearDown() {
         playlistItemsRepository.clear().block();
+        playlistRepository.clear().block();
     }
+
 
     @TestConfiguration
     static class Config {
         @Bean
         @Primary
         public PlayableItemLoader testPlayableItemLoader() {
-            TrackPlayableItem playableItem = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).setContextUri(TRACK_1_CONTEXT_URI).get();
-            TrackPlayableItem playableItem2 = TrackPlayableItemFaker.create().setPublicId(TRACK_2_ID).setContextUri(TRACK_2_CONTEXT_URI).get();
-            return new InMemoryPlayableItemLoader(playableItem, playableItem2);
-        }
+            final TrackPlayableItem playableItem = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
+            final TrackPlayableItem playableItem2 = TrackPlayableItemFaker.create().setPublicId(TRACK_2_ID).get();
+            final TrackPlayableItem playableItem3 = TrackPlayableItemFaker.create().setPublicId(TRACK_3_ID).get();
+            final TrackPlayableItem playableItem4 = TrackPlayableItemFaker.create().setPublicId(TRACK_4_ID).get();
 
-        @Bean
-        @Primary
-        public PlaylistService testPlaylistService() {
-            final Playlist playlist = PlaylistFaker.create().setId(EXISTING_PLAYLIST_ID).withPlaylistOwnerId(USER_ID).get();
-            return PlaylistServices.withPlaylists(playlist);
-        }
-
-        @Bean
-        @Primary
-        public PlaylistItemsRepository testPlaylistItemsRepository() {
-            return PlaylistItemsRepositories.withPlaylistIds(Set.of(EXISTING_PLAYLIST_ID));
+            return new InMemoryPlayableItemLoader(playableItem, playableItem2, playableItem3, playableItem4);
         }
     }
 
@@ -124,7 +133,7 @@ class AddItemToPlaylistEndpointTest {
     }
 
     @Test
-    void shouldAddItemToPlaylistAtSpecificPosition() {
+    void shouldAddItemToPlaylistAtSpecificPositionAtBeginning() {
         // add item to playlist
         addItemToPlaylist();
 
@@ -139,15 +148,48 @@ class AddItemToPlaylistEndpointTest {
     }
 
     @Test
+    void shouldAddItemToPlaylistAtSpecificPosition() {
+        // add item to playlist
+        addItemToPlaylist(EXISTING_PLAYLIST_ID, List.of(TRACK_1_CONTEXT_URI, TRACK_2_CONTEXT_URI, TRACK_3_CONTEXT_URI));
+
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist(EXISTING_PLAYLIST_ID, TRACK_4_CONTEXT_URI, "1");
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(it -> it.getItem().getId())
+                .containsExactly(TRACK_1_ID, TRACK_4_ID, TRACK_2_ID, TRACK_3_ID);
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAtEndIfPositionIsEqualToSizeOfThePlaylist() {
+        addItemToPlaylist(EXISTING_PLAYLIST_ID, List.of(TRACK_1_CONTEXT_URI, TRACK_2_CONTEXT_URI, TRACK_3_CONTEXT_URI));
+
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist(EXISTING_PLAYLIST_ID, TRACK_4_CONTEXT_URI, "3");
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(it -> it.getItem().getId())
+                .containsExactly(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID, TRACK_4_ID);
+    }
+
+    @Test
+    void shouldAddItemToPlaylistAtEndIfPositionIsLargerThanSizeOfThePlaylist() {
+        addItemToPlaylist(EXISTING_PLAYLIST_ID, List.of(TRACK_1_CONTEXT_URI, TRACK_2_CONTEXT_URI, TRACK_3_CONTEXT_URI));
+
+        WebTestClient.ResponseSpec ignored = addItemToPlaylist(EXISTING_PLAYLIST_ID, TRACK_4_CONTEXT_URI, "10");
+
+        PlaylistItemsDto items = fetchPlaylistItems();
+
+        assertThat(items.getItems())
+                .map(it -> it.getItem().getId())
+                .containsExactly(TRACK_1_ID, TRACK_2_ID, TRACK_3_ID, TRACK_4_ID);
+    }
+
+    @Test
     void shouldReturnBadRequestIfPositionQueryParameterIsInvalid() {
-        WebTestClient.ResponseSpec responseSpec = webTestClient.post()
-                .uri(builder -> builder.path("/playlist/{playlistId}/items")
-                        .queryParam("uris", TRACK_2_CONTEXT_URI)
-                        .queryParam("position", "malformed")
-                        .build(AddItemToPlaylistEndpointTest.EXISTING_PLAYLIST_ID))
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
-                .exchange();
+        WebTestClient.ResponseSpec responseSpec = addItemToPlaylist(EXISTING_PLAYLIST_ID, TRACK_2_CONTEXT_URI, "invalid");
 
         responseSpec.expectStatus().isBadRequest();
     }
@@ -221,6 +263,7 @@ class AddItemToPlaylistEndpointTest {
     @AutoConfigureStubRunner(stubsMode = CLASSPATH, ids = "com.odeyalo.sonata:authorization:+")
     @NestedTestConfiguration(OVERRIDE)
     class NotPlaylistOwnerRequestTest {
+
         final String OTHER_USER_TOKEN = "Bearer ilovemikunakano";
 
         @Test
@@ -237,7 +280,6 @@ class AddItemToPlaylistEndpointTest {
             final PlaylistItemsDto items = fetchPlaylistItems();
 
             assertThat(items.getItems()).isEmpty();
-
         }
 
         @Test
@@ -262,6 +304,7 @@ class AddItemToPlaylistEndpointTest {
         }
 
     }
+
     @NotNull
     private WebTestClient.ResponseSpec addItemToPlaylist() {
         return addItemToPlaylist(EXISTING_PLAYLIST_ID);
@@ -284,22 +327,42 @@ class AddItemToPlaylistEndpointTest {
 
     @NotNull
     private WebTestClient.ResponseSpec addItemToPlaylist(final int position) {
-        return webTestClient.post()
-                .uri(builder -> builder.path("/playlist/{playlistId}/items")
-                        .queryParam("uris", TRACK_2_CONTEXT_URI)
-                        .queryParam("position", position)
-                        .build(AddItemToPlaylistEndpointTest.EXISTING_PLAYLIST_ID))
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
-                .exchange();
+        return addItemToPlaylist(EXISTING_PLAYLIST_ID, TRACK_2_CONTEXT_URI, String.valueOf(position));
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec addItemToPlaylist(@NotNull final String playlistId,
+                                                         @NotNull final List<String> uris) {
+        return addItemToPlaylist(playlistId, uris, null);
     }
 
     @NotNull
     private WebTestClient.ResponseSpec addItemToPlaylist(String playlistId) {
+        return addItemToPlaylist(playlistId, TRACK_1_CONTEXT_URI, null);
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec addItemToPlaylist(@NotNull final String playlistId,
+                                                         @NotNull final String contextUri,
+                                                         @Nullable final String position) {
+        return addItemToPlaylist(playlistId, singletonList(contextUri), position);
+    }
+
+    @NotNull
+    private WebTestClient.ResponseSpec addItemToPlaylist(@NotNull final String playlistId,
+                                                         @NotNull final List<String> contextUris,
+                                                         @Nullable final String position) {
         return webTestClient.post()
-                .uri(builder -> builder.path("/playlist/{playlistId}/items")
-                        .queryParam("uris", TRACK_1_CONTEXT_URI)
-                        .build(playlistId))
+                .uri(builder -> {
+                    builder.path("/playlist/{playlistId}/items")
+                            .queryParam("uris", String.join(",", contextUris));
+
+                    if ( position != null ) {
+                        builder.queryParam("position", position);
+                    }
+
+                    return builder.build(playlistId);
+                })
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .header(HttpHeaders.AUTHORIZATION, VALID_ACCESS_TOKEN)
                 .exchange();
