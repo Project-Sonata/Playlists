@@ -19,7 +19,7 @@ public class AddItemPayload {
 
     @NotNull
     public static AddItemPayload withItemUri(@NotNull final ContextUri playableItemContextUri) {
-        ContextUri[] uris = {playableItemContextUri};
+        final ContextUri[] uris = {playableItemContextUri};
 
         return AddItemPayload.builder()
                 .contextUris(uris)
@@ -56,12 +56,12 @@ public class AddItemPayload {
     @NotNull
     public Item[] determineItemsPosition(long playlistSize) {
         return IntStream.range(0, contextUris.length)
-                .mapToObj(index -> calculateItemPosition(playlistSize, index))
+                .mapToObj(index -> resolveItem(playlistSize, index))
                 .toArray(Item[]::new);
     }
 
     @NotNull
-    private Item calculateItemPosition(final long playlistSize, final int index) {
+    private Item resolveItem(final long playlistSize, final int index) {
         final ContextUri contextUri = contextUris[index];
 
         if ( startPosition.isEndOfPlaylist(playlistSize) ) {
@@ -76,6 +76,7 @@ public class AddItemPayload {
         public static Item of(ContextUri itemUri, int pos) {
             return new Item(itemUri, PlaylistItemPosition.at(pos));
         }
+
         @NotNull
         public static Item of(ContextUri itemUri, PlaylistItemPosition pos) {
             return new Item(itemUri, pos);
