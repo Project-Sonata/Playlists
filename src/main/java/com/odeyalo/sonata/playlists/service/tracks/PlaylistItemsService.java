@@ -10,12 +10,14 @@ import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * Used to work with playlist items, middleware between repository but returns a domain models instead of entities
  */
+@Component
 public final class PlaylistItemsService {
     private final PlaylistItemsRepository itemsRepository;
     private final PlayableItemLoader playableItemLoader;

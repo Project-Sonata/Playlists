@@ -1,10 +1,8 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.common.context.ContextUri;
-import com.odeyalo.sonata.playlists.entity.factory.PlaylistItemEntityFactory;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.*;
-import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
@@ -19,11 +17,9 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     private final PlaylistItemsService playlistItemsService;
 
     public DefaultPlaylistItemsOperations(final PlaylistLoader playlistLoader,
-                                          final PlayableItemLoader playableItemLoader,
-                                          final PlaylistItemsRepository itemsRepository,
-                                          final PlaylistItemEntityFactory playlistItemEntityFactory) {
+                                          final PlaylistItemsService playlistItemsService) {
         this.playlistLoader = playlistLoader;
-        this.playlistItemsService = new PlaylistItemsService(itemsRepository, playableItemLoader, playlistItemEntityFactory);
+        this.playlistItemsService = playlistItemsService;
     }
 
     @Override

@@ -677,7 +677,7 @@ class DefaultPlaylistItemsOperationsTest {
         public DefaultPlaylistItemsOperations get() {
             itemsRepository = itemsRepository == null ? PlaylistItemsRepositories.empty() : itemsRepository;
 
-            return new DefaultPlaylistItemsOperations(playlistLoader, PlayableItemLoaders.withItems(playableItems), itemsRepository, playlistItemEntityFactory);
+            return new DefaultPlaylistItemsOperations(playlistLoader, new PlaylistItemsService(itemsRepository, PlayableItemLoaders.withItems(playableItems), playlistItemEntityFactory));
         }
     }
 
