@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.model.PlaylistItemPosition;
 import lombok.Builder;
 import lombok.Value;
@@ -43,6 +44,28 @@ public class AddItemPayload {
         return AddItemPayload.builder()
                 .uris(uris)
                 .build();
+    }
+
+    @NotNull
+    public Item[] determineItemsPosition(long playlistSize) {
+        Item[] items = new Item[uris.length];
+
+        for (int currentIndex = 0; currentIndex < uris.length; currentIndex++) {
+            final ContextUri contextUri = ContextUri.fromString(uris[currentIndex]);
+
+            if ( position.isEndOfPlaylist(playlistSize) ) {
+                final int position = (int) (playlistSize + currentIndex);
+                items[currentIndex] = new Item(contextUri, PlaylistItemPosition.at(position));
+            } else {
+                items[currentIndex] = new Item(contextUri, position);
+            }
+        }
+
+        return items;
+    }
+
+    record Item(ContextUri contextUri, PlaylistItemPosition position) {
+
     }
 
     @NotNull

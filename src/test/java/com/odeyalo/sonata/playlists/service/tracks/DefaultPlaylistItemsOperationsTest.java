@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.entity.factory.DefaultPlaylistCollaboratorEntityFactory;
+import com.odeyalo.sonata.playlists.entity.factory.DefaultPlaylistItemEntityFactory;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
@@ -10,8 +11,6 @@ import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.Clock;
 import com.odeyalo.sonata.playlists.support.JavaClock;
 import com.odeyalo.sonata.playlists.support.MockClock;
-import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
-import com.odeyalo.sonata.playlists.entity.factory.DefaultPlaylistItemEntityFactory;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -597,7 +596,6 @@ class DefaultPlaylistItemsOperationsTest {
         private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
         private PlaylistItemsRepository itemsRepository = null;
         private DefaultPlaylistItemEntityFactory playlistItemEntityFactory = new DefaultPlaylistItemEntityFactory(new DefaultPlaylistCollaboratorEntityFactory(), new JavaClock());
-        private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser();
         private final List<PlayableItem> playableItems = new ArrayList<>();
 
         public static TestableBuilder builder() {
@@ -638,7 +636,7 @@ class DefaultPlaylistItemsOperationsTest {
         public DefaultPlaylistItemsOperations get() {
             itemsRepository = itemsRepository == null ? PlaylistItemsRepositories.empty() : itemsRepository;
 
-            return new DefaultPlaylistItemsOperations(playlistLoader, PlayableItemLoaders.withItems(playableItems), itemsRepository, contextUriParser, playlistItemEntityFactory);
+            return new DefaultPlaylistItemsOperations(playlistLoader, PlayableItemLoaders.withItems(playableItems), itemsRepository, playlistItemEntityFactory);
         }
     }
 

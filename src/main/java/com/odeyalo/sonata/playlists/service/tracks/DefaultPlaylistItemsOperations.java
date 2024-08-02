@@ -7,11 +7,8 @@ import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
-import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,18 +17,14 @@ import reactor.core.publisher.Mono;
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
     private final PlaylistItemsRepository itemsRepository;
-    private final ReactiveContextUriParser contextUriParser;
-    private final Logger logger = LoggerFactory.getLogger(DefaultPlaylistItemsOperations.class);
     private final PlaylistItemsService playlistItemsService;
 
     public DefaultPlaylistItemsOperations(final PlaylistLoader playlistLoader,
                                           final PlayableItemLoader playableItemLoader,
                                           final PlaylistItemsRepository itemsRepository,
-                                          final ReactiveContextUriParser contextUriParser,
                                           final PlaylistItemEntityFactory playlistItemEntityFactory) {
         this.playlistLoader = playlistLoader;
         this.itemsRepository = itemsRepository;
-        this.contextUriParser = contextUriParser;
         this.playlistItemsService = new PlaylistItemsService(itemsRepository, playableItemLoader, playlistItemEntityFactory);
     }
 
@@ -57,57 +50,30 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                           @NotNull final AddItemPayload addItemPayload,
                                           @NotNull final PlaylistCollaborator collaborator) {
         return itemsRepository.getPlaylistSize(playlist.getId().value())
-                .flatMapMany(playlistSize ->
-                        Flux.fromArray(addItemPayload.getUris())
-                                .flatMap(contextUriParser::parse)
-                                .index()
-                                .flatMap(tuple -> {
-                                    final Long currentIndex = tuple.getT1();
-                                    final ContextUri contextUri = tuple.getT2();
-                                    // we are appending items to the end
-                                    if ( addItemPayload.getPosition().isEndOfPlaylist(playlistSize) ) {
-                                        return appendItemToTheEnd(playlist, collaborator, playlistSize, currentIndex, contextUri);
-                                    }
-
-                                    return insertItemAtSpecificPosition(playlist, addItemPayload, collaborator, contextUri);
-                                })
-                );
+                .flatMapMany(playlistSize -> addPlaylistItems(playlist, addItemPayload, collaborator, playlistSize));
     }
 
     @NotNull
-    private Mono<Void> insertItemAtSpecificPosition(final @NotNull Playlist playlist, final @NotNull AddItemPayload addItemPayload, final @NotNull PlaylistCollaborator collaborator, final ContextUri contextUri) {
-        final int position = addItemPayload.getPosition().value();
+    private Flux<Void> addPlaylistItems(@NotNull final Playlist playlist,
+                                        @NotNull final AddItemPayload addItemPayload,
+                                        @NotNull final PlaylistCollaborator collaborator,
+                                        final long playlistSize) {
 
-        return itemsRepository.incrementNextItemsPositionFrom(playlist.getId(), position)
-                .then(saveItem(playlist.getId().value(), collaborator, contextUri, position));
+        final AddItemPayload.Item[] items = addItemPayload.determineItemsPosition(playlistSize);
+
+        return Flux.fromArray(items)
+                .flatMap(item -> {
+                    final ContextUri uri = item.contextUri();
+                    final PlaylistItemPosition itemPosition = item.position();
+
+                    if ( itemPosition.isEndOfPlaylist(playlistSize) ) {
+                        return appendItemToTheEnd(playlist, collaborator, itemPosition, uri);
+                    }
+
+                    return insertItemAtSpecificPosition(playlist.getId(), itemPosition, collaborator, uri);
+                });
     }
 
-    @NotNull
-    private Mono<Void> appendItemToTheEnd(@NotNull final Playlist playlist,
-                                          @NotNull final PlaylistCollaborator collaborator,
-                                          final long playlistSize,
-                                          final long currentIndex,
-                                          @NotNull final ContextUri contextUri) {
-        final int position = (int) (playlistSize + currentIndex);
-        logger.info("Saving the  track: {} at {} position", contextUri, position);
-        return saveItem(playlist.getId().value(), collaborator, contextUri, position);
-    }
-
-    @NotNull
-    private Mono<Void> saveItem(@NotNull String playlistId,
-                                @NotNull PlaylistCollaborator collaborator,
-                                @NotNull ContextUri contextUri,
-                                int index) {
-
-        final SimplePlaylistItem playlistItem = new SimplePlaylistItem(
-                PlaylistId.of(playlistId),
-                collaborator,
-                contextUri,
-                PlaylistItemPosition.at(index)
-        );
-
-        return playlistItemsService.saveItem(playlistItem);
-    }
 
     @NotNull
     private Mono<Playlist> loadPlaylist(@NotNull TargetPlaylist targetPlaylist) {
@@ -115,6 +81,41 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                 .switchIfEmpty(
                         onPlaylistNotFoundError(targetPlaylist)
                 );
+    }
+
+    @NotNull
+    private Mono<Void> insertItemAtSpecificPosition(@NotNull final PlaylistId playlistId,
+                                                    @NotNull final PlaylistItemPosition playlistItemPosition,
+                                                    @NotNull final PlaylistCollaborator collaborator,
+                                                    @NotNull final ContextUri contextUri) {
+        final int position = playlistItemPosition.asInt();
+
+        return itemsRepository.incrementNextItemsPositionFrom(playlistId, position)
+                .then(saveItem(playlistId, collaborator, contextUri, playlistItemPosition));
+    }
+
+    @NotNull
+    private Mono<Void> appendItemToTheEnd(@NotNull final Playlist playlist,
+                                          @NotNull final PlaylistCollaborator collaborator,
+                                          @NotNull final PlaylistItemPosition position,
+                                          @NotNull final ContextUri contextUri) {
+        return saveItem(playlist.getId(), collaborator, contextUri, position);
+    }
+
+    @NotNull
+    private Mono<Void> saveItem(@NotNull PlaylistId playlistId,
+                                @NotNull PlaylistCollaborator collaborator,
+                                @NotNull ContextUri contextUri,
+                                @NotNull PlaylistItemPosition position) {
+
+        final SimplePlaylistItem playlistItem = new SimplePlaylistItem(
+                playlistId,
+                collaborator,
+                contextUri,
+                position
+        );
+
+        return playlistItemsService.saveItem(playlistItem);
     }
 
     @NotNull

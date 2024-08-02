@@ -12,8 +12,8 @@ import reactor.core.publisher.Mono;
  */
 public interface PlayableItemLoader {
     /**
-     * Loads a single playable item using its context uri
-     * @param contextUri - context uri of the item
+     * Loads a single playable item using its context contextUri
+     * @param contextUri - context contextUri of the item
      * @return - {@link Mono} with {@link PlayableItem} on success,
      * empty {@link Mono} if item in playlist does not exist
      */
