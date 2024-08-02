@@ -63,7 +63,7 @@ public final class AddItemPayloadMethodArgumentHandlerResolver implements Handle
         final int pos = NumberUtils.createInteger(position);
 
         return Mono.just(
-                AddItemPayload.atPosition(PlaylistItemPosition.at(pos), contextUris)
+                AddItemPayload.fromPosition(PlaylistItemPosition.at(pos), contextUris)
         );
     }
 }

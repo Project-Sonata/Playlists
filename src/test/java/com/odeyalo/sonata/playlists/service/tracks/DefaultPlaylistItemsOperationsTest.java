@@ -320,7 +320,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(4), ContextUri.forTrack("miku"));
+        final var addItemPayload = AddItemPayload.fromPosition(PlaylistItemPosition.at(4), ContextUri.forTrack("miku"));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -346,7 +346,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(2), ContextUri.forTrack("miku"));
+        final var addItemPayload = AddItemPayload.fromPosition(PlaylistItemPosition.at(2), ContextUri.forTrack("miku"));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -382,7 +382,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem, trackPlayableItem2)
                 .get();
 
-        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(2), new ContextUri[]{
+        final var addItemPayload = AddItemPayload.fromPosition(PlaylistItemPosition.at(2), new ContextUri[]{
                 ContextUri.forTrack("miku"), ContextUri.forTrack("nakano")
         });
 
