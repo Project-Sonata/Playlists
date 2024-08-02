@@ -27,4 +27,8 @@ public record PlaylistItemPosition(int value) {
     public boolean isEndOfPlaylist(final long playlistSize) {
         return value >= playlistSize;
     }
+
+    public int asInt() {
+        return value();
+    }
 }

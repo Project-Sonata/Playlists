@@ -2,9 +2,8 @@ package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
-import com.odeyalo.sonata.playlists.model.PlayableItem;
-import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
-import com.odeyalo.sonata.playlists.model.PlaylistItem;
+import com.odeyalo.sonata.playlists.entity.factory.PlaylistItemEntityFactory;
+import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
@@ -20,11 +19,14 @@ import reactor.core.publisher.Mono;
 public final class PlaylistItemsService {
     private final PlaylistItemsRepository itemsRepository;
     private final PlayableItemLoader playableItemLoader;
+    private final PlaylistItemEntityFactory playlistItemEntityFactory;
 
     public PlaylistItemsService(final PlaylistItemsRepository itemsRepository,
-                                final PlayableItemLoader playableItemLoader) {
+                                final PlayableItemLoader playableItemLoader,
+                                final PlaylistItemEntityFactory playlistItemEntityFactory) {
         this.itemsRepository = itemsRepository;
         this.playableItemLoader = playableItemLoader;
+        this.playlistItemEntityFactory = playlistItemEntityFactory;
     }
 
     @NotNull
@@ -32,6 +34,15 @@ public final class PlaylistItemsService {
                                                 @NotNull final Pagination pagination) {
         return getPlaylistItems(targetPlaylist, pagination)
                 .flatMap(this::loadPlaylistItem);
+    }
+
+    @NotNull
+    public Mono<Void> saveItem(@NotNull final SimplePlaylistItem playlistItem) {
+
+        final PlaylistItemEntity playlistItemEntity = playlistItemEntityFactory.create(playlistItem);
+
+        return itemsRepository.save(playlistItemEntity)
+                .then();
     }
 
     @NotNull
