@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 @Component
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
-    private final PlaylistItemsRepository itemsRepository;
     private final PlaylistItemsService playlistItemsService;
 
     public DefaultPlaylistItemsOperations(final PlaylistLoader playlistLoader,
@@ -24,7 +23,6 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                           final PlaylistItemsRepository itemsRepository,
                                           final PlaylistItemEntityFactory playlistItemEntityFactory) {
         this.playlistLoader = playlistLoader;
-        this.itemsRepository = itemsRepository;
         this.playlistItemsService = new PlaylistItemsService(itemsRepository, playableItemLoader, playlistItemEntityFactory);
     }
 
@@ -41,7 +39,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                                @NotNull PlaylistCollaborator collaborator) {
 
         return loadPlaylist(targetPlaylist)
-                .flatMapMany(it -> doAddPlaylistItems(it, addItemPayload, collaborator))
+                .flatMapMany(playlist -> doAddPlaylistItems(playlist, addItemPayload, collaborator))
                 .then();
     }
 
@@ -49,7 +47,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     private Flux<Void> doAddPlaylistItems(@NotNull final Playlist playlist,
                                           @NotNull final AddItemPayload addItemPayload,
                                           @NotNull final PlaylistCollaborator collaborator) {
-        return itemsRepository.getPlaylistSize(playlist.getId().value())
+        return playlistItemsService.getPlaylistSize(playlist.getId())
                 .flatMapMany(playlistSize -> addPlaylistItems(playlist, addItemPayload, collaborator, playlistSize));
     }
 
@@ -62,66 +60,51 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
         final AddItemPayload.Item[] items = addItemPayload.determineItemsPosition(playlistSize);
 
         return Flux.fromArray(items)
-                .flatMap(item -> {
-                    final ContextUri uri = item.contextUri();
-                    final PlaylistItemPosition itemPosition = item.position();
-
-                    if ( itemPosition.isEndOfPlaylist(playlistSize) ) {
-                        return appendItemToTheEnd(playlist, collaborator, itemPosition, uri);
-                    }
-
-                    return insertItemAtSpecificPosition(playlist.getId(), itemPosition, collaborator, uri);
-                });
+                .flatMap(item -> saveItem(playlist, collaborator, item, playlistSize));
     }
 
+    @NotNull
+    private Mono<Void> saveItem(@NotNull final Playlist playlist,
+                                @NotNull final PlaylistCollaborator collaborator,
+                                @NotNull final AddItemPayload.Item item,
+                                final long playlistSize) {
+
+        final ContextUri itemUri = item.contextUri();
+        final PlaylistItemPosition itemPosition = item.position();
+
+        final SimplePlaylistItem playlistItem = new SimplePlaylistItem(
+                playlist.getId(),
+                collaborator,
+                itemUri,
+                itemPosition
+        );
+
+        if ( itemPosition.isEndOfPlaylist(playlistSize) ) {
+            return appendItemToTheEnd(playlistItem);
+        }
+
+        return insertItemAtSpecificPosition(playlistItem);
+    }
 
     @NotNull
     private Mono<Playlist> loadPlaylist(@NotNull TargetPlaylist targetPlaylist) {
         return playlistLoader.loadPlaylist(targetPlaylist)
-                .switchIfEmpty(
-                        onPlaylistNotFoundError(targetPlaylist)
-                );
+                .switchIfEmpty(Mono.defer(() -> onPlaylistNotFoundError(targetPlaylist)));
     }
 
     @NotNull
-    private Mono<Void> insertItemAtSpecificPosition(@NotNull final PlaylistId playlistId,
-                                                    @NotNull final PlaylistItemPosition playlistItemPosition,
-                                                    @NotNull final PlaylistCollaborator collaborator,
-                                                    @NotNull final ContextUri contextUri) {
-        final int position = playlistItemPosition.asInt();
-
-        return itemsRepository.incrementNextItemsPositionFrom(playlistId, position)
-                .then(saveItem(playlistId, collaborator, contextUri, playlistItemPosition));
+    private Mono<Void> insertItemAtSpecificPosition(@NotNull final SimplePlaylistItem playlistItem) {
+        return playlistItemsService.insertItemAtSpecificPosition(playlistItem);
     }
 
     @NotNull
-    private Mono<Void> appendItemToTheEnd(@NotNull final Playlist playlist,
-                                          @NotNull final PlaylistCollaborator collaborator,
-                                          @NotNull final PlaylistItemPosition position,
-                                          @NotNull final ContextUri contextUri) {
-        return saveItem(playlist.getId(), collaborator, contextUri, position);
+    public Mono<Void> appendItemToTheEnd(@NotNull final SimplePlaylistItem playlistItem) {
+        return playlistItemsService.appendItemToTheEnd(playlistItem);
     }
 
     @NotNull
-    private Mono<Void> saveItem(@NotNull PlaylistId playlistId,
-                                @NotNull PlaylistCollaborator collaborator,
-                                @NotNull ContextUri contextUri,
-                                @NotNull PlaylistItemPosition position) {
+    private static Mono<Playlist> onPlaylistNotFoundError(@NotNull final TargetPlaylist targetPlaylist) {
+        return Mono.error(PlaylistNotFoundException.defaultException(targetPlaylist.getPlaylistId()));
 
-        final SimplePlaylistItem playlistItem = new SimplePlaylistItem(
-                playlistId,
-                collaborator,
-                contextUri,
-                position
-        );
-
-        return playlistItemsService.saveItem(playlistItem);
-    }
-
-    @NotNull
-    private static Mono<Playlist> onPlaylistNotFoundError(@NotNull TargetPlaylist targetPlaylist) {
-        return Mono.defer(
-                () -> Mono.error(PlaylistNotFoundException.defaultException(targetPlaylist.getPlaylistId()))
-        );
     }
 }

@@ -30,6 +30,12 @@ public final class PlaylistItemsService {
     }
 
     @NotNull
+    public Mono<Long> getPlaylistSize(PlaylistId playlistId) {
+        return itemsRepository.getPlaylistSize(playlistId.value())
+                .defaultIfEmpty(0L);
+    }
+
+    @NotNull
     public Flux<PlaylistItem> loadPlaylistItems(@NotNull final TargetPlaylist targetPlaylist,
                                                 @NotNull final Pagination pagination) {
         return getPlaylistItems(targetPlaylist, pagination)
@@ -37,7 +43,20 @@ public final class PlaylistItemsService {
     }
 
     @NotNull
-    public Mono<Void> saveItem(@NotNull final SimplePlaylistItem playlistItem) {
+    public Mono<Void> appendItemToTheEnd(@NotNull final SimplePlaylistItem playlistItem) {
+        return saveItem(playlistItem);
+    }
+
+    @NotNull
+    public Mono<Void> insertItemAtSpecificPosition(@NotNull final SimplePlaylistItem playlistItem) {
+        final int position = playlistItem.getAtPosition().asInt();
+
+        return itemsRepository.incrementNextItemsPositionFrom(playlistItem.getPlaylistId(), position)
+                .then(saveItem(playlistItem));
+    }
+
+    @NotNull
+    private Mono<Void> saveItem(@NotNull final SimplePlaylistItem playlistItem) {
 
         final PlaylistItemEntity playlistItemEntity = playlistItemEntityFactory.create(playlistItem);
 
