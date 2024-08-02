@@ -51,7 +51,7 @@ public final class PlaylistItemsService {
 
     @NotNull
     public Mono<Void> insertItemAtSpecificPosition(@NotNull final SimplePlaylistItem playlistItem) {
-        final int position = playlistItem.getAtPosition().asInt();
+        final int position = playlistItem.getPosition().asInt();
 
         return itemsRepository.incrementNextItemsPositionFrom(playlistItem.getPlaylistId(), position)
                 .then(saveItem(playlistItem));

@@ -16,9 +16,9 @@ public class SimplePlaylistItem {
     @NotNull
     PlaylistId playlistId;
     @NotNull
-    PlaylistCollaborator collaborator;
+    PlaylistCollaborator addedBy;
     @NotNull
-    ContextUri playableItemContextUri;
+    ContextUri itemUri;
     @NotNull
-    PlaylistItemPosition atPosition;
+    PlaylistItemPosition position;
 }

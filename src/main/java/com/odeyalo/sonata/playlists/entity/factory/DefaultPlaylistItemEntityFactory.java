@@ -22,16 +22,16 @@ public class DefaultPlaylistItemEntityFactory implements PlaylistItemEntityFacto
     @NotNull
     public PlaylistItemEntity create(@NotNull final SimplePlaylistItem playlistItem) {
 
-        final ItemEntity item = createItemEntity(playlistItem.getPlayableItemContextUri());
+        final ItemEntity item = createItemEntity(playlistItem.getItemUri());
 
-        final PlaylistCollaboratorEntity collaboratorEntity = createCollaboratorEntity(playlistItem.getCollaborator());
+        final PlaylistCollaboratorEntity collaboratorEntity = createCollaboratorEntity(playlistItem.getAddedBy());
 
         return PlaylistItemEntity.builder()
                 .playlistId(playlistItem.getPlaylistId().value())
                 .addedAt(clock.now())
                 .item(item)
                 .addedBy(collaboratorEntity)
-                .index(playlistItem.getAtPosition().asInt())
+                .index(playlistItem.getPosition().asInt())
                 .build();
     }
 

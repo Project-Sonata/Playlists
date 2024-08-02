@@ -1,6 +1,5 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
-import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
@@ -24,56 +23,67 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
 
     @Override
     @NotNull
-    public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull Pagination pagination) {
+    public Flux<PlaylistItem> loadPlaylistItems(@NotNull final TargetPlaylist targetPlaylist,
+                                                @NotNull final Pagination pagination) {
         return loadPlaylist(targetPlaylist)
                 .flatMapMany(playlist -> playlistItemsService.loadPlaylistItems(targetPlaylist, pagination));
     }
 
     @NotNull
-    public Mono<Void> addItems(@NotNull TargetPlaylist targetPlaylist,
-                               @NotNull AddItemPayload addItemPayload,
-                               @NotNull PlaylistCollaborator collaborator) {
+    public Mono<Void> addItems(@NotNull final TargetPlaylist targetPlaylist,
+                               @NotNull final AddItemPayload addItemPayload,
+                               @NotNull final PlaylistCollaborator collaborator) {
 
         return loadPlaylist(targetPlaylist)
-                .flatMapMany(playlist -> doAddPlaylistItems(playlist, addItemPayload, collaborator))
+                .flatMapMany(playlist -> addPlaylistItems(playlist, addItemPayload, collaborator))
                 .then();
     }
 
     @NotNull
-    private Flux<Void> doAddPlaylistItems(@NotNull final Playlist playlist,
-                                          @NotNull final AddItemPayload addItemPayload,
-                                          @NotNull final PlaylistCollaborator collaborator) {
-        return playlistItemsService.getPlaylistSize(playlist.getId())
-                .flatMapMany(playlistSize -> addPlaylistItems(playlist, addItemPayload, collaborator, playlistSize));
+    private Mono<Playlist> loadPlaylist(@NotNull final TargetPlaylist targetPlaylist) {
+        return playlistLoader.loadPlaylist(targetPlaylist)
+                .switchIfEmpty(Mono.defer(() -> onPlaylistNotFoundError(targetPlaylist)));
     }
 
     @NotNull
     private Flux<Void> addPlaylistItems(@NotNull final Playlist playlist,
                                         @NotNull final AddItemPayload addItemPayload,
-                                        @NotNull final PlaylistCollaborator collaborator,
-                                        final long playlistSize) {
+                                        @NotNull final PlaylistCollaborator collaborator) {
+
+        return playlistItemsService.getPlaylistSize(playlist.getId())
+                .flatMapMany(playlistSize -> doAddPlaylistItems(playlist, addItemPayload, collaborator, playlistSize));
+    }
+
+    @NotNull
+    private Flux<Void> doAddPlaylistItems(@NotNull final Playlist playlist,
+                                          @NotNull final AddItemPayload addItemPayload,
+                                          @NotNull final PlaylistCollaborator collaborator,
+                                          final long playlistSize) {
 
         final AddItemPayload.Item[] items = addItemPayload.determineItemsPosition(playlistSize);
 
         return Flux.fromArray(items)
-                .flatMap(item -> saveItem(playlist, collaborator, item, playlistSize));
+                .map(item -> createSimplePlaylistItem(playlist, collaborator, item))
+                .flatMap(item -> saveItem(item, playlistSize));
     }
 
     @NotNull
-    private Mono<Void> saveItem(@NotNull final Playlist playlist,
-                                @NotNull final PlaylistCollaborator collaborator,
-                                @NotNull final AddItemPayload.Item item,
-                                final long playlistSize) {
-
-        final ContextUri itemUri = item.contextUri();
-        final PlaylistItemPosition itemPosition = item.position();
-
-        final SimplePlaylistItem playlistItem = new SimplePlaylistItem(
+    private static SimplePlaylistItem createSimplePlaylistItem(@NotNull final Playlist playlist,
+                                                               @NotNull final PlaylistCollaborator collaborator,
+                                                               @NotNull final AddItemPayload.Item item) {
+        return new SimplePlaylistItem(
                 playlist.getId(),
                 collaborator,
-                itemUri,
-                itemPosition
+                item.contextUri(),
+                item.position()
         );
+    }
+
+    @NotNull
+    private Mono<Void> saveItem(@NotNull final SimplePlaylistItem playlistItem,
+                                final long playlistSize) {
+
+        final PlaylistItemPosition itemPosition = playlistItem.getPosition();
 
         if ( itemPosition.isEndOfPlaylist(playlistSize) ) {
             return appendItemToTheEnd(playlistItem);
@@ -83,9 +93,8 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     }
 
     @NotNull
-    private Mono<Playlist> loadPlaylist(@NotNull TargetPlaylist targetPlaylist) {
-        return playlistLoader.loadPlaylist(targetPlaylist)
-                .switchIfEmpty(Mono.defer(() -> onPlaylistNotFoundError(targetPlaylist)));
+    public Mono<Void> appendItemToTheEnd(@NotNull final SimplePlaylistItem playlistItem) {
+        return playlistItemsService.appendItemToTheEnd(playlistItem);
     }
 
     @NotNull
@@ -94,13 +103,7 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
     }
 
     @NotNull
-    public Mono<Void> appendItemToTheEnd(@NotNull final SimplePlaylistItem playlistItem) {
-        return playlistItemsService.appendItemToTheEnd(playlistItem);
-    }
-
-    @NotNull
     private static Mono<Playlist> onPlaylistNotFoundError(@NotNull final TargetPlaylist targetPlaylist) {
         return Mono.error(PlaylistNotFoundException.defaultException(targetPlaylist.getPlaylistId()));
-
     }
 }
