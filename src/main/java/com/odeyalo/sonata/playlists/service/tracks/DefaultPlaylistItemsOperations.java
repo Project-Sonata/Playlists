@@ -1,43 +1,50 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
 import com.odeyalo.sonata.common.context.ContextUri;
-import com.odeyalo.sonata.playlists.entity.PlaylistCollaboratorEntity;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
-import com.odeyalo.sonata.playlists.model.*;
+import com.odeyalo.sonata.playlists.model.Playlist;
+import com.odeyalo.sonata.playlists.model.PlaylistCollaborator;
+import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.service.PlaylistLoader;
 import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
 import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
-import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperations {
     private final PlaylistLoader playlistLoader;
-    private final PlayableItemLoader playableItemLoader;
     private final PlaylistItemsRepository itemsRepository;
     private final ReactiveContextUriParser contextUriParser;
     private final PlaylistItemEntityConverter playlistItemEntityConverter;
     private final Logger logger = LoggerFactory.getLogger(DefaultPlaylistItemsOperations.class);
+    private final PlaylistItemsService playlistItemsService;
+
+    public DefaultPlaylistItemsOperations(final PlaylistLoader playlistLoader,
+                                          final PlayableItemLoader playableItemLoader,
+                                          final PlaylistItemsRepository itemsRepository,
+                                          final ReactiveContextUriParser contextUriParser,
+                                          final PlaylistItemEntityConverter playlistItemEntityConverter) {
+        this.playlistLoader = playlistLoader;
+        this.itemsRepository = itemsRepository;
+        this.contextUriParser = contextUriParser;
+        this.playlistItemEntityConverter = playlistItemEntityConverter;
+        this.playlistItemsService = new PlaylistItemsService(itemsRepository, playableItemLoader);
+    }
 
     @Override
     @NotNull
     public Flux<PlaylistItem> loadPlaylistItems(@NotNull TargetPlaylist targetPlaylist, @NotNull Pagination pagination) {
         return loadPlaylist(targetPlaylist)
-                .flatMapMany(playlist -> getPlaylistItems(targetPlaylist, pagination))
-                .flatMap(this::loadPlaylistItem);
+                .flatMapMany(playlist -> playlistItemsService.loadPlaylistItems(targetPlaylist, pagination));
     }
 
     @NotNull
@@ -111,47 +118,10 @@ public final class DefaultPlaylistItemsOperations implements PlaylistItemsOperat
                         onPlaylistNotFoundError(targetPlaylist)
                 );
     }
-
-    @NotNull
-    private Flux<PlaylistItemEntity> getPlaylistItems(@NotNull TargetPlaylist targetPlaylist,
-                                                      @NotNull Pagination pagination) {
-        return itemsRepository.findAllByPlaylistId(targetPlaylist.getPlaylistId(),
-                new OffsetBasedPageRequest(pagination.getOffset(), pagination.getLimit(), Sort.by("index"))
-        );
-    }
-
-    @NotNull
-    private Mono<PlaylistItem> loadPlaylistItem(PlaylistItemEntity playlistItemEntity) {
-        return playableItemLoader.loadItem(playlistItemEntity.getItem().getContextUri())
-                .map(item -> convertToPlaylistItem(playlistItemEntity, item));
-    }
-
     @NotNull
     private static Mono<Playlist> onPlaylistNotFoundError(@NotNull TargetPlaylist targetPlaylist) {
         return Mono.defer(
                 () -> Mono.error(PlaylistNotFoundException.defaultException(targetPlaylist.getPlaylistId()))
         );
-    }
-
-    @NotNull
-    private static PlaylistItem convertToPlaylistItem(@NotNull PlaylistItemEntity playlistItemEntity,
-                                                      @NotNull PlayableItem item) {
-
-        PlaylistCollaboratorEntity addedBy = playlistItemEntity.getAddedBy();
-
-        PlaylistCollaborator collaborator = PlaylistCollaborator.builder()
-                .id(addedBy.getPublicId())
-                .displayName(addedBy.getDisplayName())
-                .type(addedBy.getType())
-                .contextUri(addedBy.getContextUri())
-                .build();
-
-        return PlaylistItem.builder()
-                .addedAt(playlistItemEntity.getAddedAt())
-                .addedBy(collaborator)
-                .item(item)
-                .index(playlistItemEntity.getIndex())
-                .build();
-
     }
 }
