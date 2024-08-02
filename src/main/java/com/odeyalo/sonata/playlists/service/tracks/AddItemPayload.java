@@ -57,7 +57,7 @@ public class AddItemPayload {
                 final int position = (int) (playlistSize + currentIndex);
                 items[currentIndex] = new Item(contextUri, PlaylistItemPosition.at(position));
             } else {
-                items[currentIndex] = new Item(contextUri, position);
+                items[currentIndex] = new Item(contextUri, PlaylistItemPosition.at(position.value() + currentIndex));
             }
         }
 
