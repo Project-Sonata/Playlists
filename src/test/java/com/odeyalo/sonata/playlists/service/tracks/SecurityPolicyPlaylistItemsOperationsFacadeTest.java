@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.exception.PlaylistOperationNotAllowedException;
 import com.odeyalo.sonata.playlists.model.EntityType;
@@ -174,7 +175,7 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
 
         testable.addItems(
                         EXISTING_PLAYLIST_TARGET,
-                        AddItemPayload.withItemUri("sonata:track:123"),
+                        AddItemPayload.withItemUri(ContextUri.fromString("sonata:track:123")),
                         PLAYLIST_COLLABORATOR,
                         PLAYLIST_OWNER)
                 .as(StepVerifier::create)
@@ -196,7 +197,7 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
 
         testable.addItems(
                         EXISTING_PLAYLIST_TARGET,
-                        AddItemPayload.withItemUri("sonata:track:123"),
+                        AddItemPayload.withItemUri(ContextUri.fromString("sonata:track:123")),
                         PLAYLIST_COLLABORATOR,
                         PLAYLIST_OWNER)
                 .as(StepVerifier::create)
@@ -213,7 +214,7 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
 
         testable.addItems(
                         NOT_EXISTING_PLAYLIST_TARGET,
-                        AddItemPayload.withItemUri("sonata:track:123"),
+                        AddItemPayload.withItemUri(ContextUri.fromString("sonata:track:123")),
                         PLAYLIST_COLLABORATOR,
                         PLAYLIST_OWNER)
                 .as(StepVerifier::create)
@@ -235,7 +236,7 @@ class SecurityPolicyPlaylistItemsOperationsFacadeTest {
 
         testable.addItems(
                         EXISTING_PLAYLIST_TARGET,
-                        AddItemPayload.withItemUri("sonata:track:123"),
+                        AddItemPayload.withItemUri(ContextUri.fromString("sonata:track:123")),
                         GUEST_PLAYLIST_COLLABORATOR,
                         GUEST)
                 .as(StepVerifier::create)

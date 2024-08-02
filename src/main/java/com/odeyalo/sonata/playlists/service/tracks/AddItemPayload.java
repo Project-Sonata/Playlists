@@ -1,56 +1,85 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.model.PlaylistItemPosition;
 import lombok.Builder;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.stream.IntStream;
+
 @Value
 @Builder
 public class AddItemPayload {
     @NotNull
-    String[] uris;
+    ContextUri[] contextUris;
     @NotNull
     @Builder.Default
-    PlaylistItemPosition position = PlaylistItemPosition.atEnd();
+    PlaylistItemPosition startPosition = PlaylistItemPosition.atEnd();
 
-    public static AddItemPayload withItemUri(String playableItemContextUri) {
-        String[] uris = {playableItemContextUri};
-
-        return AddItemPayload.builder()
-                .uris(uris)
-                .build();
-    }
-
-    public static AddItemPayload atPosition(@NotNull PlaylistItemPosition position,
-                                            @NotNull String playableItemContextUri) {
-        String[] uris = {playableItemContextUri};
+    @NotNull
+    public static AddItemPayload withItemUri(@NotNull final ContextUri playableItemContextUri) {
+        final ContextUri[] uris = {playableItemContextUri};
 
         return AddItemPayload.builder()
-                .uris(uris)
-                .position(position)
-                .build();
-    }
-
-    public static AddItemPayload withItemUris(String... contextUris) {
-        String[] uris = new String[contextUris.length];
-
-        for (int i = 0; i < contextUris.length; i++) {
-            String uri = contextUris[i];
-            uris[i] = uri;
-        }
-
-        return AddItemPayload.builder()
-                .uris(uris)
+                .contextUris(uris)
                 .build();
     }
 
     @NotNull
-    public static AddItemPayload atPosition(@NotNull final PlaylistItemPosition position,
-                                            @NotNull final String[] itemUris) {
-        return builder()
-                .position(position)
-                .uris(itemUris)
+    public static AddItemPayload fromPosition(@NotNull final PlaylistItemPosition startPosition,
+                                              @NotNull final ContextUri playableItem) {
+        final ContextUri[] uris = {playableItem};
+
+        return AddItemPayload.builder()
+                .contextUris(uris)
+                .startPosition(startPosition)
                 .build();
+    }
+
+    @NotNull
+    public static AddItemPayload fromPosition(@NotNull final PlaylistItemPosition position,
+                                              @NotNull final ContextUri[] itemUris) {
+        return builder()
+                .startPosition(position)
+                .contextUris(itemUris)
+                .build();
+    }
+
+    @NotNull
+    public static AddItemPayload withItemUris(@NotNull final ContextUri... contextUris) {
+        return AddItemPayload.builder()
+                .contextUris(contextUris)
+                .build();
+    }
+
+    @NotNull
+    public Item[] determineItemsPosition(long playlistSize) {
+        return IntStream.range(0, contextUris.length)
+                .mapToObj(index -> resolveItem(playlistSize, index))
+                .toArray(Item[]::new);
+    }
+
+    @NotNull
+    private Item resolveItem(final long playlistSize, final int index) {
+        final ContextUri contextUri = contextUris[index];
+
+        if ( startPosition.isEndOfPlaylist(playlistSize) ) {
+            return Item.of(contextUri, (int) (playlistSize + index));
+        }
+
+        return Item.of(contextUri, startPosition.incrementBy(index));
+    }
+
+    public record Item(@NotNull ContextUri contextUri, @NotNull PlaylistItemPosition position) {
+        @NotNull
+        public static Item of(ContextUri itemUri, int pos) {
+            return new Item(itemUri, PlaylistItemPosition.at(pos));
+        }
+
+        @NotNull
+        public static Item of(ContextUri itemUri, PlaylistItemPosition pos) {
+            return new Item(itemUri, pos);
+        }
     }
 }

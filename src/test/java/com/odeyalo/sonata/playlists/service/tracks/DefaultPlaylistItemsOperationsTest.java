@@ -1,6 +1,9 @@
 package com.odeyalo.sonata.playlists.service.tracks;
 
+import com.odeyalo.sonata.common.context.ContextUri;
 import com.odeyalo.sonata.playlists.entity.PlaylistItemEntity;
+import com.odeyalo.sonata.playlists.entity.factory.DefaultPlaylistCollaboratorEntityFactory;
+import com.odeyalo.sonata.playlists.entity.factory.DefaultPlaylistItemEntityFactory;
 import com.odeyalo.sonata.playlists.exception.PlaylistNotFoundException;
 import com.odeyalo.sonata.playlists.model.*;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
@@ -9,8 +12,6 @@ import com.odeyalo.sonata.playlists.service.TargetPlaylist;
 import com.odeyalo.sonata.playlists.support.Clock;
 import com.odeyalo.sonata.playlists.support.JavaClock;
 import com.odeyalo.sonata.playlists.support.MockClock;
-import com.odeyalo.sonata.playlists.support.ReactiveContextUriParser;
-import com.odeyalo.sonata.playlists.support.converter.PlaylistItemEntityConverter;
 import com.odeyalo.sonata.playlists.support.pagination.Pagination;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -255,7 +256,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -271,7 +272,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -294,7 +295,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -319,7 +320,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(4), "sonata:track:miku");
+        final var addItemPayload = AddItemPayload.fromPosition(PlaylistItemPosition.at(4), ContextUri.forTrack("miku"));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -345,7 +346,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.atPosition(PlaylistItemPosition.at(2), "sonata:track:miku");
+        final var addItemPayload = AddItemPayload.fromPosition(PlaylistItemPosition.at(2), ContextUri.forTrack("miku"));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -365,6 +366,45 @@ class DefaultPlaylistItemsOperationsTest {
     }
 
     @Test
+    void shouldAddSeveralItemsToPlaylistAtSpecificPositionAndMoveNextElementsAhead() {
+        final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create()
+                .setPublicId("miku")
+                .get();
+
+        final TrackPlayableItem trackPlayableItem2 = TrackPlayableItemFaker.create()
+                .setPublicId("nakano")
+                .get();
+
+        final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
+                .withPlaylists(EXISTING_PLAYLIST)
+                .withPlaylistItems(TRACK_1.setIndex(0), TRACK_2.setIndex(1), TRACK_3.setIndex(2), TRACK_4.setIndex(3))
+                .withPlayableItemsFrom(TRACK_1, TRACK_2, TRACK_3, TRACK_4)
+                .withPlayableItems(trackPlayableItem, trackPlayableItem2)
+                .get();
+
+        final var addItemPayload = AddItemPayload.fromPosition(PlaylistItemPosition.at(2), new ContextUri[]{
+                ContextUri.forTrack("miku"), ContextUri.forTrack("nakano")
+        });
+
+        testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
+                .as(StepVerifier::create)
+                .verifyComplete();
+
+        testable.loadPlaylistItems(EXISTING_PLAYLIST_TARGET, defaultPagination())
+                .as(StepVerifier::create)
+                // assert that the previous elements haven't changed
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_1.getItem().getPublicId()))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_2.getItem().getPublicId()))
+                // assert that position was set correctly
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("miku"))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo("nakano"))
+                // assert that the next elements have been moved ahead
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_3.getItem().getPublicId()))
+                .assertNext(it -> assertThat(it.getItem().getId()).isEqualTo(TRACK_4.getItem().getPublicId()))
+                .verifyComplete();
+    }
+
+    @Test
     void shouldAddItemToPlaylistWithPlayableItemType() {
         final TrackPlayableItem trackPlayableItem = TrackPlayableItemFaker.create().get();
 
@@ -373,7 +413,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withPlayableItems(trackPlayableItem)
                 .get();
 
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -397,7 +437,7 @@ class DefaultPlaylistItemsOperationsTest {
                 .withClock(new MockClock(addedAt))
                 .get();
 
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         testable.addItems(EXISTING_PLAYLIST_TARGET, addItemPayload, collaborator())
                 .as(StepVerifier::create)
@@ -414,7 +454,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldAddItemToPlaylistWithPlaylistCollaboratorDisplayName() {
         final var collaborator = collaborator();
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
@@ -436,7 +476,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldAddItemToPlaylistWithPlaylistCollaboratorId() {
         final var collaborator = collaborator();
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
@@ -458,7 +498,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldAddItemToPlaylistWithPlaylistCollaboratorContextUri() {
         final var collaborator = collaborator();
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
@@ -480,7 +520,7 @@ class DefaultPlaylistItemsOperationsTest {
     void shouldAddItemToPlaylistWithPlaylistCollaboratorEntityType() {
         final var collaborator = collaborator();
         final var trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final var addItemPayload = AddItemPayload.withItemUri(trackPlayableItem.getContextUri());
+        final var addItemPayload = AddItemPayload.withItemUri(ContextUri.fromString(trackPlayableItem.getContextUri()));
 
         final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
@@ -501,9 +541,9 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldAddMultipleItemsToPlaylist() {
         final var collaborator = collaborator();
-        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final var trackPlayableItem2 = TrackPlayableItemFaker.create().get();
-        final var itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
+        final var trackPlayableItem = TrackPlayableItemFaker.create().setPublicId("trAcK1").get();
+        final var trackPlayableItem2 = TrackPlayableItemFaker.create().setPublicId("tracK2").get();
+        final var itemUris = AddItemPayload.withItemUris(ContextUri.forTrack("trAcK1"), ContextUri.forTrack("tracK2"));
 
         final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
@@ -525,7 +565,7 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldReturnErrorIfPlaylistDoesNotExistOnAddItem() {
         final var testable = TestableBuilder.builder().get();
-        final var payload = AddItemPayload.withItemUri("sonata:track:test");
+        final var payload = AddItemPayload.withItemUri(ContextUri.fromString("sonata:track:test"));
 
         testable.addItems(NOT_EXISTING_PLAYLIST_TARGET, payload, collaborator())
                 .as(StepVerifier::create)
@@ -536,9 +576,10 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldAddItemToPlaylistAndItemPositionShouldBeIncremented() {
         final var collaborator = collaborator();
-        final var trackPlayableItem = TrackPlayableItemFaker.create().get();
-        final var trackPlayableItem2 = TrackPlayableItemFaker.create().get();
-        final var itemUris = AddItemPayload.withItemUris(trackPlayableItem.getContextUri(), trackPlayableItem2.getContextUri());
+
+        final var trackPlayableItem = TrackPlayableItemFaker.create().setPublicId("trAcK1").get();
+        final var trackPlayableItem2 = TrackPlayableItemFaker.create().setPublicId("tracK2").get();
+        final var itemUris = AddItemPayload.withItemUris(ContextUri.forTrack("trAcK1"), ContextUri.forTrack("tracK2"));
 
         final DefaultPlaylistItemsOperations testable = TestableBuilder.builder()
                 .withPlaylists(EXISTING_PLAYLIST)
@@ -559,14 +600,14 @@ class DefaultPlaylistItemsOperationsTest {
     @Test
     void shouldAddItemToPlaylistAndItemPositionShouldBeIncrementedBasedOnLastIndexValue() {
         final var trackPlayableItem = TrackPlayableItemFaker.create()
-                .setContextUri("sonata:track:miku")
+                .setPublicId("miku")
                 .get();
 
         final var trackPlayableItem2 = TrackPlayableItemFaker.create()
-                .setContextUri("sonata:track:nakano")
+                .setPublicId("nakano")
                 .get();
 
-        final var itemUris = AddItemPayload.withItemUris("sonata:track:miku", "sonata:track:nakano");
+        final var itemUris = AddItemPayload.withItemUris(ContextUri.forTrack("miku"), ContextUri.forTrack("nakano"));
 
         final var playlistItem = PlaylistItemEntityFaker.create(PLAYLIST_ID)
                 .withIndex(0)
@@ -595,8 +636,7 @@ class DefaultPlaylistItemsOperationsTest {
     static class TestableBuilder {
         private PlaylistLoader playlistLoader = PlaylistLoaders.empty();
         private PlaylistItemsRepository itemsRepository = null;
-        private PlaylistItemEntityConverter playlistItemEntityConverter = new PlaylistItemEntityConverter(new JavaClock());
-        private final ReactiveContextUriParser contextUriParser = new ReactiveContextUriParser();
+        private DefaultPlaylistItemEntityFactory playlistItemEntityFactory = new DefaultPlaylistItemEntityFactory(new DefaultPlaylistCollaboratorEntityFactory(), new JavaClock());
         private final List<PlayableItem> playableItems = new ArrayList<>();
 
         public static TestableBuilder builder() {
@@ -624,7 +664,7 @@ class DefaultPlaylistItemsOperationsTest {
         }
 
         public TestableBuilder withClock(Clock clock) {
-            this.playlistItemEntityConverter = new PlaylistItemEntityConverter(clock);
+            this.playlistItemEntityFactory = new DefaultPlaylistItemEntityFactory(new DefaultPlaylistCollaboratorEntityFactory(), clock);
             return this;
         }
 
@@ -637,7 +677,7 @@ class DefaultPlaylistItemsOperationsTest {
         public DefaultPlaylistItemsOperations get() {
             itemsRepository = itemsRepository == null ? PlaylistItemsRepositories.empty() : itemsRepository;
 
-            return new DefaultPlaylistItemsOperations(playlistLoader, PlayableItemLoaders.withItems(playableItems), itemsRepository, contextUriParser, playlistItemEntityConverter);
+            return new DefaultPlaylistItemsOperations(playlistLoader, new PlaylistItemsService(itemsRepository, PlayableItemLoaders.withItems(playableItems), playlistItemEntityFactory));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.model;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.util.Assert;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -24,7 +25,16 @@ public record PlaylistItemPosition(int value) {
         return AT_END;
     }
 
+    @NotNull
+    public PlaylistItemPosition incrementBy(final int incrementValue) {
+        return at(value() + incrementValue);
+    }
+
     public boolean isEndOfPlaylist(final long playlistSize) {
         return value >= playlistSize;
+    }
+
+    public int asInt() {
+        return value();
     }
 }
