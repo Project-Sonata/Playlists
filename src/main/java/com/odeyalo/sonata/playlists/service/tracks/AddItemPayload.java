@@ -10,22 +10,24 @@ import org.jetbrains.annotations.NotNull;
 @Builder
 public class AddItemPayload {
     @NotNull
-    String[] uris;
+    ContextUri[] uris;
     @NotNull
     @Builder.Default
     PlaylistItemPosition position = PlaylistItemPosition.atEnd();
 
-    public static AddItemPayload withItemUri(String playableItemContextUri) {
-        String[] uris = {playableItemContextUri};
+    @NotNull
+    public static AddItemPayload withItemUri(@NotNull final ContextUri playableItemContextUri) {
+        ContextUri[] uris = {playableItemContextUri};
 
         return AddItemPayload.builder()
                 .uris(uris)
                 .build();
     }
 
-    public static AddItemPayload atPosition(@NotNull PlaylistItemPosition position,
-                                            @NotNull String playableItemContextUri) {
-        String[] uris = {playableItemContextUri};
+    @NotNull
+    public static AddItemPayload atPosition(@NotNull final PlaylistItemPosition position,
+                                            @NotNull final ContextUri playableItem) {
+        final ContextUri[] uris = {playableItem};
 
         return AddItemPayload.builder()
                 .uris(uris)
@@ -33,25 +35,28 @@ public class AddItemPayload {
                 .build();
     }
 
-    public static AddItemPayload withItemUris(String... contextUris) {
-        String[] uris = new String[contextUris.length];
+    @NotNull
+    public static AddItemPayload atPosition(@NotNull final PlaylistItemPosition position,
+                                            @NotNull final ContextUri[] itemUris) {
+        return builder()
+                .position(position)
+                .uris(itemUris)
+                .build();
+    }
 
-        for (int i = 0; i < contextUris.length; i++) {
-            String uri = contextUris[i];
-            uris[i] = uri;
-        }
-
+    @NotNull
+    public static AddItemPayload withItemUris(@NotNull final ContextUri... contextUris) {
         return AddItemPayload.builder()
-                .uris(uris)
+                .uris(contextUris)
                 .build();
     }
 
     @NotNull
     public Item[] determineItemsPosition(long playlistSize) {
-        Item[] items = new Item[uris.length];
+        final Item[] items = new Item[uris.length];
 
         for (int currentIndex = 0; currentIndex < uris.length; currentIndex++) {
-            final ContextUri contextUri = ContextUri.fromString(uris[currentIndex]);
+            final ContextUri contextUri = uris[currentIndex];
 
             if ( position.isEndOfPlaylist(playlistSize) ) {
                 final int position = (int) (playlistSize + currentIndex);
@@ -64,16 +69,5 @@ public class AddItemPayload {
         return items;
     }
 
-    record Item(ContextUri contextUri, PlaylistItemPosition position) {
-
-    }
-
-    @NotNull
-    public static AddItemPayload atPosition(@NotNull final PlaylistItemPosition position,
-                                            @NotNull final String[] itemUris) {
-        return builder()
-                .position(position)
-                .uris(itemUris)
-                .build();
-    }
+    public record Item(@NotNull ContextUri contextUri, @NotNull PlaylistItemPosition position) {}
 }
