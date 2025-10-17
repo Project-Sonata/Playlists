@@ -1,5 +1,6 @@
 package com.odeyalo.sonata.playlists.service.generation;
 
+import com.odeyalo.sonata.playlists.model.PlayableItemType;
 import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistItem;
 import org.jetbrains.annotations.NotNull;
@@ -13,5 +14,12 @@ import java.util.List;
  */
 public record GeneratedPlaylist(
         @NotNull Playlist meta,
-        @NotNull List<PlaylistItem> tracks
-) { }
+        @NotNull List<Item> tracks
+) {
+
+    public record Item(
+            @NotNull String id,
+            @NotNull PlayableItemType type,
+            int index
+    ) {}
+}
