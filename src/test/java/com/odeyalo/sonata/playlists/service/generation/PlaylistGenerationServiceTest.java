@@ -133,4 +133,30 @@ class PlaylistGenerationServiceTest {
                 new GeneratedPlaylist.Item("3", PlayableItemType.TRACK, 2)
         );
     }
+
+    @Test
+    void shouldSetUserForWhichTrackWasGenerated() {
+        // given
+        final PlaylistImagesGeneratedEvent event = new PlaylistImagesGeneratedEvent(
+                new PlaylistImagesGeneratedPayload(new PlaylistMetaGeneratedPayload(
+                        new PlaylistTracksGeneratedPayload("123", List.of(
+                                new GeneratedTrack("1", 0),
+                                new GeneratedTrack("2", 1),
+                                new GeneratedTrack("3", 2)
+                        )),
+                        new PlaylistMetaGeneratedPayload.Meta("On Repeat", "Songs you love the most")
+                ), List.of(
+                        new PlaylistImagesGeneratedPayload.Image("https://cdn.sonata.com/i/c/abc123", 50, 50)
+                )), GeneratedPlaylistType.ON_REPEAT);
+
+        final PlaylistGenerationService testable = new PlaylistGenerationService();
+
+        // when
+        GeneratedPlaylist generatedPlaylist = testable.generate(event).block();
+
+        // then
+        assertThat(generatedPlaylist).isNotNull();
+
+        assertThat(generatedPlaylist.generatedFor()).isEqualTo("123");
+    }
 }

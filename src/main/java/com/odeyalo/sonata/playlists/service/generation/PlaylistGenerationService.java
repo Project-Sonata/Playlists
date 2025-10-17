@@ -29,7 +29,8 @@ public final class PlaylistGenerationService {
         return Mono.just(
                 new GeneratedPlaylist(
                         baseInfoPlaylist(body),
-                        getPlaylistItems(body)
+                        getPlaylistItems(body),
+                        event.getBody().getParent().getParent().getUserId()
                 ));
     }
 
