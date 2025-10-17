@@ -2,6 +2,7 @@ package com.odeyalo.sonata.playlists.service.generation;
 
 import com.odeyalo.sonata.playlists.model.EntityType;
 import com.odeyalo.sonata.playlists.model.Image;
+import com.odeyalo.sonata.playlists.model.Playlist;
 import com.odeyalo.sonata.playlists.model.PlaylistType;
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.GeneratedPlaylistType;
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.PlaylistImagesGeneratedEvent;
@@ -35,15 +36,15 @@ class PlaylistGenerationServiceTest {
         final PlaylistGenerationService testable = new PlaylistGenerationService();
 
         // when
-        testable.generate(event)
-                .as(StepVerifier::create)
-                .assertNext(playlist -> {
-                    assertThat(playlist.getName()).isEqualTo("On Repeat");
-                    assertThat(playlist.getDescription()).isEqualTo("Songs you love the most");
-                    assertThat(playlist.getPlaylistType()).isEqualTo(PlaylistType.PUBLIC);
-                    assertThat(playlist.getContextUri().asString()).isEqualTo("sonata:playlist:" + playlist.getId().value());
-                })
-                .verifyComplete();
+        GeneratedPlaylist generatedPlaylist = testable.generate(event).block();
+        assertThat(generatedPlaylist).isNotNull();
+
+        final Playlist playlistInfo = generatedPlaylist.meta();
+
+        assertThat(playlistInfo.getName()).isEqualTo("On Repeat");
+        assertThat(playlistInfo.getDescription()).isEqualTo("Songs you love the most");
+        assertThat(playlistInfo.getPlaylistType()).isEqualTo(PlaylistType.PUBLIC);
+        assertThat(playlistInfo.getContextUri().asString()).isEqualTo("sonata:playlist:" + playlistInfo.getId().value());
     }
 
     @Test
@@ -66,16 +67,14 @@ class PlaylistGenerationServiceTest {
         final PlaylistGenerationService testable = new PlaylistGenerationService();
 
         // when
-        testable.generate(event)
-                .as(StepVerifier::create)
-                .assertNext(playlist -> {
-                    assertThat(playlist.getImages()).containsExactlyInAnyOrder(
-                            Image.of("https://cdn.sonata.com/i/c/abc123", 50, 50),
-                            Image.of("https://cdn.sonata.com/i/c/abc124", 350, 300),
-                            Image.of("https://cdn.sonata.com/i/c/abc125", 600, 600)
-                    );
-                })
-                .verifyComplete();
+        GeneratedPlaylist generatedPlaylist = testable.generate(event).block();
+        assertThat(generatedPlaylist).isNotNull();
+
+        assertThat(generatedPlaylist.meta().getImages()).containsExactlyInAnyOrder(
+                Image.of("https://cdn.sonata.com/i/c/abc123", 50, 50),
+                Image.of("https://cdn.sonata.com/i/c/abc124", 350, 300),
+                Image.of("https://cdn.sonata.com/i/c/abc125", 600, 600)
+        );
     }
 
     @Test
@@ -96,13 +95,11 @@ class PlaylistGenerationServiceTest {
         final PlaylistGenerationService testable = new PlaylistGenerationService();
 
         // when
-        testable.generate(event)
-                .as(StepVerifier::create)
-                .assertNext(playlist -> {
-                    assertThat(playlist.getPlaylistOwner().getId()).isEqualTo("sonata");
-                    assertThat(playlist.getPlaylistOwner().getDisplayName()).isEqualTo("Sonata");
-                    assertThat(playlist.getPlaylistOwner().getEntityType()).isEqualTo(EntityType.USER);
-                })
-                .verifyComplete();
+        GeneratedPlaylist generatedPlaylist = testable.generate(event).block();
+        assertThat(generatedPlaylist).isNotNull();
+
+        assertThat(generatedPlaylist.meta().getPlaylistOwner().getId()).isEqualTo("sonata");
+        assertThat(generatedPlaylist.meta().getPlaylistOwner().getDisplayName()).isEqualTo("Sonata");
+        assertThat(generatedPlaylist.meta().getPlaylistOwner().getEntityType()).isEqualTo(EntityType.USER);
     }
 }

@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -20,7 +21,7 @@ public final class PlaylistGenerationService {
             .build();
 
     @NotNull
-    public Mono<Playlist> generate(@NotNull final PlaylistImagesGeneratedEvent event) {
+    public Mono<GeneratedPlaylist> generate(@NotNull final PlaylistImagesGeneratedEvent event) {
 
         final Playlist.PlaylistBuilder playlistBuilder = Playlist.builder();
 
@@ -31,7 +32,9 @@ public final class PlaylistGenerationService {
         Playlist playlist = playlistBuilder.build();
 
 
-        return Mono.just(playlist);
+        return Mono.just(
+                new GeneratedPlaylist(playlist, Collections.emptyList())
+        );
     }
 
     @NotNull
