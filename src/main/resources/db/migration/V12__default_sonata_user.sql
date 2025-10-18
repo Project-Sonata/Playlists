@@ -1,5 +1,5 @@
-INSERT INTO playlist_collaborators(id, public_id, display_name, entity_type, context_uri)
-VALUES (1, 'sonata', 'Sonata', 'USER', 'sonata:user:sonata');
+INSERT INTO playlist_collaborators(public_id, display_name, entity_type, context_uri)
+VALUES ('sonata', 'Sonata', 'USER', 'sonata:user:sonata');
 
-INSERT INTO playlist_owner(id, public_id, display_name, entity_type)
-VALUES (1, 'sonata', 'Sonata', 'USER');
+INSERT INTO playlist_owner(public_id, display_name, entity_type)
+VALUES ('sonata', 'Sonata', 'USER');
