@@ -40,6 +40,12 @@ public final class InMemoryPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
+    public Mono<Playlist> save(@NotNull final Playlist playlist) {
+        return Mono.fromCallable(() -> doSave(playlist));
+    }
+
+    @Override
+    @NotNull
     public Mono<Playlist> update(@NotNull final Playlist playlist) {
         return Mono.fromCallable(() -> doSave(playlist));
     }

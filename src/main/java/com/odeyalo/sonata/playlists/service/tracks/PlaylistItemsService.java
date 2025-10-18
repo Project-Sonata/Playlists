@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * Used to work with playlist items, middleware between repository but returns a domain models instead of entities
  */
@@ -55,6 +57,13 @@ public final class PlaylistItemsService {
 
         return itemsRepository.incrementNextItemsPositionFrom(playlistItem.getPlaylistId(), position)
                 .then(saveItem(playlistItem));
+    }
+
+    @NotNull
+    public Mono<Void> insertAll(@NotNull final List<SimplePlaylistItem> items) {
+        return Flux.fromIterable(items)
+                .flatMap(this::saveItem)
+                .then();
     }
 
     @NotNull

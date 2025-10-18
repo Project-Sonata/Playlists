@@ -23,6 +23,9 @@ public interface PlaylistService extends PlaylistLoader {
     Mono<Playlist> create(@NotNull CreatePlaylistInfo playlistInfo,
                           @NotNull PlaylistOwner owner);
 
+    @NotNull
+    Mono<Playlist> save(@NotNull Playlist playlist);
+
     /**
      * Update existing playlist with new values
      *

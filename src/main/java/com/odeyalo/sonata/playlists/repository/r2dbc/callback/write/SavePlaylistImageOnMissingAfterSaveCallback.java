@@ -40,17 +40,31 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
     @NotNull
     private Mono<List<PlaylistImage>> saveImages(PlaylistEntity playlist) {
         List<ImageEntity> images = playlist.getImages();
+
         return Flux.fromIterable(images)
-                .filterWhen(this::isImageNotExist)
-                .flatMap(entity -> playlistImagesRepository.deleteAllByPlaylistId(playlist.getId()).thenReturn(entity))
-                .flatMap(r2DbcImageRepository::save)
-                .flatMap(imageEntity -> buildAndSave(playlist, imageEntity))
+                .flatMap(image -> {
+                    Mono<ImageEntity> imageMono = r2DbcImageRepository.findByUrl(image.getUrl());
+
+                    Mono<@NotNull PlaylistImage> saveImageOnMiss = Mono.defer(() -> playlistImagesRepository.deleteAllByPlaylistId(playlist.getId()).thenReturn(image))
+                            .flatMap(r2DbcImageRepository::save)
+                            .flatMap(imageEntity -> buildAndSave(playlist, imageEntity));
+                    return imageMono
+                            // image exists
+                            .flatMap(it -> buildAndSave(playlist, it))
+                            // image does not exist
+                            .switchIfEmpty(saveImageOnMiss);
+
+                })
                 .collectList();
     }
 
     @NotNull
-    private Mono<PlaylistImage> buildAndSave(PlaylistEntity parent, ImageEntity imageEntity) {
-        PlaylistImage imageToSave = PlaylistImage.builder().imageId(imageEntity.getId()).playlistId(parent.getId()).build();
+    private Mono<PlaylistImage> buildAndSave(@NotNull final PlaylistEntity parent,
+                                             @NotNull final ImageEntity imageEntity) {
+        final PlaylistImage imageToSave = PlaylistImage.builder()
+                .imageId(imageEntity.getId())
+                .playlistId(parent.getId())
+                .build();
         return playlistImagesRepository.save(imageToSave);
     }
 
