@@ -42,8 +42,10 @@ public final class SavePlaylistImageOnMissingAfterSaveCallback implements AfterS
 
         return Flux.fromIterable(images)
                 .flatMap(image -> {
-                    return r2DbcImageRepository.upsert(image)
-                            .flatMap(imageEntity -> buildAndSave(playlist, imageEntity));
+
+                    return  playlistImagesRepository.deleteAllByPlaylistId(playlist.getId())
+                            .then(Mono.defer(() -> r2DbcImageRepository.upsert(image)
+                            .flatMap(imageEntity -> buildAndSave(playlist, imageEntity))));
                 })
                 .collectList();
     }
