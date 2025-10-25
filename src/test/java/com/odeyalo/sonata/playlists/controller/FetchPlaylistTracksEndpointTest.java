@@ -19,10 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.context.annotation.Bean;
@@ -30,16 +27,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.PlaylistCollaboratorEntityFaker;
+import testing.core.AbstractIntegrationTest;
 import testing.factory.PlaylistServices;
 import testing.faker.PlaylistFaker;
 import testing.faker.TrackPlayableItemFaker;
-import testing.spring.AutoConfigureSonataStubs;
-import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 
 import java.time.Instant;
 import java.util.List;
@@ -53,14 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataStubs
-@AutoConfigureQaEnvironment
-@ActiveProfiles("test")
 @Import(TestConfig.class)
-class FetchPlaylistTracksEndpointTest {
+class FetchPlaylistTracksEndpointTest extends AbstractIntegrationTest {
 
     @Autowired
     WebTestClient webTestClient;
@@ -102,7 +91,7 @@ class FetchPlaylistTracksEndpointTest {
     static final TrackPlayableItem PLAYABLE_ITEM_1 = TrackPlayableItemFaker.create().setPublicId(TRACK_1_ID).get();
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
