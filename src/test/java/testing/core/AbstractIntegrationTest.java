@@ -10,6 +10,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import testing.spring.AutoConfigureSonataStubs;
+import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
 
 @SpringBootTest
@@ -17,6 +18,7 @@ import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
 @AutoConfigureWebTestClient
 @AutoConfigureSonataPlaylistHttpClient
 @AutoConfigureSonataStubs
+@AutoConfigureQaEnvironment
 public abstract class AbstractIntegrationTest {
 
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
