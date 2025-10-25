@@ -30,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
+import testing.core.AbstractIntegrationTest;
 import testing.faker.PlaylistEntityFaker;
 import testing.faker.TrackPlayableItemFaker;
 import testing.spring.AutoConfigureSonataStubs;
@@ -43,14 +44,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties.StubsMode.CLASSPATH;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataStubs
-@AutoConfigureQaEnvironment
-@ActiveProfiles("test")
 @Import(Config.class)
-class AddItemToPlaylistEndpointTest {
+class AddItemToPlaylistEndpointTest extends AbstractIntegrationTest {
 
     @Autowired
     WebTestClient webTestClient;
@@ -80,7 +75,7 @@ class AddItemToPlaylistEndpointTest {
     PlaylistRepository playlistRepository;
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
