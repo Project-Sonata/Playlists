@@ -37,7 +37,8 @@ public class PlaylistGenerationManager {
 
     public PlaylistGenerationManager(final PlaylistGenerationService generationService,
                                      final PlaylistService playlistService,
-                                     final PlaylistItemsService playlistItemsService, final GeneratedPlaylistRepository generatedPlaylistRepository) {
+                                     final PlaylistItemsService playlistItemsService,
+                                     final GeneratedPlaylistRepository generatedPlaylistRepository) {
         this.generationService = generationService;
         this.playlistItemsService = playlistItemsService;
         this.playlistService = playlistService;
@@ -54,20 +55,27 @@ public class PlaylistGenerationManager {
                 .flatMap(generatedPlaylist -> {
                     return playlistService.save(generatedPlaylist.meta())
                             .flatMap(playlist -> {
-                                final List<SimplePlaylistItem> items = getTracks(generatedPlaylist, playlist);
-
-                                return playlistItemsService.insertAll(items)
-                                        .then(Mono.defer(() -> generatedPlaylistRepository.save(
-                                                GeneratedPlaylistEntity.builder()
-                                                        .userId(event.getBody().getParent().getParent().getUserId())
-                                                        .playlistId(playlist.getId().value())
-                                                        .generatedAt(Instant.now())
-                                                        .generatedPlaylistType(event.getType())
-                                                        .build()
-                                        )))
-                                        .then();
-                            });
+                                return saveGeneratedEvent(event, generatedPlaylist, playlist);
+                            }).then(Mono.defer(() -> Mono.fromRunnable(() -> logger.info("Completed playlist generation for user: {}", parentEvent.getUserId()))));
                 });
+    }
+
+    @NotNull
+    private Mono<Void> saveGeneratedEvent(@NotNull final PlaylistImagesGeneratedEvent event,
+                                          @NotNull final GeneratedPlaylist generatedPlaylist,
+                                          @NotNull final Playlist playlist) {
+        final List<SimplePlaylistItem> items = getTracks(generatedPlaylist, playlist);
+
+        return playlistItemsService.insertAll(items)
+                .then(Mono.defer(() -> generatedPlaylistRepository.save(
+                        GeneratedPlaylistEntity.builder()
+                                .userId(event.getBody().getParent().getParent().getUserId())
+                                .playlistId(playlist.getId().value())
+                                .generatedAt(Instant.now())
+                                .generatedPlaylistType(event.getType())
+                                .build()
+                )))
+                .then();
     }
 
     @NotNull
