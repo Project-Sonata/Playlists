@@ -10,27 +10,17 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
-import testing.spring.AutoConfigureSonataStubs;
-import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
+import testing.core.AbstractIntegrationTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataPlaylistHttpClient
-@AutoConfigureSonataStubs
-@TestPropertySource(locations = "classpath:application-test.properties")
-public class CreatePlaylistEndpointTest {
+public class CreatePlaylistEndpointTest extends AbstractIntegrationTest {
 
     @Autowired
     WebTestClient webTestClient;
@@ -43,7 +33,7 @@ public class CreatePlaylistEndpointTest {
     static final String INVALID_TOKEN = "Bearer invalidtoken";
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
