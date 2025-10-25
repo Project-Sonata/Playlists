@@ -8,21 +8,16 @@ import com.odeyalo.sonata.playlists.model.PlaylistType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.NestedTestConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
-import testing.spring.AutoConfigureSonataStubs;
-import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
-import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
+import testing.core.AbstractIntegrationTest;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,24 +25,15 @@ import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerPro
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataPlaylistHttpClient
-@AutoConfigureQaEnvironment
-@AutoConfigureSonataStubs
-@TestPropertySource(locations = "classpath:application-test.properties")
-public class PartialPlaylistUpdateEndpointTest {
+public class PartialPlaylistUpdateEndpointTest extends AbstractIntegrationTest {
 
     public static final String INVALID_TOKEN = "Bearer invalidtoken";
     @Autowired
     WebTestClient webTestClient;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     SonataPlaylistHttpTestClient playlistHttpTestClient;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     QaControllerOperations qaControllerOperations;
 
@@ -55,7 +41,7 @@ public class PartialPlaylistUpdateEndpointTest {
     final String VALID_USER_ID = "1";
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
