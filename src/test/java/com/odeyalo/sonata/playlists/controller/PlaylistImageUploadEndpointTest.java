@@ -21,6 +21,7 @@ import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.PlaylistDtoAssert;
+import testing.core.AbstractIntegrationTest;
 import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
@@ -31,15 +32,7 @@ import static org.springframework.cloud.contract.stubrunner.spring.StubRunnerPro
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataPlaylistHttpClient
-@AutoConfigureQaEnvironment
-@AutoConfigureSonataStubs
-@TestPropertySource(locations = "classpath:application-test.properties")
-public class PlaylistImageUploadEndpointTest {
-    public static final String INVALID_TOKEN = "Bearer invalidtoken";
+class PlaylistImageUploadEndpointTest extends AbstractIntegrationTest {
     @Autowired
     WebTestClient webTestClient;
 
@@ -51,12 +44,13 @@ public class PlaylistImageUploadEndpointTest {
 
 
     final String VALID_ACCESS_TOKEN = "Bearer mikunakanoisthebestgirl";
+    final String INVALID_TOKEN = "Bearer invalidtoken";
     final String VALID_USER_ID = "1";
 
     final String PLAYLIST_COVER_IMAGE_SOURCE = "images/playlist_cover_450kb_w564_h398.png";
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
