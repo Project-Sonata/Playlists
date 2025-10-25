@@ -43,6 +43,15 @@ public final class DefaultPlaylistService implements PlaylistService {
 
     @Override
     @NotNull
+    public Mono<Playlist> save(@NotNull final Playlist playlist) {
+        final PlaylistEntity playlistEntity = playlistEntityFactory.create(playlist);
+
+        return playlistRepository.save(playlistEntity)
+                .map(it -> playlist);
+    }
+
+    @Override
+    @NotNull
     public Mono<Playlist> update(@NotNull final Playlist playlist) {
         return updatePlaylist(playlist);
     }

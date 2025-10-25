@@ -17,12 +17,16 @@ services:
       # Used to download required dependencies from Suite module
       GITHUB_USERNAME: ${GH_USERNAME}
       GITHUB_ACCESS_TOKEN: ${GH_ACCESS_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 
   db:
     image: 'postgres:15.2'
     container_name: db
+    command: -c 'max_connections=200'
     ports:
-      - "5433:5432"
+      - "5435:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=root
