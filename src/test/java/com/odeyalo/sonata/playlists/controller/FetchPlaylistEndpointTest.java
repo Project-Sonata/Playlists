@@ -11,14 +11,11 @@ import com.odeyalo.sonata.playlists.service.PlaylistService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Hooks;
 import testing.asserts.PlaylistDtoAssert;
-import testing.spring.AutoConfigureSonataStubs;
+import testing.core.AbstractIntegrationTest;
 
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PRIVATE;
 import static com.odeyalo.sonata.playlists.model.PlaylistType.PUBLIC;
@@ -26,12 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataStubs
-@TestPropertySource(locations = "classpath:application-test.properties")
-public class FetchPlaylistEndpointTest {
+public class FetchPlaylistEndpointTest extends AbstractIntegrationTest {
     @Autowired
     WebTestClient webTestClient;
 
@@ -49,7 +41,7 @@ public class FetchPlaylistEndpointTest {
 
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
