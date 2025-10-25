@@ -65,7 +65,7 @@ dependencies {
     testImplementation 'org.springframework.cloud:spring-cloud-contract-stub-runner'
     testImplementation 'io.r2dbc:r2dbc-h2'
     testImplementation "com.github.javafaker:javafaker:${javaFakerVersion}"
-
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 dependencyManagement {

@@ -9,7 +9,6 @@ import com.odeyalo.sonata.playlists.repository.GeneratedPlaylistRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistItemsRepository;
 import com.odeyalo.sonata.playlists.repository.PlaylistRepository;
 import com.odeyalo.sonata.playlists.support.pagination.OffsetBasedPageRequest;
-import com.odeyalo.sonata.suite.brokers.events.SonataEvent;
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.GeneratedPlaylistType;
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.PlaylistImagesGeneratedEvent;
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.payload.GeneratedTrack;
@@ -18,18 +17,14 @@ import com.odeyalo.sonata.suite.brokers.events.playlist.gen.payload.PlaylistMeta
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.payload.PlaylistTracksGeneratedPayload;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.context.ActiveProfiles;
+import testing.core.AbstractIntegrationTest;
 
 import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@ActiveProfiles("test")
-public final class PlaylistGenerationManagerTest {
+public class PlaylistGenerationManagerTest extends AbstractIntegrationTest {
 
     @Autowired
     PlaylistGenerationManager testable;
