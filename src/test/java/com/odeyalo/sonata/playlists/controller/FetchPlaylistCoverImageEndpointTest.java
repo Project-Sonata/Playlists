@@ -20,6 +20,7 @@ import reactor.core.publisher.Hooks;
 import testing.QaControllerOperations;
 import testing.SonataPlaylistHttpTestClient;
 import testing.asserts.ImagesDtoAssert;
+import testing.core.AbstractIntegrationTest;
 import testing.spring.AutoConfigureSonataStubs;
 import testing.spring.autoconfigure.AutoConfigureQaEnvironment;
 import testing.spring.autoconfigure.AutoConfigureSonataPlaylistHttpClient;
@@ -31,14 +32,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.OVERRIDE;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient
-@AutoConfigureSonataPlaylistHttpClient
-@AutoConfigureQaEnvironment
-@AutoConfigureSonataStubs
-@TestPropertySource(locations = "classpath:application-test.properties")
-public class FetchPlaylistCoverImageEndpointTest {
+public class FetchPlaylistCoverImageEndpointTest extends AbstractIntegrationTest {
 
     @Autowired
     WebTestClient webTestClient;
@@ -56,7 +50,7 @@ public class FetchPlaylistCoverImageEndpointTest {
     final String PLAYLIST_OWNER_ID = "1";
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         Hooks.onOperatorDebug(); // DO NOT DELETE IT, VERY IMPORTANT LINE, WITHOUT IT FEIGN WITH WIREMOCK THROWS ILLEGAL STATE EXCEPTION, I DON'T FIND SOLUTION YET
     }
 
