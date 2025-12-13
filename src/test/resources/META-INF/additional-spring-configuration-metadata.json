@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "spring.contracts.repository.root",
+      "type": "java.lang.String",
+      "description": "URL to downloads the stubs from."
+    }
+  ]
+}
