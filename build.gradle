@@ -26,8 +26,17 @@ repositories {
         name = "GitHub-Packages"
         url = "https://maven.pkg.github.com/Project-Sonata/Suite"
         credentials {
-            username = System.getenv("GITHUB_USERNAME")
-            password = System.getenv("GITHUB_ACCESS_TOKEN")
+            username = System.getenv("GITHUB_USERNAME") != null
+                    ?
+                    System.getenv("GITHUB_USERNAME")
+                    :
+                    new File("/run/secrets/github.username").getText("UTF-8")
+
+            password = System.getenv("GITHUB_ACCESS_TOKEN") != null
+                    ?
+                    System.getenv("GITHUB_ACCESS_TOKEN")
+                    :
+                    new File("/run/secrets/github.token").getText("UTF-8")
         }
     }
 }
