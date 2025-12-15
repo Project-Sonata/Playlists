@@ -35,5 +35,5 @@ docker build --secret id=github.username,env=GH_USERNAME --secret id=github.toke
 
 Run container
 ```
-docker run -e DATABASE_CONNECTION_URL=r2dbc:postgresql://playlists-postgres:5432/postgres -e DATABASE_MIGRATION_CONNECTION_URL=jdbc:postgresql://playlists-postgres:5432/postgres -e DATABASE_PASSWORD=root -e DATABASE_USERNAME=postgres --name "playlists.local" --network playlists  -d playlists:latest
+docker run -e DATABASE_CONNECTION_URL=r2dbc:postgresql://playlists-postgres:5432/postgres -e DATABASE_MIGRATION_CONNECTION_URL=jdbc:postgresql://playlists-postgres:5432/postgres -e DATABASE_PASSWORD=root -e DATABASE_USERNAME=postgres --name "playlists.local" --network playlists --memory="256M" --cpus=0.5 -d playlists:latest
 ```
