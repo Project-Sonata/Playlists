@@ -7,7 +7,9 @@ import com.odeyalo.sonata.suite.brokers.events.playlist.gen.PlaylistImagesGenera
 import com.odeyalo.sonata.suite.brokers.events.playlist.gen.payload.GenerativePlaylistEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
@@ -30,9 +32,10 @@ public class KafkaConsumerConfiguration {
     }
 
     @Bean
-    public ReceiverOptions<String, PlaylistImagesGeneratedEvent> generatedPlaylistReceiverOptions(ObjectMapper objectMapper) {
+    public ReceiverOptions<String, PlaylistImagesGeneratedEvent> generatedPlaylistReceiverOptions(@NotNull final ObjectMapper objectMapper,
+                                                                                                  @NotNull final KafkaProperties kafkaProperties) {
         final Map<String, Object> consumerProps = new HashMap<>();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "generated-playlists-consumers");
         consumerProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         consumerProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
