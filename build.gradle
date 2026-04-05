@@ -26,8 +26,17 @@ repositories {
         name = "GitHub-Packages"
         url = "https://maven.pkg.github.com/Project-Sonata/Suite"
         credentials {
-            username = System.getenv("GITHUB_USERNAME")
-            password = System.getenv("GITHUB_ACCESS_TOKEN")
+            username = new File("/run/secrets/github.username").exists()
+                    ?
+                    new File("/run/secrets/github.username").getText("UTF-8")
+                    :
+                    System.getenv("GITHUB_USERNAME")
+
+            password = new File("/run/secrets/github.token").exists()
+                    ?
+                    new File("/run/secrets/github.token").getText("UTF-8")
+                    :
+                    System.getenv("GITHUB_ACCESS_TOKEN")
         }
     }
 }
@@ -71,6 +80,21 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+tasks.register('resolveDependencies') {
+    doLast {
+        def resolve = {
+            ConfigurationContainer configurations ->
+                configurations
+                        .findAll({ Configuration c -> c.isCanBeResolved() })
+                        .each({ c -> c.resolve() })
+        }
+        project.rootProject.allprojects.each { subProject ->
+            resolve(subProject.buildscript.configurations)
+            resolve(subProject.configurations)
+        }
     }
 }
 

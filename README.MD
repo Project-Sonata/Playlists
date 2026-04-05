@@ -18,3 +18,22 @@ Sonata Playlist provides REST API to create, delete and manage playlists.
 - [Change playlist details](docs/Change_playlist_details.MD)
 - [Add items to playlist](docs/Add_item_to_playlist.MD)
 - [Get items of the playlist](docs/Get_playlist_items.MD)
+
+## Build locally
+
+
+Set required env variables
+```
+export GH_USERNAME=username
+export GH_ACCESS_TOKEN=access_token
+```
+
+Build image
+```
+docker build --secret id=github.username,env=GH_USERNAME --secret id=github.token,env=GH_ACCESS_TOKEN -t "playlists" .
+```
+
+Run container
+```
+docker run -e DATABASE_CONNECTION_URL=r2dbc:postgresql://playlists-postgres:5432/postgres -e DATABASE_MIGRATION_CONNECTION_URL=jdbc:postgresql://playlists-postgres:5432/postgres -e DATABASE_PASSWORD=root -e DATABASE_USERNAME=postgres --name "playlists.local" --network playlists --memory="256M" --cpus=0.5 -d playlists:latest
+```
